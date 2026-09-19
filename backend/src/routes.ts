@@ -269,6 +269,7 @@ const ruleBody = z
     limitDays: z.number().int().min(1).max(3660),
     windowDays: z.number().int().min(1).max(3660).nullable().default(null),
     startDate: isoDate.nullable().default(null),
+    autoStart: z.boolean().default(false),
     mode: z.enum(["limit", "goal"]).default("limit"),
     countMode: z.enum(["any", "primary"]).default("any"),
     warnRemainingDays: z.number().int().min(0).max(3660).nullable().default(null),
@@ -277,12 +278,13 @@ const ruleBody = z
   })
   .superRefine((r, ctx) => {
     if (r.type === "rolling" && !r.windowDays) ctx.addIssue({ code: "custom", path: ["windowDays"], message: "rolling rule needs windowDays" });
-    if (r.type === "fromDate" && !r.startDate) ctx.addIssue({ code: "custom", path: ["startDate"], message: "fromDate rule needs startDate" });
+    if (r.type === "fromDate" && !r.startDate && !r.autoStart) ctx.addIssue({ code: "custom", path: ["startDate"], message: "fromDate rule needs startDate or autoStart" });
   });
 
-// insertOne дописывает _id в объект, find возвращает его — наружу не отдаём ни его, ни userId
+// insertOne дописывает _id в объект, find возвращает его — наружу не отдаём ни его, ни userId.
+// autoStart появился позже — у старых документов его нет.
 function publicRule({ userId: _u, _id: _i, ...r }: Rule & { _id?: unknown }) {
-  return r;
+  return { ...r, autoStart: r.autoStart ?? false };
 }
 
 // Правила по умолчанию для нового пользователя — один раз, потом он волен всё удалить
@@ -300,6 +302,7 @@ async function ensureDefaultRules(userId: Point["userId"]) {
     limitDays: 90,
     windowDays: 180,
     startDate: null,
+    autoStart: false,
     mode: "limit",
     countMode: "any",
     warnRemainingDays: 10,

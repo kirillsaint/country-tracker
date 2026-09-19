@@ -196,9 +196,13 @@ struct RuleCard: View {
         case .calendarYear: return "Год \(result.periodStart.prefix(4))."
         case .rolling: return "Окно \(prettyDate(result.periodStart)) – \(prettyDate(result.periodEnd))."
         case .fromDate:
+            if result.autoStart && result.entryDate == nil {
+                return "В стране ещё не были — отсчёт начнётся с первого дня."
+            }
+            let from = result.autoStart ? "С въезда \(prettyDate(result.periodStart))" : "С \(prettyDate(result.periodStart))"
             return result.periodEnd.hasPrefix("9999")
-                ? "С \(prettyDate(result.periodStart))."
-                : "Период \(prettyDate(result.periodStart)) – \(prettyDate(result.periodEnd))."
+                ? "\(from)."
+                : "\(from) до \(prettyDate(result.periodEnd))."
         }
     }
 }

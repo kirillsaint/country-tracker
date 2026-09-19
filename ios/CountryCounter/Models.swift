@@ -159,6 +159,8 @@ struct RuleInput: Codable, Equatable {
     var limitDays: Int
     var windowDays: Int?
     var startDate: String?
+    // fromDate: дата въезда определяется по данным — начало текущего непрерывного пребывания
+    var autoStart: Bool = false
     var mode: RuleMode = .limit
     var countMode: CountMode = .any
     var warnRemainingDays: Int?
@@ -175,6 +177,7 @@ struct Rule: Codable, Identifiable, Equatable {
     var limitDays: Int
     var windowDays: Int?
     var startDate: String?
+    var autoStart: Bool
     var mode: RuleMode
     var countMode: CountMode
     var warnRemainingDays: Int?
@@ -186,7 +189,7 @@ struct Rule: Codable, Identifiable, Equatable {
     var input: RuleInput {
         RuleInput(
             name: name, enabled: enabled, type: type, countries: countries, limitDays: limitDays,
-            windowDays: windowDays, startDate: startDate, mode: mode, countMode: countMode,
+            windowDays: windowDays, startDate: startDate, autoStart: autoStart, mode: mode, countMode: countMode,
             warnRemainingDays: warnRemainingDays, notify: notify, sortOrder: sortOrder
         )
     }
@@ -205,6 +208,8 @@ struct RuleResult: Codable, Identifiable, Equatable {
     let countries: [String]
     let notify: Bool
     let warnRemainingDays: Int?
+    let autoStart: Bool
+    let entryDate: String?
     let periodStart: String
     let periodEnd: String
     let used: Int
@@ -242,8 +247,12 @@ enum RulePresets {
             input: RuleInput(name: "Безвиз", type: .rolling, countries: [], limitDays: 365, windowDays: 365, warnRemainingDays: 30)
         ),
         Preset(
-            id: "visa", title: "Виза с даты въезда", subtitle: "N дней с конкретной даты",
-            input: RuleInput(name: "Виза", type: .fromDate, countries: [], limitDays: 30, windowDays: 90, startDate: todayString(), warnRemainingDays: 5)
+            id: "georgia", title: "Грузия безвиз 365", subtitle: "365 дней с въезда, сбрасывается при выезде",
+            input: RuleInput(name: "Грузия безвиз", type: .fromDate, countries: ["GE"], limitDays: 365, windowDays: 365, autoStart: true, warnRemainingDays: 30)
+        ),
+        Preset(
+            id: "visa", title: "Виза с даты въезда", subtitle: "N дней с въезда в страну",
+            input: RuleInput(name: "Виза", type: .fromDate, countries: [], limitDays: 30, windowDays: 90, autoStart: true, warnRemainingDays: 5)
         ),
         Preset(
             id: "uk", title: "Великобритания 180/365", subtitle: "Не больше 180 дней в любые 365",

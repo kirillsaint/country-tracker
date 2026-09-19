@@ -75,7 +75,8 @@ struct RulesView: View {
         case .rolling: return "\(what) \(pluralDays(r.limitDays)) в любые \(r.windowDays ?? 0) дней"
         case .fromDate:
             let end = r.windowDays.map { " в течение \($0) дней" } ?? ""
-            return "\(what) \(pluralDays(r.limitDays)) с \(r.startDate.map(prettyDate) ?? "?")\(end)"
+            let from = r.autoStart ? "с въезда" : "с \(r.startDate.map(prettyDate) ?? "?")"
+            return "\(what) \(pluralDays(r.limitDays)) \(from)\(end)"
         }
     }
 }

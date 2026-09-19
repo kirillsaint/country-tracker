@@ -1,8 +1,13 @@
 // Скопируйте в Config.xcconfig (он в .gitignore) и заполните.
 
-// Team ID: Xcode -> Settings -> Accounts -> выбрать Apple ID -> колонка Team ID,
-// или https://developer.apple.com/account -> Membership details.
+// Team ID: Xcode -> Settings -> Accounts -> выбрать Apple ID -> справа список команд.
+// У бесплатного аккаунта команда называется "<Имя> (Personal Team)".
 DEVELOPMENT_TEAM = XXXXXXXXXX
+
+// Entitlements:
+//   Full — с Sign in with Apple, требует платный Apple Developer Program
+//   Free — без него, собирается под Personal Team (вход только через Google, подпись живёт 7 дней)
+APP_ENTITLEMENTS = CountryCounter/Entitlements/Full.entitlements
 
 // Google Sign-In. Создать iOS OAuth client в https://console.cloud.google.com/apis/credentials
 // с bundle id ge.kirillsaint.countrycounter. Оттуда же берётся "iOS URL scheme" (reversed client id).

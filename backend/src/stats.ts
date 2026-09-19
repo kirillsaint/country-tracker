@@ -216,6 +216,9 @@ export type RuleResult = {
   countries: string[];
   notify: boolean;
   warnRemainingDays: number | null;
+  autoStart: boolean;
+  // fromDate + autoStart: найденная дата въезда (null, если в стране ещё не были)
+  entryDate: string | null;
   // границы периода, по которому идёт подсчёт (для rolling — текущее окно)
   periodStart: string;
   periodEnd: string;
@@ -237,21 +240,42 @@ function dayMatches(list: Presence[] | undefined, rule: Rule): boolean {
   return list.some((p) => rule.countries.includes(p.countryCode));
 }
 
-function periodOf(rule: Rule, today: string): { start: string; end: string } {
+/**
+ * Дата въезда для autoStart: первый день последнего непрерывного пребывания в странах правила.
+ * Берём последний подходящий день не позже сегодня и идём назад, пока дни идут подряд.
+ * Нет ни одного подходящего дня — null.
+ */
+function detectEntryDate(days: DailyPresence, rule: Rule, today: string): string | null {
+  const dates = [...days.keys()].filter((d) => d <= today).sort();
+  let last: string | null = null;
+  for (let i = dates.length - 1; i >= 0; i--) {
+    if (dayMatches(days.get(dates[i]), rule)) {
+      last = dates[i];
+      break;
+    }
+  }
+  if (!last) return null;
+  let start = last;
+  for (let d = addDays(last, -1); dayMatches(days.get(d), rule); d = addDays(d, -1)) start = d;
+  return start;
+}
+
+function periodOf(days: DailyPresence, rule: Rule, today: string): { start: string; end: string; entryDate: string | null } {
   switch (rule.type) {
     case "calendarYear":
-      return { start: `${today.slice(0, 4)}-01-01`, end: `${today.slice(0, 4)}-12-31` };
+      return { start: `${today.slice(0, 4)}-01-01`, end: `${today.slice(0, 4)}-12-31`, entryDate: null };
     case "rolling":
-      return { start: addDays(today, -((rule.windowDays ?? 180) - 1)), end: today };
+      return { start: addDays(today, -((rule.windowDays ?? 180) - 1)), end: today, entryDate: null };
     case "fromDate": {
-      const start = rule.startDate ?? today;
-      return { start, end: rule.windowDays ? addDays(start, rule.windowDays - 1) : "9999-12-31" };
+      const entryDate = rule.autoStart ? detectEntryDate(days, rule, today) : null;
+      const start = (rule.autoStart ? entryDate : rule.startDate) ?? today;
+      return { start, end: rule.windowDays ? addDays(start, rule.windowDays - 1) : "9999-12-31", entryDate };
     }
   }
 }
 
 export function evaluateRule(days: DailyPresence, rule: Rule, today: string): RuleResult {
-  const { start, end } = periodOf(rule, today);
+  const { start, end, entryDate } = periodOf(days, rule, today);
   const matched = new Set<string>();
   for (const d of datesInRange(days, start, end < today ? end : today)) {
     if (dayMatches(days.get(d), rule)) matched.add(d);
@@ -298,6 +322,8 @@ export function evaluateRule(days: DailyPresence, rule: Rule, today: string): Ru
     countries: rule.countries,
     notify: rule.notify,
     warnRemainingDays: rule.warnRemainingDays,
+    autoStart: rule.autoStart ?? false,
+    entryDate,
     periodStart: start,
     periodEnd: end,
     used,

@@ -46,7 +46,10 @@ struct RuleEditView: View {
                     }
                 }
                 if draft.type == .fromDate {
-                    DatePicker("Начиная с", selection: $startDate, displayedComponents: .date)
+                    Toggle("Дата въезда — автоматически", isOn: $draft.autoStart)
+                    if !draft.autoStart {
+                        DatePicker("Начиная с", selection: $startDate, displayedComponents: .date)
+                    }
                     Toggle("Ограничить период", isOn: Binding(
                         get: { draft.windowDays != nil },
                         set: { draft.windowDays = $0 ? (draft.windowDays ?? 90) : nil }
@@ -60,9 +63,13 @@ struct RuleEditView: View {
             } header: {
                 Text("Как считать")
             } footer: {
-                Text(draft.mode == .limit
-                     ? "Лимит: нельзя превышать (визы, 90/180). " + draft.type.hint
-                     : "Цель: нужно набрать (например, 183 дня для резидентства). " + draft.type.hint)
+                var text = draft.mode == .limit
+                    ? "Лимит: нельзя превышать (визы, 90/180). " + draft.type.hint
+                    : "Цель: нужно набрать (например, 183 дня для резидентства). " + draft.type.hint
+                if draft.type == .fromDate && draft.autoStart {
+                    text += " Дата въезда — первый день текущего непрерывного пребывания в выбранных странах: выехали и вернулись — отсчёт начинается заново. Если данные неточные, выключите автоматику и задайте дату руками."
+                }
+                return Text(text)
             }
 
             Section {
@@ -153,7 +160,7 @@ struct RuleEditView: View {
             input.windowDays = input.windowDays ?? 180
             input.startDate = nil
         case .fromDate:
-            input.startDate = Self.format(startDate)
+            input.startDate = input.autoStart ? nil : Self.format(startDate)
         }
         saving = true
         error = nil

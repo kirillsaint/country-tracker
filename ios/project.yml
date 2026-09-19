@@ -42,10 +42,9 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
-    entitlements:
-      path: CountryCounter/CountryCounter.entitlements
-      properties:
-        com.apple.developer.applesignin: [Default]
+        # Какой файл entitlements брать — задаётся в Config.xcconfig (APP_ENTITLEMENTS):
+        # Full — с Sign in with Apple (нужен платный аккаунт), Free — без него (Personal Team)
+        CODE_SIGN_ENTITLEMENTS: $(APP_ENTITLEMENTS)
     info:
       path: CountryCounter/Info.plist
       properties:
