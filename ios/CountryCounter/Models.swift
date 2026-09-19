@@ -208,8 +208,16 @@ struct RuleResult: Codable, Identifiable, Equatable {
     let countries: [String]
     let notify: Bool
     let warnRemainingDays: Int?
+    struct Stay: Codable, Equatable {
+        let from: String
+        let to: String
+        let days: Int
+    }
+
     let autoStart: Bool
     let entryDate: String?
+    let inCountry: Bool?
+    let lastStay: Stay?
     let periodStart: String
     let periodEnd: String
     let used: Int

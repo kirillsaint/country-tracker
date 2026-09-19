@@ -176,6 +176,16 @@ struct RuleCard: View {
     }
 
     private var caption: String {
+        // Правило "с въезда", а мы сейчас не в стране: отсчёт сброшен
+        if result.autoStart, result.inCountry == false {
+            var s = "Сейчас не в стране — при въезде отсчёт начнётся с нуля: \(pluralDays(result.limit))"
+            if !result.periodEnd.hasPrefix("9999") { s += " в течение \(pluralDays((daysBetween(result.periodStart, result.periodEnd) ?? 0) + 1))" }
+            s += "."
+            if let stay = result.lastStay {
+                s += " Прошлый заезд: \(prettyDate(stay.from)) – \(prettyDate(stay.to)), \(pluralDays(stay.days))."
+            }
+            return s
+        }
         switch (result.mode, result.status) {
         case (.limit, .exceeded):
             return "Лимит превышен на \(pluralDays(result.used - result.limit)). \(period)"
@@ -197,7 +207,7 @@ struct RuleCard: View {
         case .rolling: return "Окно \(prettyDate(result.periodStart)) – \(prettyDate(result.periodEnd))."
         case .fromDate:
             if result.autoStart && result.entryDate == nil {
-                return "В стране ещё не были — отсчёт начнётся с первого дня."
+                return "Отсчёт начнётся с первого дня в стране."
             }
             let from = result.autoStart ? "С въезда \(prettyDate(result.periodStart))" : "С \(prettyDate(result.periodStart))"
             return result.periodEnd.hasPrefix("9999")

@@ -217,8 +217,12 @@ export type RuleResult = {
   notify: boolean;
   warnRemainingDays: number | null;
   autoStart: boolean;
-  // fromDate + autoStart: найденная дата въезда (null, если в стране ещё не были)
+  // fromDate + autoStart: дата текущего въезда (null, если сейчас не в стране)
   entryDate: string | null;
+  // fromDate + autoStart: находимся ли сейчас в странах правила
+  inCountry: boolean | null;
+  // fromDate + autoStart, когда не в стране: последний заезд — справочно
+  lastStay: { from: string; to: string; days: number } | null;
   // границы периода, по которому идёт подсчёт (для rolling — текущее окно)
   periodStart: string;
   periodEnd: string;
@@ -241,41 +245,60 @@ function dayMatches(list: Presence[] | undefined, rule: Rule): boolean {
 }
 
 /**
- * Дата въезда для autoStart: первый день последнего непрерывного пребывания в странах правила.
- * Берём последний подходящий день не позже сегодня и идём назад, пока дни идут подряд.
- * Нет ни одного подходящего дня — null.
+ * Последнее непрерывное пребывание в странах правила: берём последний подходящий день
+ * не позже сегодня и идём назад, пока дни идут подряд. Нет ни одного — null.
  */
-function detectEntryDate(days: DailyPresence, rule: Rule, today: string): string | null {
+function lastStayOf(days: DailyPresence, rule: Rule, today: string): { from: string; to: string; days: number } | null {
   const dates = [...days.keys()].filter((d) => d <= today).sort();
-  let last: string | null = null;
+  let to: string | null = null;
   for (let i = dates.length - 1; i >= 0; i--) {
     if (dayMatches(days.get(dates[i]), rule)) {
-      last = dates[i];
+      to = dates[i];
       break;
     }
   }
-  if (!last) return null;
-  let start = last;
-  for (let d = addDays(last, -1); dayMatches(days.get(d), rule); d = addDays(d, -1)) start = d;
-  return start;
+  if (!to) return null;
+  let from = to;
+  for (let d = addDays(to, -1); dayMatches(days.get(d), rule); d = addDays(d, -1)) from = d;
+  return { from, to, days: daysBetween(from, to) + 1 };
 }
 
-function periodOf(days: DailyPresence, rule: Rule, today: string): { start: string; end: string; entryDate: string | null } {
+type Period = {
+  start: string;
+  end: string;
+  entryDate: string | null;
+  inCountry: boolean | null;
+  lastStay: RuleResult["lastStay"];
+};
+
+function periodOf(days: DailyPresence, rule: Rule, today: string): Period {
+  const none = { entryDate: null, inCountry: null, lastStay: null };
   switch (rule.type) {
     case "calendarYear":
-      return { start: `${today.slice(0, 4)}-01-01`, end: `${today.slice(0, 4)}-12-31`, entryDate: null };
+      return { start: `${today.slice(0, 4)}-01-01`, end: `${today.slice(0, 4)}-12-31`, ...none };
     case "rolling":
-      return { start: addDays(today, -((rule.windowDays ?? 180) - 1)), end: today, entryDate: null };
+      return { start: addDays(today, -((rule.windowDays ?? 180) - 1)), end: today, ...none };
     case "fromDate": {
-      const entryDate = rule.autoStart ? detectEntryDate(days, rule, today) : null;
-      const start = (rule.autoStart ? entryDate : rule.startDate) ?? today;
-      return { start, end: rule.windowDays ? addDays(start, rule.windowDays - 1) : "9999-12-31", entryDate };
+      const endFrom = (start: string) => (rule.windowDays ? addDays(start, rule.windowDays - 1) : "9999-12-31");
+      if (!rule.autoStart) {
+        const start = rule.startDate ?? today;
+        return { start, end: endFrom(start), ...none };
+      }
+      const stay = lastStayOf(days, rule, today);
+      // "Сейчас в стране" = последний подходящий день — сегодня (или вчера, если за сегодня данных ещё нет)
+      const inCountry = !!stay && (stay.to === today || (stay.to === addDays(today, -1) && !days.has(today)));
+      if (inCountry) {
+        return { start: stay!.from, end: endFrom(stay!.from), entryDate: stay!.from, inCountry: true, lastStay: stay };
+      }
+      // Выехали: отсчёт сброшен, период начнётся с будущего въезда. Считаем как будто въезд сегодня,
+      // чтобы used = 0 и canStayDays = полный лимит.
+      return { start: today, end: endFrom(today), entryDate: null, inCountry: false, lastStay: stay };
     }
   }
 }
 
 export function evaluateRule(days: DailyPresence, rule: Rule, today: string): RuleResult {
-  const { start, end, entryDate } = periodOf(days, rule, today);
+  const { start, end, entryDate, inCountry, lastStay } = periodOf(days, rule, today);
   const matched = new Set<string>();
   for (const d of datesInRange(days, start, end < today ? end : today)) {
     if (dayMatches(days.get(d), rule)) matched.add(d);
@@ -304,7 +327,8 @@ export function evaluateRule(days: DailyPresence, rule: Rule, today: string): Ru
       }
       canStayDays = stay;
     } else {
-      canStayDays = Math.min(remaining, daysLeftInPeriod);
+      // вне страны период ещё не начался — сегодняшний день тоже доступен
+      canStayDays = Math.min(remaining, inCountry === false ? daysLeftInPeriod + 1 : daysLeftInPeriod);
     }
   } else {
     reachable = used >= limit || used + daysLeftInPeriod >= limit;
@@ -324,6 +348,8 @@ export function evaluateRule(days: DailyPresence, rule: Rule, today: string): Ru
     warnRemainingDays: rule.warnRemainingDays,
     autoStart: rule.autoStart ?? false,
     entryDate,
+    inCountry,
+    lastStay,
     periodStart: start,
     periodEnd: end,
     used,
