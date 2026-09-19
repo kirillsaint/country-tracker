@@ -13,9 +13,9 @@ struct AuthView: View {
             Spacer()
 
             VStack(spacing: 8) {
-                Text("🌍").font(.system(size: 72))
-                Text("Country Counter").font(.largeTitle.bold())
-                Text("Считает, в каких странах и городах вы проводите время.")
+                Text(verbatim: "🌍").font(.system(size: 72))
+                Text(verbatim: "Country Counter").font(.largeTitle.bold())
+                Text("Counts which countries and cities you spend your time in.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -39,7 +39,7 @@ struct AuthView: View {
                 .opacity(AuthManager.isGoogleConfigured ? 1 : 0.5)
 
                 if !AuthManager.isGoogleConfigured {
-                    Text("Google появится после настройки GOOGLE_CLIENT_ID в Config.xcconfig.")
+                    Text("Google appears once GOOGLE_CLIENT_ID is set in Config.xcconfig.")
                         .font(.caption2).foregroundStyle(.secondary)
                 }
             }
@@ -56,7 +56,7 @@ struct AuthView: View {
             } label: {
                 HStack(spacing: 6) {
                     if checking { ProgressView().controlSize(.small) }
-                    Text(serverStatus ?? "Сервер: \(AppSettings.serverURL?.host() ?? "—")")
+                    Text(serverStatus ?? String(localized: "Server: \(AppSettings.serverURL?.host() ?? "—")"))
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -71,7 +71,7 @@ struct AuthView: View {
         defer { checking = false }
         do {
             try await APIClient.anonymous().health()
-            serverStatus = "Сервер \(AppSettings.serverURL?.host() ?? "") отвечает."
+            serverStatus = String(localized: "Server \(AppSettings.serverURL?.host() ?? "") is reachable.")
         } catch {
             serverStatus = error.localizedDescription
         }

@@ -28,15 +28,15 @@ struct CountryPickerView: View {
         List {
             if !single {
                 Section {
-                    Button("Шенген (\(RulePresets.schengen.count))") { selection = RulePresets.schengen }
-                    Button("Очистить — любая страна", role: .destructive) { selection = [] }
+                    Button("Schengen (\(RulePresets.schengen.count))") { selection = RulePresets.schengen }
+                    Button("Clear — any country", role: .destructive) { selection = [] }
                         .disabled(selection.isEmpty)
                 } footer: {
-                    Text(selection.isEmpty ? "Ничего не выбрано: считаются дни в любой стране." : "Выбрано: \(selection.count)")
+                    Text(selection.isEmpty ? "Nothing selected: days in any country are counted." : "Selected: \(selection.count)")
                 }
 
                 if !selection.isEmpty && query.isEmpty {
-                    Section("Выбранные") {
+                    Section("Selected") {
                         ForEach(selection.sorted(), id: \.self) { code in
                             row(code: code, name: code.countryDisplayName(fallback: nil))
                         }
@@ -44,14 +44,14 @@ struct CountryPickerView: View {
                 }
             }
 
-            Section(query.isEmpty ? "Все страны" : "Найдено") {
+            Section(query.isEmpty ? "All countries" : "Found") {
                 ForEach(filtered, id: \.code) { item in
                     row(code: item.code, name: item.name)
                 }
             }
         }
-        .searchable(text: $query, prompt: "Страна или код")
-        .navigationTitle(single ? "Страна" : "Страны")
+        .searchable(text: $query, prompt: "Country or code")
+        .navigationTitle(single ? "Country" : "Countries")
         .navigationBarTitleDisplayMode(.inline)
     }
 

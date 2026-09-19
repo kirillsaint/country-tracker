@@ -9,9 +9,9 @@ struct RulesView: View {
         List {
             if model.rules.isEmpty {
                 ContentUnavailableView(
-                    "Правил пока нет",
+                    "No rules yet",
                     systemImage: "list.bullet.clipboard",
-                    description: Text("Добавьте правило кнопкой «+» — например, Шенген 90/180 или 183 дня резидентства.")
+                    description: Text("Add a rule with “+” — for example, Schengen 90/180 or 183 days of residency.")
                 )
             }
             ForEach(model.rules) { rule in
@@ -38,7 +38,7 @@ struct RulesView: View {
                 Task { for r in toDelete { await model.delete(r) } }
             }
         }
-        .navigationTitle("Правила подсчёта")
+        .navigationTitle("Counting rules")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Menu {
@@ -53,7 +53,7 @@ struct RulesView: View {
                         }
                     }
                     Divider()
-                    Button("Своё правило", systemImage: "slider.horizontal.3") {
+                    Button("Custom rule", systemImage: "slider.horizontal.3") {
                         newRule = RuleInput(name: "", type: .rolling, countries: [], limitDays: 90, windowDays: 180)
                     }
                 } label: {
@@ -69,14 +69,17 @@ struct RulesView: View {
     }
 
     private func summary(_ r: Rule) -> String {
-        let what = r.mode == .limit ? "не больше" : "цель"
-        switch r.type {
-        case .calendarYear: return "\(what) \(pluralDays(r.limitDays)) за календарный год"
-        case .rolling: return "\(what) \(pluralDays(r.limitDays)) в любые \(r.windowDays ?? 0) дней"
-        case .fromDate:
-            let end = r.windowDays.map { " в течение \($0) дней" } ?? ""
-            let from = r.autoStart ? "с въезда" : "с \(r.startDate.map(prettyDate) ?? "?")"
-            return "\(what) \(pluralDays(r.limitDays)) \(from)\(end)"
+        let limit = pluralDays(r.limitDays)
+        switch (r.mode, r.type) {
+        case (.limit, .calendarYear): return String(localized: "no more than \(limit) per calendar year")
+        case (.goal, .calendarYear): return String(localized: "goal: \(limit) per calendar year")
+        case (.limit, .rolling): return String(localized: "no more than \(limit) in any \(r.windowDays ?? 0) days")
+        case (.goal, .rolling): return String(localized: "goal: \(limit) in any \(r.windowDays ?? 0) days")
+        case (_, .fromDate):
+            let from = r.autoStart ? String(localized: "from entry") : String(localized: "from \(r.startDate.map(prettyDate) ?? "?")")
+            let base = r.mode == .limit ? String(localized: "no more than \(limit) \(from)") : String(localized: "goal: \(limit) \(from)")
+            if let w = r.windowDays { return base + " " + String(localized: "within \(w) days") }
+            return base
         }
     }
 }

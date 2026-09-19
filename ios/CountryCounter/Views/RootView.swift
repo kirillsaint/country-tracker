@@ -18,14 +18,17 @@ struct RootView: View {
         if auth.isSignedIn {
             TabView(selection: $tab) {
                 HomeView()
-                    .tabItem { Label("Сейчас", systemImage: "location.fill") }
+                    .tabItem { Label("Now", systemImage: "location.fill") }
                     .tag(0)
                 TimelineView()
-                    .tabItem { Label("История", systemImage: "calendar") }
+                    .tabItem { Label("History", systemImage: "calendar") }
                     .tag(1)
-                NavigationStack { SettingsView() }
-                    .tabItem { Label("Настройки", systemImage: "gearshape") }
+                MapScreen()
+                    .tabItem { Label("Map", systemImage: "map") }
                     .tag(2)
+                NavigationStack { SettingsView() }
+                    .tabItem { Label("Settings", systemImage: "gearshape") }
+                    .tag(3)
             }
             .task(id: auth.token) {
                 await auth.restore()

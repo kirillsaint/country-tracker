@@ -1,0 +1,2408 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "%@ has been linked to your existing account.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ привязан к вашему существующему аккаунту."
+          }
+        }
+      }
+    },
+    "%@ left, you can stay %@ more in a row.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Осталось %@, можно остаться ещё %@ подряд."
+          }
+        }
+      }
+    },
+    "%@ left.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Осталось %@."
+          }
+        }
+      }
+    },
+    "%@ linked.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ привязан."
+          }
+        }
+      }
+    },
+    "%@ of %lld left.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Осталось %@ из %lld."
+          }
+        }
+      }
+    },
+    "%@ of %lld left. You can stay %@ more in a row.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Осталось %@ из %lld. Можно остаться ещё %@ подряд."
+          }
+        }
+      }
+    },
+    "%@ to go.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "До цели %@."
+          }
+        }
+      }
+    },
+    "%@ unlinked.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ отвязан."
+          }
+        }
+      }
+    },
+    "%@ waiting to be uploaded": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ждут отправки на сервер"
+          }
+        }
+      }
+    },
+    "%lld cities": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld city"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld cities"
+                }
+              }
+            }
+          }
+        },
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld город"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld города"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld городов"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld города"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld countries": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld country"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld countries"
+                }
+              }
+            }
+          }
+        },
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld страна"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld страны"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld стран"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld страны"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld days": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld day"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld days"
+                }
+              }
+            }
+          }
+        },
+        "ru": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld дня"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld дней"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld день"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld дня"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld of %lld": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld из %lld"
+          }
+        }
+      }
+    },
+    "%lld points": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld point"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld points"
+                }
+              }
+            }
+          }
+        },
+        "ru": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld точки"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld точек"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld точка"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld точки"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "+%@": {},
+    "183 days per calendar year": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "183 дня за календарный год"
+          }
+        }
+      }
+    },
+    "365 days from entry, resets when you leave": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "365 дней с въезда, сбрасывается при выезде"
+          }
+        }
+      }
+    },
+    "A day counts as": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "День засчитывается"
+          }
+        }
+      }
+    },
+    "A fixed period starting on a chosen date — for example, a visa term.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фиксированный период с выбранной даты — например, срок визы."
+          }
+        }
+      }
+    },
+    "A safety net in case iOS doesn’t report movement for a long time. The interval is not guaranteed.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Страховка на случай, если iOS долго не присылает события перемещения. Интервал не гарантирован."
+          }
+        }
+      }
+    },
+    "Account": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Аккаунт"
+          }
+        }
+      }
+    },
+    "Add": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавить"
+          }
+        }
+      }
+    },
+    "Add a counting rule": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавить правило подсчёта"
+          }
+        }
+      }
+    },
+    "Add a rule with “+” — for example, Schengen 90/180 or 183 days of residency.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавьте правило кнопкой «+» — например, Шенген 90/180 или 183 дня резидентства."
+          }
+        }
+      }
+    },
+    "Add trips from before you installed the app, or fix days where location was wrong.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавьте поездки до установки приложения или поправьте дни, где геолокация ошиблась."
+          }
+        }
+      }
+    },
+    "All": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Все"
+          }
+        }
+      }
+    },
+    "All countries": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Все страны"
+          }
+        }
+      }
+    },
+    "All time": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "За всё время"
+          }
+        }
+      }
+    },
+    "Allow": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разрешить"
+          }
+        }
+      }
+    },
+    "Any": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Любая"
+          }
+        }
+      }
+    },
+    "Any country": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Любая страна"
+          }
+        }
+      }
+    },
+    "Any presence": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Любой заход"
+          }
+        }
+      }
+    },
+    "App language": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Язык приложения"
+          }
+        }
+      }
+    },
+    "Apple didn’t return an identity token.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple не вернул identity token."
+          }
+        }
+      }
+    },
+    "Calendar year": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Календарный год"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отмена"
+          }
+        }
+      }
+    },
+    "Choose": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрать"
+          }
+        }
+      }
+    },
+    "Cities": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Города"
+          }
+        }
+      }
+    },
+    "City (optional)": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Город (необязательно)"
+          }
+        }
+      }
+    },
+    "Clear — any country": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистить — любая страна"
+          }
+        }
+      }
+    },
+    "Couldn’t get a location.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось получить локацию."
+          }
+        }
+      }
+    },
+    "Counting": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подсчёт"
+          }
+        }
+      }
+    },
+    "Counting rules": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Правила подсчёта"
+          }
+        }
+      }
+    },
+    "Countries": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Страны"
+          }
+        }
+      }
+    },
+    "Countries this year": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Страны в этом году"
+          }
+        }
+      }
+    },
+    "Countries this year on the main screen": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Список стран за год на главном"
+          }
+        }
+      }
+    },
+    "Country": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Страна"
+          }
+        }
+      }
+    },
+    "Country Counter map": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Карта Country Counter"
+          }
+        }
+      }
+    },
+    "Country or code": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Страна или код"
+          }
+        }
+      }
+    },
+    "Counts days from January 1 to December 31.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Считаются дни с 1 января по 31 декабря."
+          }
+        }
+      }
+    },
+    "Counts which countries and cities you spend your time in.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Считает, в каких странах и городах вы проводите время."
+          }
+        }
+      }
+    },
+    "Custom rule": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Своё правило"
+          }
+        }
+      }
+    },
+    "Delete": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить"
+          }
+        }
+      }
+    },
+    "Delete rule": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить правило"
+          }
+        }
+      }
+    },
+    "Delete this rule?": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить правило?"
+          }
+        }
+      }
+    },
+    "Detect entry date automatically": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дата въезда — автоматически"
+          }
+        }
+      }
+    },
+    "Done": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Готово"
+          }
+        }
+      }
+    },
+    "Duration": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Длительность"
+          }
+        }
+      }
+    },
+    "Error: %@": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ошибка: %@"
+          }
+        }
+      }
+    },
+    "Export PNG": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Экспорт в PNG"
+          }
+        }
+      }
+    },
+    "For a goal, the notification comes once — when it is reached.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для цели уведомление приходит один раз — когда она достигнута."
+          }
+        }
+      }
+    },
+    "For example, Schengen 90/180": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Например, Шенген 90/180"
+          }
+        }
+      }
+    },
+    "Found": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Найдено"
+          }
+        }
+      }
+    },
+    "From": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "С"
+          }
+        }
+      }
+    },
+    "From %@ until %@.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "С %@ до %@."
+          }
+        }
+      }
+    },
+    "From a date": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "С даты"
+          }
+        }
+      }
+    },
+    "Georgia visa-free": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Грузия безвиз"
+          }
+        }
+      }
+    },
+    "Georgia visa-free 365": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Грузия безвиз 365"
+          }
+        }
+      }
+    },
+    "Goal": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цель"
+          }
+        }
+      }
+    },
+    "Goal reached.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цель достигнута."
+          }
+        }
+      }
+    },
+    "Goal reached: %@ of %lld.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цель достигнута: %@ из %lld."
+          }
+        }
+      }
+    },
+    "Goal: must be reached (for example, 183 days for residency).": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цель: нужно набрать (например, 183 дня для резидентства)."
+          }
+        }
+      }
+    },
+    "Google Sign-In is not configured: set GOOGLE_CLIENT_ID in Config.xcconfig.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google Sign-In не настроен: заполните GOOGLE_CLIENT_ID в Config.xcconfig."
+          }
+        }
+      }
+    },
+    "Google appears once GOOGLE_CLIENT_ID is set in Config.xcconfig.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google появится после настройки GOOGLE_CLIENT_ID в Config.xcconfig."
+          }
+        }
+      }
+    },
+    "Google didn’t return an ID token.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google не вернул id token."
+          }
+        }
+      }
+    },
+    "History": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "История"
+          }
+        }
+      }
+    },
+    "History is empty": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "История пуста"
+          }
+        }
+      }
+    },
+    "Hourly background point": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ежечасная точка в фоне"
+          }
+        }
+      }
+    },
+    "How to count": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Как считать"
+          }
+        }
+      }
+    },
+    "In any": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В любые"
+          }
+        }
+      }
+    },
+    "In any N consecutive days (for example, 90 out of 180 for Schengen).": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В любые N подряд идущих дней (например, 90 из 180 для Шенгена)."
+          }
+        }
+      }
+    },
+    "Inclusive. Days in this range count as spent in the selected country, whatever location data says.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Включительно. Дни в этом диапазоне будут считаться проведёнными в выбранной стране, что бы ни говорила геолокация."
+          }
+        }
+      }
+    },
+    "Last point: %@ · %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последняя точка: %@ · %@"
+          }
+        }
+      }
+    },
+    "Limit": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Лимит"
+          }
+        }
+      }
+    },
+    "Limit exceeded by %@.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Лимит превышен на %@."
+          }
+        }
+      }
+    },
+    "Limit the period": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ограничить период"
+          }
+        }
+      }
+    },
+    "Limit: must not be exceeded (visas, 90/180).": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Лимит: нельзя превышать (визы, 90/180)."
+          }
+        }
+      }
+    },
+    "Link": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Привязать"
+          }
+        }
+      }
+    },
+    "Linked": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Привязан"
+          }
+        }
+      }
+    },
+    "Loading map…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Загрузка карты…"
+          }
+        }
+      }
+    },
+    "Loading profile…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Загрузка профиля…"
+          }
+        }
+      }
+    },
+    "Location": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Геолокация"
+          }
+        }
+      }
+    },
+    "Main country of the day": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Основная страна дня"
+          }
+        }
+      }
+    },
+    "Manual entries": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ручные записи"
+          }
+        }
+      }
+    },
+    "Map": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Карта"
+          }
+        }
+      }
+    },
+    "Mode": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Режим"
+          }
+        }
+      }
+    },
+    "Monitoring started": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мониторинг запущен"
+          }
+        }
+      }
+    },
+    "N days from entering the country": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "N дней с въезда в страну"
+          }
+        }
+      }
+    },
+    "Name": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Название"
+          }
+        }
+      }
+    },
+    "Need to reach": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нужно набрать"
+          }
+        }
+      }
+    },
+    "New entry": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новая запись"
+          }
+        }
+      }
+    },
+    "New rule": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новое правило"
+          }
+        }
+      }
+    },
+    "No cities yet": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Городов пока нет"
+          }
+        }
+      }
+    },
+    "No data yet": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пока нет данных"
+          }
+        }
+      }
+    },
+    "No longer reachable in this period: not enough days until %@.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В этом периоде уже недостижимо: не хватит дней до %@."
+          }
+        }
+      }
+    },
+    "No manual entries": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ручных записей нет"
+          }
+        }
+      }
+    },
+    "No more than": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не больше"
+          }
+        }
+      }
+    },
+    "No more than 180 days in any 365": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не больше 180 дней в любые 365"
+          }
+        }
+      }
+    },
+    "No more than 90 days in any 180": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не больше 90 дней в любые 180"
+          }
+        }
+      }
+    },
+    "No rules yet": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Правил пока нет"
+          }
+        }
+      }
+    },
+    "No window to present Google sign-in.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не найдено окно для показа входа Google."
+          }
+        }
+      }
+    },
+    "Not in the country now — the count restarts on entry: %@ within %@.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сейчас не в стране — при въезде отсчёт начнётся заново: %@ в течение %@."
+          }
+        }
+      }
+    },
+    "Not in the country now — the count restarts on entry: %@.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сейчас не в стране — при въезде отсчёт начнётся заново: %@."
+          }
+        }
+      }
+    },
+    "Note (optional)": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Заметка (необязательно)"
+          }
+        }
+      }
+    },
+    "Nothing selected: days in any country are counted.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ничего не выбрано: считаются дни в любой стране."
+          }
+        }
+      }
+    },
+    "Notifications are blocked — open iOS Settings": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Уведомления запрещены — открыть настройки iOS"
+          }
+        }
+      }
+    },
+    "Notifications for this rule": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Уведомления по этому правилу"
+          }
+        }
+      }
+    },
+    "Now": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сейчас"
+          }
+        }
+      }
+    },
+    "Now: %@. Without “Always”, the app only learns about a move when you open it.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сейчас: %@. Без режима «Всегда» приложение узнает о переезде только когда вы его откроете."
+          }
+        }
+      }
+    },
+    "Open iOS Settings": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть настройки iOS"
+          }
+        }
+      }
+    },
+    "Override address (debug)": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переопределить адрес (debug)"
+          }
+        }
+      }
+    },
+    "Period": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Период"
+          }
+        }
+      }
+    },
+    "Permission": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разрешение"
+          }
+        }
+      }
+    },
+    "Permission: %@": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разрешение: %@"
+          }
+        }
+      }
+    },
+    "Point on request (%@)": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Точка по запросу (%@)"
+          }
+        }
+      }
+    },
+    "Point recorded and uploaded.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Точка записана и отправлена."
+          }
+        }
+      }
+    },
+    "Previous stay: %@ – %@, %@.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Прошлый заезд: %@ – %@, %@."
+          }
+        }
+      }
+    },
+    "Recent events": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последние события"
+          }
+        }
+      }
+    },
+    "Record a point now": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Записать точку сейчас"
+          }
+        }
+      }
+    },
+    "Request permission": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запросить разрешение"
+          }
+        }
+      }
+    },
+    "Reset zoom": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сбросить масштаб"
+          }
+        }
+      }
+    },
+    "Residency": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Резидентство"
+          }
+        }
+      }
+    },
+    "Rolling window": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скользящее окно"
+          }
+        }
+      }
+    },
+    "Rule": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Правило"
+          }
+        }
+      }
+    },
+    "Rule enabled": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Правило включено"
+          }
+        }
+      }
+    },
+    "Rule notifications": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Уведомления по правилам"
+          }
+        }
+      }
+    },
+    "Rules": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Правила"
+          }
+        }
+      }
+    },
+    "Save": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранить"
+          }
+        }
+      }
+    },
+    "Schengen (%lld)": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шенген (%lld)"
+          }
+        }
+      }
+    },
+    "Schengen 90/180": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шенген 90/180"
+          }
+        }
+      }
+    },
+    "Selected": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбранные"
+          }
+        }
+      }
+    },
+    "Selected: %lld": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрано: %lld"
+          }
+        }
+      }
+    },
+    "Server": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сервер"
+          }
+        }
+      }
+    },
+    "Server %@ is reachable.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сервер %@ отвечает."
+          }
+        }
+      }
+    },
+    "Server address is not set.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не задан адрес сервера."
+          }
+        }
+      }
+    },
+    "Server responded %lld: %@": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сервер ответил %lld: %@"
+          }
+        }
+      }
+    },
+    "Server: %@": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сервер: %@"
+          }
+        }
+      }
+    },
+    "Session expired, please sign in again.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сессия истекла, войдите заново."
+          }
+        }
+      }
+    },
+    "Session is no longer valid, please sign in again.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сессия недействительна, войдите заново."
+          }
+        }
+      }
+    },
+    "Settings": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настройки"
+          }
+        }
+      }
+    },
+    "Sign out": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выйти"
+          }
+        }
+      }
+    },
+    "Sign out?": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выйти из аккаунта?"
+          }
+        }
+      }
+    },
+    "Significant location change": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Significant change"
+          }
+        }
+      }
+    },
+    "Since %@.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "С %@."
+          }
+        }
+      }
+    },
+    "Since entry on %@ until %@.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "С въезда %@ до %@."
+          }
+        }
+      }
+    },
+    "Since entry on %@.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "С въезда %@."
+          }
+        }
+      }
+    },
+    "Starting on": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Начиная с"
+          }
+        }
+      }
+    },
+    "Tax residency": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Налоговое резидентство"
+          }
+        }
+      }
+    },
+    "The app follows the iPhone language (English or Russian). You can pick a different one for this app in iOS Settings → Country Counter → Language.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Приложение следует языку iPhone (английский или русский). Для этого приложения можно выбрать другой язык: Настройки iOS → Country Counter → Язык."
+          }
+        }
+      }
+    },
+    "The city comes from the device when a point is recorded; days without a city are shown as “—”.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Город берётся с устройства в момент записи точки; дни без города показаны как «—»."
+          }
+        }
+      }
+    },
+    "The count starts on your first day in the country.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отсчёт начнётся с первого дня в стране."
+          }
+        }
+      }
+    },
+    "The entry date is the first day of your current uninterrupted stay in the selected countries: leave and come back — the count starts over. If the data is inaccurate, turn the automation off and set the date by hand.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дата въезда — первый день текущего непрерывного пребывания в выбранных странах: выехали и вернулись — отсчёт начинается заново. Если данные неточные, выключите автоматику и задайте дату руками."
+          }
+        }
+      }
+    },
+    "The first point is recorded automatically. Or tap “Record a point now” in Settings.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Первая точка запишется автоматически. Или нажмите «Записать точку сейчас» в настройках."
+          }
+        }
+      }
+    },
+    "The limit of %@ is used up: %lld used.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Лимит %@ исчерпан: использовано %lld."
+          }
+        }
+      }
+    },
+    "The server address is set in the build.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Адрес сервера задан в сборке."
+          }
+        }
+      }
+    },
+    "The simulator talks to localhost:3000, a real phone — to production. The field above overrides the address in Debug builds only; sign out and back in after changing it.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Симулятор ходит в localhost:3000, телефон — в прод. Поле выше переопределяет адрес только в Debug-сборке; после смены выйдите и войдите заново."
+          }
+        }
+      }
+    },
+    "This year": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В этом году"
+          }
+        }
+      }
+    },
+    "Timeline": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Хронология"
+          }
+        }
+      }
+    },
+    "To": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По"
+          }
+        }
+      }
+    },
+    "Tracking": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Трекинг"
+          }
+        }
+      }
+    },
+    "UK 180/365": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "UK 180/365"
+          }
+        }
+      }
+    },
+    "United Kingdom 180/365": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Великобритания 180/365"
+          }
+        }
+      }
+    },
+    "Unlink": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отвязать"
+          }
+        }
+      }
+    },
+    "Upload queue (%lld)": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отправить очередь (%lld)"
+          }
+        }
+      }
+    },
+    "Uploaded: %lld": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отправлено: %lld"
+          }
+        }
+      }
+    },
+    "Visa": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Виза"
+          }
+        }
+      }
+    },
+    "Visa from entry date": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Виза с даты въезда"
+          }
+        }
+      }
+    },
+    "Visit: arrived": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visit: приехал"
+          }
+        }
+      }
+    },
+    "Visit: departed": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visit: уехал"
+          }
+        }
+      }
+    },
+    "Warn in advance": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Предупреждать заранее"
+          }
+        }
+      }
+    },
+    "Warnings": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Предупреждения"
+          }
+        }
+      }
+    },
+    "When this many days are left": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Когда осталось"
+          }
+        }
+      }
+    },
+    "Window %@ – %@.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Окно %@ – %@."
+          }
+        }
+      }
+    },
+    "Year %@.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Год %@."
+          }
+        }
+      }
+    },
+    "You can link both sign-in methods to land in the same account.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Можно привязать оба способа входа, чтобы попадать в один и тот же аккаунт."
+          }
+        }
+      }
+    },
+    "You get a notification when a rule has few days left (the threshold is set in the rule), the limit is used up, or the goal is reached.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Уведомление приходит, когда по правилу остаётся мало дней (порог задаётся в правиле), лимит исчерпан или цель достигнута."
+          }
+        }
+      }
+    },
+    "You need to sign in.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нужно войти в аккаунт."
+          }
+        }
+      }
+    },
+    "Your data stays on the server. Points recorded before the next sign-in are kept locally.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Данные останутся на сервере. Точки, записанные до следующего входа, накопятся локально."
+          }
+        }
+      }
+    },
+    "all time": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "за всё время"
+          }
+        }
+      }
+    },
+    "always": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "всегда"
+          }
+        }
+      }
+    },
+    "denied": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "запрещено"
+          }
+        }
+      }
+    },
+    "from %@": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "с %@"
+          }
+        }
+      }
+    },
+    "from entry": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "с въезда"
+          }
+        }
+      }
+    },
+    "goal: %@ %@": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "цель: %@ %@"
+          }
+        }
+      }
+    },
+    "goal: %@ in any %lld days": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "цель: %@ в любые %lld дней"
+          }
+        }
+      }
+    },
+    "goal: %@ per calendar year": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "цель: %@ за календарный год"
+          }
+        }
+      }
+    },
+    "in a row, since %@": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "подряд, с %@"
+          }
+        }
+      }
+    },
+    "no more than %@ %@": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "не больше %@ %@"
+          }
+        }
+      }
+    },
+    "no more than %@ in any %lld days": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "не больше %@ в любые %lld дней"
+          }
+        }
+      }
+    },
+    "no more than %@ per calendar year": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "не больше %@ за календарный год"
+          }
+        }
+      }
+    },
+    "not requested": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "не запрошено"
+          }
+        }
+      }
+    },
+    "restricted": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ограничено"
+          }
+        }
+      }
+    },
+    "this year": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "в этом году"
+          }
+        }
+      }
+    },
+    "unknown": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "неизвестно"
+          }
+        }
+      }
+    },
+    "while using": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "при использовании"
+          }
+        }
+      }
+    },
+    "within %lld days": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "в течение %lld дней"
+          }
+        }
+      }
+    },
+    "“Always” location access needed": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нужна геолокация «Всегда»"
+          }
+        }
+      }
+    },
+    "“Any presence” — the day counts if you were in the country for at least part of it; that’s how almost all visa rules work. “Main country of the day” — only if it was the last country that day.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "«Любой заход» — день считается, если вы были в стране хотя бы часть дня; так работают почти все визовые правила. «Основная страна дня» — только если это последняя страна за день."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

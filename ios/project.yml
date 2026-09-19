@@ -6,6 +6,7 @@ options:
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true
+  developmentLanguage: en
 
 configFiles:
   # Team ID и Google client id — свои у каждого, поэтому лежат в гитигноренном файле.
@@ -49,6 +50,9 @@ targets:
       path: CountryCounter/Info.plist
       properties:
         CFBundleDisplayName: Country Counter
+        # Языки приложения — по ним iOS показывает выбор языка в Настройках -> Country Counter
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, ru]
         CFBundleShortVersionString: "0.1.0"
         CFBundleVersion: "1"
         UILaunchScreen: {}

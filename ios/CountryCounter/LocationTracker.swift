@@ -60,7 +60,7 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
             manager.startMonitoringSignificantLocationChanges()
         }
         manager.startMonitoringVisits()
-        note("Мониторинг запущен")
+        note(String(localized: "Monitoring started"))
     }
 
     /// Запросить одну точку (для ежечасного BGTask и кнопки "записать сейчас").
@@ -105,7 +105,7 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         authorization = manager.authorizationStatus
-        note("Разрешение: \(authorization.label)")
+        note(String(localized: "Permission: \(authorization.label)"))
         startMonitoringIfAuthorized()
     }
 
@@ -121,7 +121,7 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
             verticalAccuracy: -1,
             timestamp: recordedAt
         )
-        note(departure == nil ? "Visit: приехал" : "Visit: уехал")
+        note(departure == nil ? String(localized: "Visit: arrived") : String(localized: "Visit: departed"))
         record(location, source: .visit, arrival: arrival, departure: departure)
     }
 
@@ -130,7 +130,7 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
 
         if let pending = oneShot {
             oneShot = nil
-            note("Точка по запросу (\(pending.source.rawValue))")
+            note(String(localized: "Point on request (\(pending.source.rawValue))"))
             record(location, source: pending.source, arrival: nil, departure: nil)
             pending.continuation.resume(returning: true)
             return
@@ -139,13 +139,13 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
         // Significant changes иногда приходят пачкой — не плодим точки чаще, чем раз в 5 минут.
         if let last = lastSignificantAt, Date().timeIntervalSince(last) < 5 * 60 { return }
         lastSignificantAt = Date()
-        note("Significant change")
+        note(String(localized: "Significant location change"))
         record(location, source: .significant, arrival: nil, departure: nil)
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         log.error("location error: \(error.localizedDescription)")
-        note("Ошибка: \(error.localizedDescription)")
+        note(String(localized: "Error: \(error.localizedDescription)"))
         if let pending = oneShot {
             oneShot = nil
             pending.continuation.resume(returning: false)
@@ -215,12 +215,12 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
 extension CLAuthorizationStatus {
     var label: String {
         switch self {
-        case .notDetermined: return "не запрошено"
-        case .restricted: return "ограничено"
-        case .denied: return "запрещено"
-        case .authorizedAlways: return "всегда"
-        case .authorizedWhenInUse: return "при использовании"
-        @unknown default: return "неизвестно"
+        case .notDetermined: return String(localized: "not requested")
+        case .restricted: return String(localized: "restricted")
+        case .denied: return String(localized: "denied")
+        case .authorizedAlways: return String(localized: "always")
+        case .authorizedWhenInUse: return String(localized: "while using")
+        @unknown default: return String(localized: "unknown")
         }
     }
 }

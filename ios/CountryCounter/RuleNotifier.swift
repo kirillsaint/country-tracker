@@ -60,13 +60,15 @@ enum RuleNotifier {
         content.sound = .default
         switch r.status {
         case .exceeded:
-            content.body = "Лимит \(pluralDays(r.limit)) исчерпан: использовано \(r.used)."
+            content.body = String(localized: "The limit of \(pluralDays(r.limit)) is used up: \(r.used) used.")
         case .reached:
-            content.body = "Цель достигнута: \(pluralDays(r.used)) из \(r.limit)."
+            content.body = String(localized: "Goal reached: \(pluralDays(r.used)) of \(r.limit).")
         case .warning:
-            var body = "Осталось \(pluralDays(r.remaining)) из \(r.limit)."
-            if let stay = r.canStayDays { body += " Можно остаться ещё \(pluralDays(stay)) подряд." }
-            content.body = body
+            if let stay = r.canStayDays {
+                content.body = String(localized: "\(pluralDays(r.remaining)) of \(r.limit) left. You can stay \(pluralDays(stay)) more in a row.")
+            } else {
+                content.body = String(localized: "\(pluralDays(r.remaining)) of \(r.limit) left.")
+            }
         case .ok:
             return
         }

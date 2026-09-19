@@ -8,8 +8,8 @@ struct TimelineView: View {
         NavigationStack {
             List {
                 Picker("", selection: $segment) {
-                    Text("Хронология").tag(0)
-                    Text("Города").tag(1)
+                    Text("Timeline").tag(0)
+                    Text("Cities").tag(1)
                 }
                 .pickerStyle(.segmented)
                 .listRowBackground(Color.clear)
@@ -21,14 +21,14 @@ struct TimelineView: View {
                     cityRows
                 }
             }
-            .navigationTitle("История")
+            .navigationTitle("History")
             .refreshable { await model.refresh() }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     NavigationLink {
                         ManualEntriesView()
                     } label: {
-                        Label("Ручные записи", systemImage: "square.and.pencil")
+                        Label("Manual entries", systemImage: "square.and.pencil")
                     }
                 }
             }
@@ -38,7 +38,7 @@ struct TimelineView: View {
     @ViewBuilder
     private var timelineRows: some View {
         if model.timeline.isEmpty {
-            ContentUnavailableView("История пуста", systemImage: "calendar.badge.clock")
+            ContentUnavailableView("History is empty", systemImage: "calendar.badge.clock")
         } else {
             ForEach(model.timeline) { s in
                 HStack(alignment: .center, spacing: 12) {
@@ -49,7 +49,7 @@ struct TimelineView: View {
                         if let city = s.city {
                             Text(city).foregroundStyle(.secondary)
                         }
-                        Text(s.from == s.to ? prettyDate(s.from) : "\(prettyDate(s.from)) – \(prettyDate(s.to))")
+                        Text(verbatim: s.from == s.to ? prettyDate(s.from) : "\(prettyDate(s.from)) – \(prettyDate(s.to))")
                             .font(.caption).foregroundStyle(.secondary)
                     }
                     Spacer()
@@ -63,7 +63,7 @@ struct TimelineView: View {
     @ViewBuilder
     private var cityRows: some View {
         if model.cities.isEmpty {
-            ContentUnavailableView("Городов пока нет", systemImage: "building.2")
+            ContentUnavailableView("No cities yet", systemImage: "building.2")
         } else {
             Section {
                 ForEach(model.cities) { c in
@@ -71,7 +71,7 @@ struct TimelineView: View {
                         FlagView(code: c.countryCode, width: 36)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(c.city).font(.headline)
-                            Text("\(c.countryCode.countryDisplayName(fallback: c.countryName)) · \(prettyDate(c.firstDay)) – \(prettyDate(c.lastDay))")
+                            Text(verbatim: "\(c.countryCode.countryDisplayName(fallback: c.countryName)) · \(prettyDate(c.firstDay)) – \(prettyDate(c.lastDay))")
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                         Spacer()
@@ -79,7 +79,7 @@ struct TimelineView: View {
                     }
                 }
             } footer: {
-                Text("Город берётся с устройства в момент записи точки; дни без города показаны как «—».")
+                Text("The city comes from the device when a point is recorded; days without a city are shown as “—”.")
             }
         }
     }

@@ -25,14 +25,14 @@ struct SettingsView: View {
                 NavigationLink {
                     RulesView()
                 } label: {
-                    LabeledContent("Правила подсчёта", value: "\(model.rules.filter(\.enabled).count) из \(model.rules.count)")
+                    LabeledContent("Counting rules", value: String(localized: "\(model.rules.filter(\.enabled).count) of \(model.rules.count)"))
                 }
                 NavigationLink {
                     ManualEntriesView()
                 } label: {
-                    LabeledContent("Ручные записи", value: "\(model.manualRanges.count)")
+                    LabeledContent("Manual entries", value: "\(model.manualRanges.count)")
                 }
-                Toggle("Уведомления по правилам", isOn: $notificationsEnabled)
+                Toggle("Rule notifications", isOn: $notificationsEnabled)
                     .onChange(of: notificationsEnabled) { _, on in
                         guard on else { return }
                         Task {
@@ -43,30 +43,30 @@ struct SettingsView: View {
                         }
                     }
                 if notificationsDenied {
-                    Button("Уведомления запрещены — открыть настройки iOS") {
+                    Button("Notifications are blocked — open iOS Settings") {
                         if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
                     }
                     .font(.footnote)
                 }
-                Toggle("Список стран за год на главном", isOn: $showCountries)
+                Toggle("Countries this year on the main screen", isOn: $showCountries)
             } header: {
-                Text("Подсчёт")
+                Text("Counting")
             } footer: {
-                Text("Уведомление приходит, когда по правилу остаётся мало дней (порог задаётся в правиле), лимит исчерпан или цель достигнута.")
+                Text("You get a notification when a rule has few days left (the threshold is set in the rule), the limit is used up, or the goal is reached.")
             }
 
             Section {
-                Toggle("Ежечасная точка в фоне", isOn: $hourlyEnabled)
+                Toggle("Hourly background point", isOn: $hourlyEnabled)
             } header: {
-                Text("Трекинг")
+                Text("Tracking")
             } footer: {
-                Text("Страховка на случай, если iOS долго не присылает события перемещения. Интервал не гарантирован.")
+                Text("A safety net in case iOS doesn’t report movement for a long time. The interval is not guaranteed.")
             }
 
-            Section("Геолокация") {
-                LabeledContent("Разрешение", value: tracker.authorization.label)
+            Section("Location") {
+                LabeledContent("Permission", value: tracker.authorization.label)
                 if !tracker.hasAlwaysPermission {
-                    Button(tracker.authorization == .notDetermined ? "Запросить разрешение" : "Открыть настройки iOS") {
+                    Button(tracker.authorization == .notDetermined ? "Request permission" : "Open iOS Settings") {
                         if tracker.authorization == .notDetermined {
                             tracker.requestPermission()
                         } else if let url = URL(string: UIApplication.openSettingsURLString) {
@@ -74,21 +74,21 @@ struct SettingsView: View {
                         }
                     }
                 }
-                Button("Записать точку сейчас") {
+                Button("Record a point now") {
                     Task {
                         busy = true
                         let ok = await tracker.requestOneShot(source: .manual)
-                        actionResult = ok ? "Точка записана и отправлена." : "Не удалось получить локацию."
+                        actionResult = ok ? String(localized: "Point recorded and uploaded.") : String(localized: "Couldn’t get a location.")
                         await model.refresh()
                         busy = false
                     }
                 }
                 .disabled(busy || !tracker.hasAnyPermission)
-                Button("Отправить очередь (\(model.pendingCount))") {
+                Button("Upload queue (\(model.pendingCount))") {
                     Task {
                         busy = true
                         let sent = await Uploader.flush()
-                        actionResult = "Отправлено: \(sent)"
+                        actionResult = String(localized: "Uploaded: \(sent)")
                         await model.refresh()
                         busy = false
                     }
@@ -100,28 +100,36 @@ struct SettingsView: View {
             }
 
             Section {
-                LabeledContent("Сервер", value: AppSettings.serverURL?.absoluteString ?? "—")
+                Button("App language") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+                }
+            } footer: {
+                Text("The app follows the iPhone language (English or Russian). You can pick a different one for this app in iOS Settings → Country Counter → Language.")
+            }
+
+            Section {
+                LabeledContent("Server", value: AppSettings.serverURL?.absoluteString ?? "—")
                     .lineLimit(1)
                     .truncationMode(.middle)
                 #if DEBUG
-                TextField("Переопределить адрес (debug)", text: $serverOverride)
+                TextField("Override address (debug)", text: $serverOverride)
                     .keyboardType(.URL)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                 #endif
             } footer: {
                 #if DEBUG
-                Text("Симулятор ходит в localhost:3000, телефон — в прод. Поле выше переопределяет адрес только в Debug-сборке; после смены выйдите и войдите заново.")
+                Text("The simulator talks to localhost:3000, a real phone — to production. The field above overrides the address in Debug builds only; sign out and back in after changing it.")
                 #else
-                Text("Адрес сервера задан в сборке.")
+                Text("The server address is set in the build.")
                 #endif
             }
 
-            Section("Последние события") {
+            Section("Recent events") {
                 if let p = tracker.lastPoint {
                     VStack(alignment: .leading) {
-                        Text("Последняя точка: \(p.city ?? "—") · \(p.source.rawValue)")
-                        Text(String(format: "%.4f, %.4f · %@", p.lat, p.lon, p.recordedAt.formatted(date: .abbreviated, time: .shortened)))
+                        Text("Last point: \(p.city ?? "—") · \(p.source.rawValue)")
+                        Text(verbatim: String(format: "%.4f, %.4f · %@", p.lat, p.lon, p.recordedAt.formatted(date: .abbreviated, time: .shortened)))
                             .font(.caption).foregroundStyle(.secondary)
                     }
                 }
@@ -136,11 +144,11 @@ struct SettingsView: View {
                 }
             }
         }
-        .navigationTitle("Настройки")
-        .confirmationDialog("Выйти из аккаунта?", isPresented: $confirmSignOut, titleVisibility: .visible) {
-            Button("Выйти", role: .destructive) { Task { await auth.signOut() } }
+        .navigationTitle("Settings")
+        .confirmationDialog("Sign out?", isPresented: $confirmSignOut, titleVisibility: .visible) {
+            Button("Sign out", role: .destructive) { Task { await auth.signOut() } }
         } message: {
-            Text("Данные останутся на сервере. Точки, записанные до следующего входа, накопятся локально.")
+            Text("Your data stays on the server. Points recorded before the next sign-in are kept locally.")
         }
     }
 
@@ -151,7 +159,7 @@ struct SettingsView: View {
         Section {
             if let user = auth.user {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(user.name ?? user.email ?? "Аккаунт").font(.headline)
+                    Text(user.name ?? user.email ?? String(localized: "Account")).font(.headline)
                     if let email = user.email, user.name != nil {
                         Text(email).font(.footnote).foregroundStyle(.secondary)
                     }
@@ -161,7 +169,7 @@ struct SettingsView: View {
                 }
             } else {
                 HStack {
-                    Text("Загрузка профиля…").foregroundStyle(.secondary)
+                    Text("Loading profile…").foregroundStyle(.secondary)
                     Spacer()
                     ProgressView()
                 }
@@ -172,11 +180,11 @@ struct SettingsView: View {
             if let error = auth.errorMessage {
                 Text(error).font(.footnote).foregroundStyle(.red)
             }
-            Button("Выйти", role: .destructive) { confirmSignOut = true }
+            Button("Sign out", role: .destructive) { confirmSignOut = true }
         } header: {
-            Text("Аккаунт")
+            Text("Account")
         } footer: {
-            Text("Можно привязать оба способа входа, чтобы попадать в один и тот же аккаунт.")
+            Text("You can link both sign-in methods to land in the same account.")
         }
     }
 
@@ -187,11 +195,11 @@ struct SettingsView: View {
             Spacer()
             if linked {
                 if canUnlink {
-                    Button("Отвязать") { Task { await auth.unlink(provider) } }
+                    Button("Unlink") { Task { await auth.unlink(provider) } }
                         .buttonStyle(.borderless)
                         .disabled(auth.isBusy)
                 } else {
-                    Text("Привязан").foregroundStyle(.secondary)
+                    Text("Linked").foregroundStyle(.secondary)
                 }
             } else if provider == .apple {
                 SignInWithAppleButton(.continue) { request in
@@ -203,7 +211,7 @@ struct SettingsView: View {
                 .frame(width: 130, height: 32)
                 .disabled(auth.isBusy)
             } else {
-                Button("Привязать") { Task { await auth.signInWithGoogle(mode: .link) } }
+                Button("Link") { Task { await auth.signInWithGoogle(mode: .link) } }
                     .buttonStyle(.borderless)
                     .disabled(auth.isBusy || !AuthManager.isGoogleConfigured)
             }

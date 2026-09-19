@@ -61,6 +61,9 @@ struct CityStat: Codable, Identifiable, Hashable {
     let days: Int
     let firstDay: String
     let lastDay: String
+    // координаты для карты; nil у городов, известных только из ручных записей
+    let lat: Double?
+    let lon: Double?
 }
 
 // MARK: - Ручные записи
@@ -123,17 +126,17 @@ enum RuleType: String, Codable, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .calendarYear: return "Календарный год"
-        case .rolling: return "Скользящее окно"
-        case .fromDate: return "С даты"
+        case .calendarYear: return String(localized: "Calendar year")
+        case .rolling: return String(localized: "Rolling window")
+        case .fromDate: return String(localized: "From a date")
         }
     }
 
     var hint: String {
         switch self {
-        case .calendarYear: return "Считаются дни с 1 января по 31 декабря."
-        case .rolling: return "В любые N подряд идущих дней (например, 90 из 180 для Шенгена)."
-        case .fromDate: return "Фиксированный период с выбранной даты — например, срок визы."
+        case .calendarYear: return String(localized: "Counts days from January 1 to December 31.")
+        case .rolling: return String(localized: "In any N consecutive days (for example, 90 out of 180 for Schengen).")
+        case .fromDate: return String(localized: "A fixed period starting on a chosen date — for example, a visa term.")
         }
     }
 }
@@ -141,13 +144,13 @@ enum RuleType: String, Codable, CaseIterable, Identifiable {
 enum RuleMode: String, Codable, CaseIterable, Identifiable {
     case limit, goal
     var id: String { rawValue }
-    var title: String { self == .limit ? "Лимит" : "Цель" }
+    var title: String { self == .limit ? String(localized: "Limit") : String(localized: "Goal") }
 }
 
 enum CountMode: String, Codable, CaseIterable, Identifiable {
     case any, primary
     var id: String { rawValue }
-    var title: String { self == .any ? "Любой заход" : "Основная страна дня" }
+    var title: String { self == .any ? String(localized: "Any presence") : String(localized: "Main country of the day") }
 }
 
 // То, что редактируется и отправляется на сервер
@@ -241,32 +244,30 @@ enum RulePresets {
         let input: RuleInput
     }
 
-    static let all: [Preset] = [
-        Preset(
-            id: "schengen", title: "Шенген 90/180", subtitle: "Не больше 90 дней в любые 180",
-            input: RuleInput(name: "Шенген 90/180", type: .rolling, countries: schengen, limitDays: 90, windowDays: 180, warnRemainingDays: 10)
-        ),
-        Preset(
-            id: "residency", title: "Налоговое резидентство", subtitle: "183 дня за календарный год",
-            input: RuleInput(name: "Резидентство", type: .calendarYear, countries: [], limitDays: 183, mode: .goal)
-        ),
-        Preset(
-            id: "visa-free-365", title: "Безвиз 365 дней", subtitle: "Например, Грузия: 365 дней в году",
-            input: RuleInput(name: "Безвиз", type: .rolling, countries: [], limitDays: 365, windowDays: 365, warnRemainingDays: 30)
-        ),
-        Preset(
-            id: "georgia", title: "Грузия безвиз 365", subtitle: "365 дней с въезда, сбрасывается при выезде",
-            input: RuleInput(name: "Грузия безвиз", type: .fromDate, countries: ["GE"], limitDays: 365, windowDays: 365, autoStart: true, warnRemainingDays: 30)
-        ),
-        Preset(
-            id: "visa", title: "Виза с даты въезда", subtitle: "N дней с въезда в страну",
-            input: RuleInput(name: "Виза", type: .fromDate, countries: [], limitDays: 30, windowDays: 90, autoStart: true, warnRemainingDays: 5)
-        ),
-        Preset(
-            id: "uk", title: "Великобритания 180/365", subtitle: "Не больше 180 дней в любые 365",
-            input: RuleInput(name: "UK 180/365", type: .rolling, countries: ["GB"], limitDays: 180, windowDays: 365, warnRemainingDays: 15)
-        ),
-    ]
+    static var all: [Preset] {
+        [
+            Preset(
+                id: "schengen", title: String(localized: "Schengen 90/180"), subtitle: String(localized: "No more than 90 days in any 180"),
+                input: RuleInput(name: String(localized: "Schengen 90/180"), type: .rolling, countries: schengen, limitDays: 90, windowDays: 180, warnRemainingDays: 10)
+            ),
+            Preset(
+                id: "residency", title: String(localized: "Tax residency"), subtitle: String(localized: "183 days per calendar year"),
+                input: RuleInput(name: String(localized: "Residency"), type: .calendarYear, countries: [], limitDays: 183, mode: .goal)
+            ),
+            Preset(
+                id: "georgia", title: String(localized: "Georgia visa-free 365"), subtitle: String(localized: "365 days from entry, resets when you leave"),
+                input: RuleInput(name: String(localized: "Georgia visa-free"), type: .fromDate, countries: ["GE"], limitDays: 365, windowDays: 365, autoStart: true, warnRemainingDays: 30)
+            ),
+            Preset(
+                id: "visa", title: String(localized: "Visa from entry date"), subtitle: String(localized: "N days from entering the country"),
+                input: RuleInput(name: String(localized: "Visa"), type: .fromDate, countries: [], limitDays: 30, windowDays: 90, autoStart: true, warnRemainingDays: 5)
+            ),
+            Preset(
+                id: "uk", title: String(localized: "United Kingdom 180/365"), subtitle: String(localized: "No more than 180 days in any 365"),
+                input: RuleInput(name: String(localized: "UK 180/365"), type: .rolling, countries: ["GB"], limitDays: 180, windowDays: 365, warnRemainingDays: 15)
+            ),
+        ]
+    }
 
     static func todayString() -> String {
         let f = DateFormatter()
@@ -326,15 +327,5 @@ extension String {
         }.joined()
     }
 
-    /// Локализованное имя страны по ISO-коду, с фолбэком на имя с сервера.
-    func countryDisplayName(fallback: String?) -> String {
-        Locale.current.localizedString(forRegionCode: self) ?? fallback ?? self
-    }
 }
 
-func pluralDays(_ n: Int) -> String {
-    let mod10 = n % 10, mod100 = n % 100
-    if mod10 == 1 && mod100 != 11 { return "\(n) день" }
-    if (2...4).contains(mod10) && !(12...14).contains(mod100) { return "\(n) дня" }
-    return "\(n) дней"
-}

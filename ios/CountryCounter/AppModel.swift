@@ -13,6 +13,10 @@ final class AppModel {
     var ruleResults: [RuleResult] = []
     var overrides: [DayOverride] = []
     var manualRanges: [ManualRange] { ManualRange.group(overrides) }
+    // Для карты "за всё время" — грузится при первом открытии карты и обновляется вместе с остальным
+    var allTimeCountries: [CountryStat] = []
+    var allTimeCities: [CityStat] = []
+    private var allTimeLoaded = false
     var pendingCount = 0
     var isLoading = false
     var errorMessage: String?
@@ -44,6 +48,7 @@ final class AppModel {
             self.overrides = try await overrides
             errorMessage = nil
             lastRefresh = Date()
+            if allTimeLoaded { await loadAllTime() }
             await RuleNotifier.evaluate(self.ruleResults)
         } catch {
             errorMessage = error.localizedDescription
@@ -77,6 +82,28 @@ final class AppModel {
             try await APIClient.fromSettings().deleteRule(id: rule.id)
             rules.removeAll { $0.id == rule.id }
             ruleResults.removeAll { $0.ruleId == rule.id }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    // MARK: - Карта
+
+    static let allTimeFrom = "1970-01-01"
+
+    func loadAllTimeIfNeeded() async {
+        guard !allTimeLoaded else { return }
+        await loadAllTime()
+    }
+
+    private func loadAllTime() async {
+        guard let client = try? APIClient.fromSettings() else { return }
+        do {
+            async let countries = client.countries(from: Self.allTimeFrom)
+            async let cities = client.cities(from: Self.allTimeFrom)
+            allTimeCountries = try await countries
+            allTimeCities = try await cities
+            allTimeLoaded = true
         } catch {
             errorMessage = error.localizedDescription
         }

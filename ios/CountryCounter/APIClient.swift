@@ -9,10 +9,10 @@ enum APIError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .noServer: return "Не задан адрес сервера."
-        case .notSignedIn: return "Нужно войти в аккаунт."
-        case .unauthorized: return "Сессия недействительна, войдите заново."
-        case .http(let code, let body): return "Сервер ответил \(code): \(Self.message(from: body))"
+        case .noServer: return String(localized: "Server address is not set.")
+        case .notSignedIn: return String(localized: "You need to sign in.")
+        case .unauthorized: return String(localized: "Session is no longer valid, please sign in again.")
+        case .http(let code, let body): return String(localized: "Server responded \(code): \(Self.message(from: body))")
         case .transport(let e): return e.localizedDescription
         }
     }

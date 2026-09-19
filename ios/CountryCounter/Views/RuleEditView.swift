@@ -25,51 +25,39 @@ struct RuleEditView: View {
 
     var body: some View {
         Form {
-            Section("Название") {
-                TextField("Например, Шенген 90/180", text: $draft.name)
+            Section("Name") {
+                TextField("For example, Schengen 90/180", text: $draft.name)
             }
 
             Section {
-                Picker("Режим", selection: $draft.mode) {
+                Picker("Mode", selection: $draft.mode) {
                     ForEach(RuleMode.allCases) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
-                Picker("Период", selection: $draft.type) {
+                Picker("Period", selection: $draft.type) {
                     ForEach(RuleType.allCases) { Text($0.title).tag($0) }
                 }
-                Stepper(value: $draft.limitDays, in: 1...3660) {
-                    LabeledContent(draft.mode == .limit ? "Не больше" : "Нужно набрать", value: pluralDays(draft.limitDays))
-                }
+                DaysField(title: draft.mode == .limit ? "No more than" : "Need to reach", value: $draft.limitDays)
                 if draft.type == .rolling {
-                    Stepper(value: windowBinding, in: 2...3660) {
-                        LabeledContent("В любые", value: pluralDays(windowBinding.wrappedValue))
-                    }
+                    DaysField(title: "In any", value: windowBinding, range: 2...3660)
                 }
                 if draft.type == .fromDate {
-                    Toggle("Дата въезда — автоматически", isOn: $draft.autoStart)
+                    Toggle("Detect entry date automatically", isOn: $draft.autoStart)
                     if !draft.autoStart {
-                        DatePicker("Начиная с", selection: $startDate, displayedComponents: .date)
+                        DatePicker("Starting on", selection: $startDate, displayedComponents: .date)
                     }
-                    Toggle("Ограничить период", isOn: Binding(
+                    Toggle("Limit the period", isOn: Binding(
                         get: { draft.windowDays != nil },
                         set: { draft.windowDays = $0 ? (draft.windowDays ?? 90) : nil }
                     ))
                     if draft.windowDays != nil {
-                        Stepper(value: windowBinding, in: 1...3660) {
-                            LabeledContent("Длительность", value: pluralDays(windowBinding.wrappedValue))
-                        }
+                        DaysField(title: "Duration", value: windowBinding)
                     }
                 }
             } header: {
-                Text("Как считать")
+                Text("How to count")
             } footer: {
-                var text = draft.mode == .limit
-                    ? "Лимит: нельзя превышать (визы, 90/180). " + draft.type.hint
-                    : "Цель: нужно набрать (например, 183 дня для резидентства). " + draft.type.hint
-                if draft.type == .fromDate && draft.autoStart {
-                    text += " Дата въезда — первый день текущего непрерывного пребывания в выбранных странах: выехали и вернулись — отсчёт начинается заново. Если данные неточные, выключите автоматику и задайте дату руками."
-                }
-                return Text(text)
+                Text(howToCountFooter)
             }
 
             Section {
@@ -77,36 +65,34 @@ struct RuleEditView: View {
                     CountryPickerView(selection: $draft.countries)
                 } label: {
                     HStack {
-                        Text("Страны")
+                        Text("Countries")
                         Spacer()
                         if draft.countries.isEmpty {
-                            Text("Любая").foregroundStyle(.secondary)
+                            Text("Any").foregroundStyle(.secondary)
                         } else {
                             FlagRow(codes: draft.countries, max: 5, width: 20)
                         }
                     }
                 }
-                Picker("День засчитывается", selection: $draft.countMode) {
+                Picker("A day counts as", selection: $draft.countMode) {
                     ForEach(CountMode.allCases) { Text($0.title).tag($0) }
                 }
             } footer: {
-                Text("«Любой заход» — день считается, если в этот день вы были в стране хотя бы часть дня; так работают почти все визовые правила. «Основная страна дня» — только если это последняя страна за день.")
+                Text("“Any presence” — the day counts if you were in the country for at least part of it; that’s how almost all visa rules work. “Main country of the day” — only if it was the last country that day.")
             }
 
             Section {
-                Toggle("Предупреждать заранее", isOn: $warnEnabled)
+                Toggle("Warn in advance", isOn: $warnEnabled)
                 if warnEnabled {
-                    Stepper(value: $warnDays, in: 0...3660) {
-                        LabeledContent("Когда осталось", value: pluralDays(warnDays))
-                    }
+                    DaysField(title: "When this many days are left", value: $warnDays, range: 0...3660)
                 }
-                Toggle("Уведомления по этому правилу", isOn: $draft.notify)
-                Toggle("Правило включено", isOn: $draft.enabled)
+                Toggle("Notifications for this rule", isOn: $draft.notify)
+                Toggle("Rule enabled", isOn: $draft.enabled)
             } header: {
-                Text("Предупреждения")
+                Text("Warnings")
             } footer: {
                 if draft.mode == .goal {
-                    Text("Для цели уведомление приходит один раз — когда она достигнута.")
+                    Text("For a goal, the notification comes once — when it is reached.")
                 }
             }
 
@@ -116,25 +102,25 @@ struct RuleEditView: View {
 
             if rule != nil {
                 Section {
-                    Button("Удалить правило", role: .destructive) { confirmDelete = true }
+                    Button("Delete rule", role: .destructive) { confirmDelete = true }
                 }
             }
         }
-        .navigationTitle(rule == nil ? "Новое правило" : "Правило")
+        .navigationTitle(rule == nil ? "New rule" : "Rule")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if rule == nil {
-                ToolbarItem(placement: .cancellationAction) { Button("Отмена") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button(action: save) {
-                    if saving { ProgressView() } else { Text("Сохранить") }
+                    if saving { ProgressView() } else { Text("Save") }
                 }
                 .disabled(saving || draft.name.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         }
-        .confirmationDialog("Удалить правило?", isPresented: $confirmDelete, titleVisibility: .visible) {
-            Button("Удалить", role: .destructive) {
+        .confirmationDialog("Delete this rule?", isPresented: $confirmDelete, titleVisibility: .visible) {
+            Button("Delete", role: .destructive) {
                 guard let rule else { return }
                 Task {
                     await model.delete(rule)
@@ -142,6 +128,16 @@ struct RuleEditView: View {
                 }
             }
         }
+    }
+
+    private var howToCountFooter: String {
+        var text = draft.mode == .limit
+            ? String(localized: "Limit: must not be exceeded (visas, 90/180).") + " " + draft.type.hint
+            : String(localized: "Goal: must be reached (for example, 183 days for residency).") + " " + draft.type.hint
+        if draft.type == .fromDate && draft.autoStart {
+            text += " " + String(localized: "The entry date is the first day of your current uninterrupted stay in the selected countries: leave and come back — the count starts over. If the data is inaccurate, turn the automation off and set the date by hand.")
+        }
+        return text
     }
 
     private var windowBinding: Binding<Int> {

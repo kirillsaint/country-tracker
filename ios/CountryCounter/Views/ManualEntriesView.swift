@@ -10,9 +10,9 @@ struct ManualEntriesView: View {
         List {
             if model.manualRanges.isEmpty {
                 ContentUnavailableView(
-                    "Ручных записей нет",
+                    "No manual entries",
                     systemImage: "square.and.pencil",
-                    description: Text("Добавьте поездки до установки приложения или поправьте дни, где геолокация ошиблась.")
+                    description: Text("Add trips from before you installed the app, or fix days where location was wrong.")
                 )
             }
             ForEach(model.manualRanges) { r in
@@ -23,7 +23,7 @@ struct ManualEntriesView: View {
                         if let city = r.city, !city.isEmpty {
                             Text(city).foregroundStyle(.secondary)
                         }
-                        Text(r.from == r.to ? prettyDate(r.from) : "\(prettyDate(r.from)) – \(prettyDate(r.to))")
+                        Text(verbatim: r.from == r.to ? prettyDate(r.from) : "\(prettyDate(r.from)) – \(prettyDate(r.to))")
                             .font(.caption).foregroundStyle(.secondary)
                         if let note = r.note, !note.isEmpty {
                             Text(note).font(.caption).foregroundStyle(.tertiary)
@@ -38,10 +38,10 @@ struct ManualEntriesView: View {
                 Task { for r in toDelete { await model.delete(r) } }
             }
         }
-        .navigationTitle("Ручные записи")
+        .navigationTitle("Manual entries")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button("Добавить", systemImage: "plus") { showAdd = true }
+                Button("Add", systemImage: "plus") { showAdd = true }
             }
         }
         .sheet(isPresented: $showAdd) {
@@ -71,41 +71,41 @@ struct ManualEntryEditView: View {
                     CountryPickerView(selection: $countries, single: true)
                 } label: {
                     HStack {
-                        Text("Страна")
+                        Text("Country")
                         Spacer()
                         if let country {
                             FlagView(code: country, width: 24)
                             Text(country.countryDisplayName(fallback: nil)).foregroundStyle(.secondary)
                         } else {
-                            Text("Выбрать").foregroundStyle(.secondary)
+                            Text("Choose").foregroundStyle(.secondary)
                         }
                     }
                 }
-                TextField("Город (необязательно)", text: $city)
+                TextField("City (optional)", text: $city)
             }
 
             Section {
-                DatePicker("С", selection: $from, in: ...Date(), displayedComponents: .date)
-                DatePicker("По", selection: $to, in: from...Date(), displayedComponents: .date)
+                DatePicker("From", selection: $from, in: ...Date(), displayedComponents: .date)
+                DatePicker("To", selection: $to, in: from...Date(), displayedComponents: .date)
             } footer: {
-                Text("Включительно. Дни в этом диапазоне будут считаться проведёнными в выбранной стране, что бы ни говорила геолокация.")
+                Text("Inclusive. Days in this range count as spent in the selected country, whatever location data says.")
             }
 
             Section {
-                TextField("Заметка (необязательно)", text: $note, axis: .vertical)
+                TextField("Note (optional)", text: $note, axis: .vertical)
             }
 
             if let error {
                 Section { Text(error).foregroundStyle(.red).font(.footnote) }
             }
         }
-        .navigationTitle("Новая запись")
+        .navigationTitle("New entry")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) { Button("Отмена") { dismiss() } }
+            ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
             ToolbarItem(placement: .confirmationAction) {
                 Button(action: save) {
-                    if saving { ProgressView() } else { Text("Сохранить") }
+                    if saving { ProgressView() } else { Text("Save") }
                 }
                 .disabled(saving || country == nil)
             }

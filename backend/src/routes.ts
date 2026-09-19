@@ -138,10 +138,25 @@ api.get("/stats/countries", zValidator("query", rangeQuery), async (c) => {
 });
 
 api.get("/stats/cities", zValidator("query", rangeQuery), async (c) => {
+  const userId = c.get("userId");
   const q = c.req.valid("query");
-  const { days, today } = await loadPresence(c.get("userId"), q.tz);
+  const { days, today } = await loadPresence(userId, q.tz);
   const { from, to } = resolveRange(q, today);
-  return c.json({ from, to, today, cities: cityStats(days, from, to) });
+  const stats = cityStats(days, from, to);
+
+  // Координаты города для карты — среднее по точкам с этим городом. У ручных записей точек нет.
+  const coords = await points
+    .aggregate<{ _id: { countryCode: string | null; city: string | null }; lat: number; lon: number }>([
+      { $match: { userId, city: { $ne: null } } },
+      { $group: { _id: { countryCode: "$countryCode", city: "$city" }, lat: { $avg: "$lat" }, lon: { $avg: "$lon" } } },
+    ])
+    .toArray();
+  const byKey = new Map(coords.map((x) => [`${x._id.countryCode}|${x._id.city}`, x]));
+  const cities = stats.map((s) => {
+    const p = byKey.get(`${s.countryCode}|${s.city}`);
+    return { ...s, lat: p ? Number(p.lat.toFixed(4)) : null, lon: p ? Number(p.lon.toFixed(4)) : null };
+  });
+  return c.json({ from, to, today, cities });
 });
 
 api.get("/stats/current", zValidator("query", z.object(tzQuery)), async (c) => {

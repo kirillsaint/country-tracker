@@ -36,7 +36,7 @@ struct FlagRow: View {
     var body: some View {
         HStack(spacing: 4) {
             if codes.isEmpty {
-                Label("Любая страна", systemImage: "globe").font(.caption).foregroundStyle(.secondary)
+                Label("Any country", systemImage: "globe").font(.caption).foregroundStyle(.secondary)
             } else {
                 ForEach(codes.prefix(max), id: \.self) { FlagView(code: $0, width: width) }
                 if codes.count > max {

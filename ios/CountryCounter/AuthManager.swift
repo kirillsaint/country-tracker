@@ -32,7 +32,7 @@ final class AuthManager {
             Task { @MainActor in
                 self?.token = nil
                 self?.user = nil
-                self?.errorMessage = "Сессия истекла, войдите заново."
+                self?.errorMessage = String(localized: "Session expired, please sign in again.")
             }
         }
     }
@@ -57,7 +57,7 @@ final class AuthManager {
                   let tokenData = credential.identityToken,
                   let identityToken = String(data: tokenData, encoding: .utf8)
             else {
-                errorMessage = "Apple не вернул identity token."
+                errorMessage = String(localized: "Apple didn’t return an identity token.")
                 return
             }
             let fullName = credential.fullName.map { PersonNameComponentsFormatter().string(from: $0) }
@@ -69,17 +69,17 @@ final class AuthManager {
 
     func signInWithGoogle(mode: Mode) async {
         guard Self.isGoogleConfigured else {
-            errorMessage = "Google Sign-In не настроен: заполните GOOGLE_CLIENT_ID в Config.xcconfig."
+            errorMessage = String(localized: "Google Sign-In is not configured: set GOOGLE_CLIENT_ID in Config.xcconfig.")
             return
         }
         guard let root = Self.rootViewController else {
-            errorMessage = "Не найдено окно для показа входа Google."
+            errorMessage = String(localized: "No window to present Google sign-in.")
             return
         }
         do {
             let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: root)
             guard let idToken = result.user.idToken?.tokenString else {
-                errorMessage = "Google не вернул id token."
+                errorMessage = String(localized: "Google didn’t return an ID token.")
                 return
             }
             await complete(provider: .google, identityToken: idToken, fullName: result.user.profile?.name, mode: mode)
@@ -111,10 +111,10 @@ final class AuthManager {
                 let r = try await APIClient.anonymous().signIn(provider: provider, identityToken: identityToken, fullName: fullName)
                 user = r.user
                 token = r.token
-                if r.autoLinked { infoMessage = "\(provider.title) привязан к вашему существующему аккаунту." }
+                if r.autoLinked { infoMessage = String(localized: "\(provider.title) has been linked to your existing account.") }
             case .link:
                 user = try await APIClient.fromSettings().link(provider: provider, identityToken: identityToken, fullName: fullName)
-                infoMessage = "\(provider.title) привязан."
+                infoMessage = String(localized: "\(provider.title) linked.")
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -126,7 +126,7 @@ final class AuthManager {
         defer { isBusy = false }
         do {
             user = try await APIClient.fromSettings().unlink(provider: provider)
-            infoMessage = "\(provider.title) отвязан."
+            infoMessage = String(localized: "\(provider.title) unlinked.")
         } catch {
             errorMessage = error.localizedDescription
         }
