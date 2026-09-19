@@ -44,7 +44,10 @@ enum Uploader {
             }
         }
         // Новые точки могли сдвинуть счётчики — проверяем правила и в фоне тоже
-        if sent > 0 { await RuleNotifier.check() }
+        if sent > 0 {
+            await RuleNotifier.check()
+            await EntryPrompter.check()
+        }
         return sent
     }
 }

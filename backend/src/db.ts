@@ -1,6 +1,6 @@
 import { MongoClient, type Collection } from "mongodb";
 import { config } from "./config.js";
-import type { DayOverride, Point, Rule, Session, User } from "./types.js";
+import type { DayOverride, Entry, Point, Rule, Session, TravelDocument, User, VisaCacheEntry } from "./types.js";
 
 const client = new MongoClient(config.mongoUrl);
 
@@ -9,6 +9,9 @@ export let sessions: Collection<Session>;
 export let points: Collection<Point>;
 export let dayOverrides: Collection<DayOverride>;
 export let rules: Collection<Rule>;
+export let documents: Collection<TravelDocument>;
+export let entries: Collection<Entry>;
+export let visaCache: Collection<VisaCacheEntry>;
 
 export async function connectDb() {
   await client.connect();
@@ -18,9 +21,18 @@ export async function connectDb() {
   points = db.collection<Point>("points");
   dayOverrides = db.collection<DayOverride>("day_overrides");
   rules = db.collection<Rule>("rules");
+  documents = db.collection<TravelDocument>("documents");
+  entries = db.collection<Entry>("entries");
+  visaCache = db.collection<VisaCacheEntry>("visa_cache");
 
   await Promise.all([
     rules.createIndex({ userId: 1, id: 1 }, { unique: true }),
+    rules.createIndex({ userId: 1, documentId: 1 }),
+    documents.createIndex({ userId: 1, id: 1 }, { unique: true }),
+    entries.createIndex({ userId: 1, id: 1 }, { unique: true }),
+    entries.createIndex({ userId: 1, countryCode: 1, date: 1 }, { unique: true }),
+    visaCache.createIndex({ passport: 1, destination: 1 }, { unique: true }),
+    visaCache.createIndex({ passport: 1, fetchedAt: 1 }),
     users.createIndex({ "apple.sub": 1 }, { unique: true, sparse: true }),
     users.createIndex({ "google.sub": 1 }, { unique: true, sparse: true }),
     users.createIndex({ email: 1 }, { sparse: true }),

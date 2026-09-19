@@ -54,6 +54,35 @@ enum RuleNotifier {
         UserDefaults.standard.set(state, forKey: stateKey)
     }
 
+    // MARK: документы
+
+    private static let docStateKey = "documentNotifierState"
+
+    /// Напоминания об истечении паспортов, виз и ВНЖ: за 30 дней, за 7 дней и в день истечения — по разу.
+    static func evaluateDocuments(_ docs: [TravelDocument]) async {
+        guard AppSettings.notificationsEnabled, await authorizationStatus() == .authorized else { return }
+        var state = UserDefaults.standard.dictionary(forKey: docStateKey) as? [String: Int] ?? [:]
+        let ids = Set(docs.map(\.id))
+        state = state.filter { ids.contains($0.key) }
+        for d in docs {
+            guard let left = d.daysUntilExpiry else { continue }
+            let stage = left <= 0 ? 3 : left <= 7 ? 2 : left <= 30 ? 1 : 0
+            guard stage > 0, (state[d.id] ?? 0) < stage else { continue }
+            state[d.id] = stage
+            let content = UNMutableNotificationContent()
+            content.title = d.name
+            content.sound = .default
+            content.body = left <= 0
+                ? String(localized: "Expired on \(prettyFullDate(d.validTo ?? "")).")
+                : String(localized: "Expires in \(pluralDays(left)) — \(prettyFullDate(d.validTo ?? "")).")
+            let request = UNNotificationRequest(identifier: "doc-\(d.id)-\(stage)", content: content, trigger: nil)
+            UNUserNotificationCenter.current().add(request) { error in
+                if let error { log.error("document notification failed: \(error.localizedDescription)") }
+            }
+        }
+        UserDefaults.standard.set(state, forKey: docStateKey)
+    }
+
     private static func schedule(for r: RuleResult) {
         let content = UNMutableNotificationContent()
         content.title = r.name

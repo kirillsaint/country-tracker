@@ -20,12 +20,21 @@ private let isoDayParser: DateFormatter = {
     return f
 }()
 
-/// "2026-09-18" -> "18 сент." / "Sep 18" в зависимости от языка
+private let utcStyle = Date.FormatStyle(locale: .current, calendar: .current, timeZone: TimeZone(identifier: "UTC")!)
+
+/// "2026-09-18" -> "18 сент" / "Sep 18". Точку после русского сокращения убираем, чтобы в
+/// предложениях не получалось "сент.."
 func prettyDate(_ iso: String) -> String {
     guard let d = isoDayParser.date(from: iso) else { return iso }
-    let style = Date.FormatStyle(locale: .current, calendar: .current, timeZone: TimeZone(identifier: "UTC")!)
-        .day().month(.abbreviated)
-    return d.formatted(style)
+    var s = d.formatted(utcStyle.day().month(.abbreviated))
+    if s.hasSuffix(".") { s.removeLast() }
+    return s
+}
+
+/// С годом — для сроков действия документов: "12 мар. 2031" / "Mar 12, 2031"
+func prettyFullDate(_ iso: String) -> String {
+    guard let d = isoDayParser.date(from: iso) else { return iso }
+    return d.formatted(utcStyle.day().month(.abbreviated).year())
 }
 
 extension String {

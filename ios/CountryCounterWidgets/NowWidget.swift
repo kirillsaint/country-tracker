@@ -73,7 +73,9 @@ struct NowWidgetView: View {
     }
 
     private func medium(_ s: WidgetSnapshot, _ c: WidgetSnapshot.Current) -> some View {
-        HStack(alignment: .top, spacing: 14) {
+        // Только правила про текущую страну (пустой список стран = правило про любую страну)
+        let relevant = s.rules.filter { $0.countries.isEmpty || $0.countries.contains(c.countryCode) }
+        return HStack(alignment: .top, spacing: 14) {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 8) {
                     Text(c.countryCode.flagEmoji).font(.system(size: 30))
@@ -93,9 +95,9 @@ struct NowWidgetView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            if !s.rules.isEmpty {
+            if !relevant.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
-                    ForEach(s.rules.prefix(3)) { r in
+                    ForEach(relevant.prefix(3)) { r in
                         VStack(alignment: .leading, spacing: 2) {
                             HStack {
                                 Text(r.name).font(.caption).lineLimit(1)

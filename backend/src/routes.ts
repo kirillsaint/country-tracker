@@ -4,7 +4,9 @@ import { zValidator } from "@hono/zod-validator";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { type AuthEnv, requireSession } from "./auth.js";
-import { dayOverrides, points, rules, users } from "./db.js";
+import { dayOverrides, documents, entries, points, rules, users, visaCache } from "./db.js";
+import { deleteRulesForDocument, resetRuleFromDocument, syncRulesForDocument } from "./documents.js";
+import { cacheStatus, ensureVisaFreeRule, findVisaFreeRule, getPair, isEnabled as visaInfoEnabled, prefetchPassport, suggestRule } from "./visaInfo.js";
 import { countryAt, countryName, localDateOf } from "./geo.js";
 import { SCHENGEN } from "./presets.js";
 import {
@@ -18,7 +20,7 @@ import {
   primaryOf,
   timeline,
 } from "./stats.js";
-import { type Point, type Rule, publicProjection } from "./types.js";
+import { type Entry, type Point, type Rule, type TravelDocument, publicProjection } from "./types.js";
 
 export const api = new Hono<AuthEnv>();
 api.use("*", requireSession);
@@ -160,8 +162,30 @@ api.get("/stats/cities", zValidator("query", rangeQuery), async (c) => {
 });
 
 api.get("/stats/current", zValidator("query", z.object(tzQuery)), async (c) => {
-  const { days, today } = await loadPresence(c.get("userId"), c.req.valid("query").tz);
-  return c.json({ today, current: currentStatus(days, today) });
+  const userId = c.get("userId");
+  const { days, today } = await loadPresence(userId, c.req.valid("query").tz);
+  const current = currentStatus(days, today);
+  if (!current) return c.json({ today, current: null });
+
+  // Основание текущего пребывания: есть ли запись для (страна, дата въезда)
+  let entry: Entry | null = await entries.findOne({ userId, countryCode: current.countryCode, date: current.since });
+  if (!entry) {
+    // Страна своего паспорта — основание очевидно, ставим сами
+    const passport = await documents.findOne({ userId, kind: "passport", countryCode: current.countryCode });
+    if (passport) {
+      const now = new Date().toISOString();
+      const created: Entry = { userId, id: randomUUID(), countryCode: current.countryCode, date: current.since, basis: "citizen", documentId: passport.id, note: null, createdAt: now, updatedAt: now };
+      await entries.replaceOne({ userId, countryCode: current.countryCode, date: current.since }, created, { upsert: true });
+      entry = created;
+    }
+  }
+  // "Как в прошлый раз": последнее основание для этой же страны до текущего въезда
+  const previous = await entries.find({ userId, countryCode: current.countryCode, date: { $lt: current.since } }).sort({ date: -1 }).limit(1).toArray();
+  const strip = (e: Entry | null) => (e ? { basis: e.basis, documentId: e.documentId, date: e.date } : null);
+  return c.json({
+    today,
+    current: { ...current, entry: strip(entry), previousEntry: strip(previous[0] ?? null), entryPending: !entry },
+  });
 });
 
 api.get("/timeline", zValidator("query", rangeQuery), async (c) => {
@@ -279,7 +303,7 @@ const ruleBody = z
   .object({
     name: z.string().trim().min(1).max(80),
     enabled: z.boolean().default(true),
-    type: z.enum(["calendarYear", "rolling", "fromDate"]),
+    type: z.enum(["calendarYear", "rolling", "fromDate", "absence"]),
     countries: z.array(countryCode).max(250).default([]),
     limitDays: z.number().int().min(1).max(3660),
     windowDays: z.number().int().min(1).max(3660).nullable().default(null),
@@ -290,8 +314,10 @@ const ruleBody = z
     warnRemainingDays: z.number().int().min(0).max(3660).nullable().default(null),
     notify: z.boolean().default(true),
     sortOrder: z.number().int().default(0),
+    validUntil: isoDate.nullable().default(null),
   })
   .superRefine((r, ctx) => {
+    if (r.type === "absence" && r.countries.length === 0) ctx.addIssue({ code: "custom", path: ["countries"], message: "absence rule needs countries" });
     if (r.type === "rolling" && !r.windowDays) ctx.addIssue({ code: "custom", path: ["windowDays"], message: "rolling rule needs windowDays" });
     if (r.type === "fromDate" && !r.startDate && !r.autoStart) ctx.addIssue({ code: "custom", path: ["startDate"], message: "fromDate rule needs startDate or autoStart" });
   });
@@ -299,7 +325,7 @@ const ruleBody = z
 // insertOne дописывает _id в объект, find возвращает его — наружу не отдаём ни его, ни userId.
 // autoStart появился позже — у старых документов его нет.
 function publicRule({ userId: _u, _id: _i, ...r }: Rule & { _id?: unknown }) {
-  return { ...r, autoStart: r.autoStart ?? false };
+  return { ...r, autoStart: r.autoStart ?? false, documentId: r.documentId ?? null, documentRole: r.documentRole ?? null, customized: r.customized ?? false, validUntil: r.validUntil ?? null };
 }
 
 // Правила по умолчанию для нового пользователя — один раз, потом он волен всё удалить
@@ -323,6 +349,10 @@ async function ensureDefaultRules(userId: Point["userId"]) {
     warnRemainingDays: 10,
     notify: true,
     sortOrder: 0,
+    documentId: null,
+    documentRole: null,
+    customized: false,
+    validUntil: null,
     createdAt: now,
     updatedAt: now,
   });
@@ -340,7 +370,7 @@ api.post("/rules", zValidator("json", ruleBody), async (c) => {
   const userId = c.get("userId");
   await ensureDefaultRules(userId);
   const now = new Date().toISOString();
-  const rule: Rule = { userId, id: randomUUID(), ...c.req.valid("json"), createdAt: now, updatedAt: now };
+  const rule: Rule = { userId, id: randomUUID(), documentId: null, documentRole: null, customized: false, ...c.req.valid("json"), createdAt: now, updatedAt: now };
   await rules.insertOne(rule);
   return c.json({ rule: publicRule(rule) }, 201);
 });
@@ -348,13 +378,34 @@ api.post("/rules", zValidator("json", ruleBody), async (c) => {
 api.put("/rules/:id", zValidator("param", z.object({ id: z.string().uuid() })), zValidator("json", ruleBody), async (c) => {
   const userId = c.get("userId");
   const { id } = c.req.valid("param");
+  const prev = await rules.findOne({ userId, id });
+  if (!prev) throw new HTTPException(404, { message: "rule not found" });
+  const body = c.req.valid("json");
+  // Правка автоправила руками закрепляет его: документ больше не перезапишет эти значения.
+  // Переключение enabled/notify правкой не считаем.
+  const substantive = (["type", "countries", "limitDays", "windowDays", "startDate", "autoStart", "mode", "countMode", "name"] as const)
+    .some((k) => JSON.stringify(body[k]) !== JSON.stringify(prev[k]));
+  const customized = prev.documentId ? (prev.customized || substantive) : false;
   const updated = await rules.findOneAndUpdate(
     { userId, id },
-    { $set: { ...c.req.valid("json"), updatedAt: new Date().toISOString() } },
+    { $set: { ...body, customized, updatedAt: new Date().toISOString() } },
     { returnDocument: "after" },
   );
-  if (!updated) throw new HTTPException(404, { message: "rule not found" });
-  return c.json({ rule: publicRule(updated) });
+  return c.json({ rule: publicRule(updated!) });
+});
+
+// Сбросить пользовательские правки автоправила к значениям из документа
+api.post("/rules/:id/reset", zValidator("param", z.object({ id: z.string().uuid() })), zValidator("json", z.object({ lang: z.enum(["ru", "en"]).default("en") })), async (c) => {
+  const userId = c.get("userId");
+  const { id } = c.req.valid("param");
+  const rule = await rules.findOne({ userId, id });
+  if (!rule) throw new HTTPException(404, { message: "rule not found" });
+  if (!rule.documentId) throw new HTTPException(400, { message: "rule is not generated from a document" });
+  const doc = await documents.findOne({ userId, id: rule.documentId });
+  if (!doc) throw new HTTPException(404, { message: "source document not found" });
+  const restored = await resetRuleFromDocument(userId, rule, doc, c.req.valid("json").lang);
+  if (!restored) throw new HTTPException(410, { message: "document no longer produces this rule" });
+  return c.json({ rule: publicRule(restored) });
 });
 
 api.delete("/rules/:id", zValidator("param", z.object({ id: z.string().uuid() })), async (c) => {
@@ -370,7 +421,205 @@ api.get("/stats/rules", zValidator("query", z.object(tzQuery)), async (c) => {
     loadPresence(userId, c.req.valid("query").tz),
     rules.find({ userId, enabled: true }).sort({ sortOrder: 1, createdAt: 1 }).toArray(),
   ]);
-  return c.json({ today, results: list.map((r) => evaluateRule(days, r, today)) });
+  const active = list.filter((r) => !r.validUntil || r.validUntil >= today);
+  return c.json({ today, results: active.map((r) => evaluateRule(days, r, today)) });
+});
+
+// MARK: документы (паспорта, визы, ВНЖ)
+
+const documentBody = z
+  .object({
+    kind: z.enum(["passport", "visa", "residence"]),
+    name: z.string().trim().min(1).max(80),
+    countryCode,
+    countries: z.array(countryCode).max(250).default([]),
+    passportId: z.string().uuid().nullable().default(null),
+    validFrom: isoDate.nullable().default(null),
+    validTo: isoDate.nullable().default(null),
+    entries: z.enum(["single", "multiple"]).nullable().default(null),
+    maxStayDays: z.number().int().min(1).max(3660).nullable().default(null),
+    windowLimitDays: z.number().int().min(1).max(3660).nullable().default(null),
+    windowDays: z.number().int().min(2).max(3660).nullable().default(null),
+    residenceType: z.enum(["temporary", "permanent"]).nullable().default(null),
+    minDaysPerYear: z.number().int().min(1).max(366).nullable().default(null),
+    maxAbsenceDays: z.number().int().min(1).max(3660).nullable().default(null),
+    note: z.string().trim().max(500).nullable().default(null),
+    // язык подписей автосозданных правил
+    lang: z.enum(["ru", "en"]).default("en"),
+  })
+  .superRefine((d, ctx) => {
+    if (d.validFrom && d.validTo && d.validFrom > d.validTo) ctx.addIssue({ code: "custom", path: ["validTo"], message: "validTo must be >= validFrom" });
+    if ((d.windowLimitDays == null) !== (d.windowDays == null)) ctx.addIssue({ code: "custom", path: ["windowDays"], message: "windowLimitDays and windowDays go together" });
+  });
+
+function publicDocument({ userId: _u, _id: _i, ...d }: TravelDocument & { _id?: unknown }) {
+  return d;
+}
+
+function documentFromBody(userId: Point["userId"], id: string, body: z.infer<typeof documentBody>, createdAt: string): TravelDocument {
+  const { lang: _lang, ...rest } = body;
+  const countries = rest.kind === "passport" ? [rest.countryCode] : (rest.countries.length ? rest.countries : [rest.countryCode]);
+  return { userId, id, ...rest, countries, createdAt, updatedAt: new Date().toISOString() };
+}
+
+api.get("/documents", async (c) => {
+  const list = await documents.find({ userId: c.get("userId") }).sort({ kind: 1, createdAt: 1 }).toArray();
+  return c.json({ documents: list.map(publicDocument) });
+});
+
+api.post("/documents", zValidator("json", documentBody), async (c) => {
+  const userId = c.get("userId");
+  const body = c.req.valid("json");
+  const doc = documentFromBody(userId, randomUUID(), body, new Date().toISOString());
+  await documents.insertOne(doc);
+  const generated = await syncRulesForDocument(userId, doc, body.lang);
+  if (doc.kind === "passport") prefetchPassport(doc.countryCode);
+  return c.json({ document: publicDocument(doc), rules: generated.map(publicRule) }, 201);
+});
+
+api.put("/documents/:id", zValidator("param", z.object({ id: z.string().uuid() })), zValidator("json", documentBody), async (c) => {
+  const userId = c.get("userId");
+  const { id } = c.req.valid("param");
+  const body = c.req.valid("json");
+  const prev = await documents.findOne({ userId, id });
+  if (!prev) throw new HTTPException(404, { message: "document not found" });
+  const doc = documentFromBody(userId, id, body, prev.createdAt);
+  await documents.replaceOne({ userId, id }, doc);
+  const generated = await syncRulesForDocument(userId, doc, body.lang);
+  return c.json({ document: publicDocument(doc), rules: generated.map(publicRule) });
+});
+
+api.delete("/documents/:id", zValidator("param", z.object({ id: z.string().uuid() })), async (c) => {
+  const userId = c.get("userId");
+  const { id } = c.req.valid("param");
+  const res = await documents.deleteOne({ userId, id });
+  await deleteRulesForDocument(userId, id);
+  // визы и ВНЖ, выданные по удалённому паспорту, остаются, но теряют привязку
+  await documents.updateMany({ userId, passportId: id }, { $set: { passportId: null } });
+  await entries.updateMany({ userId, documentId: id }, { $set: { documentId: null } });
+  return c.json({ deleted: res.deletedCount === 1 });
+});
+
+// MARK: основания въезда
+
+const entryBody = z.object({
+  basis: z.enum(["citizen", "visa_free", "visa", "residence", "transit", "other"]),
+  documentId: z.string().uuid().nullable().default(null),
+  note: z.string().trim().max(500).nullable().default(null),
+});
+
+function publicEntry({ userId: _u, _id: _i, ...e }: Entry & { _id?: unknown }) {
+  return e;
+}
+
+api.get("/entries", async (c) => {
+  const list = await entries.find({ userId: c.get("userId") }).sort({ date: -1 }).toArray();
+  return c.json({ entries: list.map(publicEntry) });
+});
+
+// Основание для отрезка "страна + дата въезда" — создать или заменить
+api.put(
+  "/entries/:countryCode/:date",
+  zValidator("param", z.object({ countryCode, date: isoDate })),
+  zValidator("json", entryBody),
+  async (c) => {
+    const userId = c.get("userId");
+    const { countryCode: cc, date } = c.req.valid("param");
+    const body = c.req.valid("json");
+    const now = new Date().toISOString();
+    const prev = await entries.findOne({ userId, countryCode: cc, date });
+    const entry: Entry = {
+      userId,
+      id: prev?.id ?? randomUUID(),
+      countryCode: cc,
+      date,
+      basis: body.basis,
+      documentId: body.documentId,
+      note: body.note,
+      createdAt: prev?.createdAt ?? now,
+      updatedAt: now,
+    };
+    await entries.replaceOne({ userId, countryCode: cc, date }, entry, { upsert: true });
+    return c.json({ entry: publicEntry(entry) });
+  },
+);
+
+api.delete("/entries/:countryCode/:date", zValidator("param", z.object({ countryCode, date: isoDate })), async (c) => {
+  const { countryCode: cc, date } = c.req.valid("param");
+  const res = await entries.deleteOne({ userId: c.get("userId"), countryCode: cc, date });
+  return c.json({ deleted: res.deletedCount === 1 });
+});
+
+// MARK: справочник визовых режимов
+
+// Что доступно в стране по каждому из паспортов пользователя + подсказка правила + документы на страну
+api.get("/visa-info", zValidator("query", z.object({ country: countryCode, lang: z.enum(["ru", "en"]).default("en") })), async (c) => {
+  const userId = c.get("userId");
+  const { country } = c.req.valid("query");
+  const passports = await documents.find({ userId, kind: "passport" }).sort({ createdAt: 1 }).toArray();
+  const byPassport = await Promise.all(
+    passports.map(async (p) => {
+      const isCitizen = p.countryCode === country;
+      const entry = isCitizen ? null : await getPair(p.countryCode, country);
+      const suggestion = entry ? suggestRule(entry) : null;
+      const rule = await findVisaFreeRule(userId, p.id, country);
+      const { raw: _raw, ...info } = entry ?? ({} as any);
+      return {
+        passportId: p.id,
+        passportCode: p.countryCode,
+        passportName: p.name,
+        isCitizen,
+        info: entry ? info : null,
+        suggestion,
+        rule: rule ? publicRule(rule) : null,
+      };
+    }),
+  );
+  const covering = await documents.find({ userId, kind: { $in: ["visa", "residence"] }, countries: country }).toArray();
+  return c.json({ country, enabled: visaInfoEnabled(), passports: byPassport, documents: covering.map(publicDocument) });
+});
+
+// Создать/подтвердить правило безвиза для пары паспорт → страна.
+// Без параметров — по подсказке справочника; с параметрами — как указал пользователь.
+api.post(
+  "/visa-info/rule",
+  zValidator(
+    "json",
+    z.object({
+      country: countryCode,
+      passportId: z.string().uuid(),
+      lang: z.enum(["ru", "en"]).default("en"),
+      type: z.enum(["calendarYear", "rolling", "fromDate"]).optional(),
+      limitDays: z.number().int().min(1).max(3660).optional(),
+      windowDays: z.number().int().min(2).max(3660).nullable().optional(),
+    }),
+  ),
+  async (c) => {
+    const userId = c.get("userId");
+    const body = c.req.valid("json");
+    const passport = await documents.findOne({ userId, id: body.passportId, kind: "passport" });
+    if (!passport) throw new HTTPException(404, { message: "passport not found" });
+    const override = body.type && body.limitDays ? { type: body.type, limitDays: body.limitDays, windowDays: body.windowDays ?? null } : undefined;
+    const rule = await ensureVisaFreeRule(userId, passport.id, passport.countryCode, body.country, body.lang, override);
+    return c.json({ rule: rule ? publicRule(rule) : null });
+  },
+);
+
+// Состояние кэша справочника по паспортам пользователя
+api.get("/visa-info/status", async (c) => {
+  const passports = await documents.find({ userId: c.get("userId"), kind: "passport" }).toArray();
+  const codes = [...new Set(passports.map((p) => p.countryCode))];
+  return c.json({ enabled: visaInfoEnabled(), passports: await Promise.all(codes.map(cacheStatus)) });
+});
+
+// Принудительно обновить справочник по паспорту (кнопка в приложении)
+api.post("/visa-info/refresh", zValidator("json", z.object({ passport: countryCode })), async (c) => {
+  const { passport } = c.req.valid("json");
+  const owned = await documents.findOne({ userId: c.get("userId"), kind: "passport", countryCode: passport });
+  if (!owned) throw new HTTPException(404, { message: "no such passport" });
+  await visaCache.updateMany({ passport }, { $set: { fetchedAt: "1970-01-01T00:00:00.000Z" } });
+  prefetchPassport(passport);
+  return c.json({ started: visaInfoEnabled() });
 });
 
 // MARK: экспорт
@@ -378,10 +627,12 @@ api.get("/stats/rules", zValidator("query", z.object(tzQuery)), async (c) => {
 // Полный дамп — бэкап / экспорт для бухгалтера
 api.get("/export", async (c) => {
   const userId = c.get("userId");
-  const [all, overrides, ruleList] = await Promise.all([
+  const [all, overrides, ruleList, docs, entryList] = await Promise.all([
     points.find({ userId }, { projection: publicProjection }).sort({ recordedAt: 1 }).toArray(),
     dayOverrides.find({ userId }, { projection: publicProjection }).toArray(),
     rules.find({ userId }, { projection: publicProjection }).toArray(),
+    documents.find({ userId }, { projection: publicProjection }).toArray(),
+    entries.find({ userId }, { projection: publicProjection }).toArray(),
   ]);
-  return c.json({ exportedAt: new Date().toISOString(), points: all, overrides, rules: ruleList });
+  return c.json({ exportedAt: new Date().toISOString(), points: all, overrides, rules: ruleList, documents: docs, entries: entryList });
 });

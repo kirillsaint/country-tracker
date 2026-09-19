@@ -175,6 +175,82 @@ struct APIClient {
         let _: R = try await send("DELETE", "/api/rules/\(id)")
     }
 
+    func resetRule(id: String) async throws -> Rule {
+        struct Body: Encodable { let lang: String }
+        struct R: Decodable { let rule: Rule }
+        let r: R = try await send("POST", "/api/rules/\(id)/reset", body: Body(lang: DocumentInput.currentLang))
+        return r.rule
+    }
+
+    // MARK: - Документы и въезды
+
+    func documents() async throws -> [TravelDocument] {
+        struct R: Decodable { let documents: [TravelDocument] }
+        let r: R = try await send("GET", "/api/documents")
+        return r.documents
+    }
+
+    func createDocument(_ input: DocumentInput) async throws -> (TravelDocument, [Rule]) {
+        struct R: Decodable { let document: TravelDocument; let rules: [Rule] }
+        let r: R = try await send("POST", "/api/documents", body: input)
+        return (r.document, r.rules)
+    }
+
+    func updateDocument(id: String, _ input: DocumentInput) async throws -> (TravelDocument, [Rule]) {
+        struct R: Decodable { let document: TravelDocument; let rules: [Rule] }
+        let r: R = try await send("PUT", "/api/documents/\(id)", body: input)
+        return (r.document, r.rules)
+    }
+
+    func deleteDocument(id: String) async throws {
+        struct R: Decodable { let deleted: Bool }
+        let _: R = try await send("DELETE", "/api/documents/\(id)")
+    }
+
+    func entries() async throws -> [Entry] {
+        struct R: Decodable { let entries: [Entry] }
+        let r: R = try await send("GET", "/api/entries")
+        return r.entries
+    }
+
+    func setEntry(countryCode: String, date: String, basis: EntryBasis, documentId: String?, note: String?) async throws -> Entry {
+        struct Body: Encodable { let basis: EntryBasis; let documentId: String?; let note: String? }
+        struct R: Decodable { let entry: Entry }
+        let r: R = try await send("PUT", "/api/entries/\(countryCode)/\(date)", body: Body(basis: basis, documentId: documentId, note: note))
+        return r.entry
+    }
+
+    func deleteEntry(countryCode: String, date: String) async throws {
+        struct R: Decodable { let deleted: Bool }
+        let _: R = try await send("DELETE", "/api/entries/\(countryCode)/\(date)")
+    }
+
+    // MARK: - Справочник виз
+
+    func visaInfo(country: String) async throws -> VisaInfoResponse {
+        try await send("GET", "/api/visa-info", query: ["country": country, "lang": DocumentInput.currentLang])
+    }
+
+    /// Создать/подтвердить правило безвиза. Без параметров — по подсказке справочника.
+    func ensureVisaFreeRule(country: String, passportId: String, type: RuleType? = nil, limitDays: Int? = nil, windowDays: Int? = nil) async throws -> Rule? {
+        struct Body: Encodable { let country: String; let passportId: String; let lang: String; let type: RuleType?; let limitDays: Int?; let windowDays: Int? }
+        struct R: Decodable { let rule: Rule? }
+        let r: R = try await send("POST", "/api/visa-info/rule", body: Body(country: country, passportId: passportId, lang: DocumentInput.currentLang, type: type, limitDays: limitDays, windowDays: windowDays))
+        return r.rule
+    }
+
+    func visaCacheStatus() async throws -> (enabled: Bool, passports: [VisaCacheStatus]) {
+        struct R: Decodable { let enabled: Bool; let passports: [VisaCacheStatus] }
+        let r: R = try await send("GET", "/api/visa-info/status")
+        return (r.enabled, r.passports)
+    }
+
+    func refreshVisaCache(passport: String) async throws {
+        struct Body: Encodable { let passport: String }
+        struct R: Decodable { let started: Bool }
+        let _: R = try await send("POST", "/api/visa-info/refresh", body: Body(passport: passport))
+    }
+
     func ruleResults() async throws -> [RuleResult] {
         struct R: Decodable { let results: [RuleResult] }
         let r: R = try await send("GET", "/api/stats/rules", query: ["tz": Self.tz])

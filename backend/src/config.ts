@@ -19,6 +19,10 @@ export const config = {
   // Кому вообще можно регистрироваться. Пусто = кому угодно. Для личного сервера —
   // впишите свои email'ы, иначе любой, кто найдёт адрес, заведёт себе аккаунт.
   allowedEmails: new Set(list("ALLOWED_EMAILS").map((e) => e.toLowerCase())),
+
+  // Orizn Visa API — справочник визовых режимов. Пусто = справочник выключен.
+  oriznApiKey: process.env.ORIZN_API_KEY ?? "",
+  oriznBaseUrl: process.env.ORIZN_BASE_URL ?? "https://visa.orizn.app",
 };
 
 if (config.googleClientIds.length === 0) {

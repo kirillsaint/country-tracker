@@ -71,6 +71,7 @@ struct RulesView: View {
     private func summary(_ r: Rule) -> String {
         let limit = pluralDays(r.limitDays)
         switch (r.mode, r.type) {
+        case (_, .absence): return String(localized: "no more than \(limit) away in a row")
         case (.limit, .calendarYear): return String(localized: "no more than \(limit) per calendar year")
         case (.goal, .calendarYear): return String(localized: "goal: \(limit) per calendar year")
         case (.limit, .rolling): return String(localized: "no more than \(limit) in any \(r.windowDays ?? 0) days")

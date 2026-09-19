@@ -4,12 +4,32 @@ struct HomeView: View {
     @Environment(AppModel.self) private var model
     @ObservedObject private var tracker = LocationTracker.shared
     @AppStorage(AppSettings.showCountriesSectionKey) private var showCountries = true
+    @State private var showMap = false
+    @State private var basisSegment: Segment?
 
     var body: some View {
         NavigationStack {
             List {
                 if !tracker.hasAlwaysPermission {
                     permissionBanner
+                }
+                if let current = model.current, current.needsEntryBasis, let seg = model.currentSegment {
+                    Section {
+                        Button {
+                            basisSegment = seg
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "airplane.arrival").font(.title2).foregroundStyle(.tint)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("How did you enter \(current.countryCode.countryDisplayName(fallback: current.countryName))?")
+                                        .font(.headline).foregroundStyle(.primary)
+                                    Text("Pick the basis — it sets the stay-limit rule.").font(.footnote).foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right").foregroundStyle(.tertiary)
+                            }
+                        }
+                    }
                 }
                 if let error = model.errorMessage {
                     Section {
@@ -76,6 +96,11 @@ struct HomeView: View {
             .refreshable { await model.refresh() }
             .toolbar {
                 if model.isLoading { ProgressView() }
+                Button("Map", systemImage: "map") { showMap = true }
+            }
+            .sheet(isPresented: $showMap) { MapScreen() }
+            .sheet(item: $basisSegment) { seg in
+                NavigationStack { EntryBasisSheet(segment: seg, existing: model.entry(for: seg), previous: model.current?.previousEntry) }
             }
         }
     }
@@ -119,6 +144,17 @@ struct HomeView: View {
             HStack(spacing: 16) {
                 stat(value: pluralDays(c.daysInRow), caption: String(localized: "in a row, since \(prettyDate(c.since))"))
                 stat(value: pluralDays(c.daysThisYear), caption: String(localized: "this year"))
+            }
+            HStack(spacing: 12) {
+                if let e = c.entry {
+                    Label(e.basis.title, systemImage: e.basis.systemImage).font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer()
+                NavigationLink {
+                    CountryInfoView(countryCode: c.countryCode)
+                } label: {
+                    Label("Entry conditions", systemImage: "list.bullet.rectangle").font(.caption)
+                }
             }
         }
         .padding(.vertical, 6)
@@ -176,6 +212,15 @@ struct RuleCard: View {
     }
 
     private var caption: String {
+        if result.type == .absence {
+            if result.inCountry != false {
+                return String(localized: "In the country — the away counter is at zero. Allowed: up to \(pluralDays(result.limit)) away in a row.")
+            }
+            if result.status == .exceeded {
+                return String(localized: "Away for \(pluralDays(result.used)) — over the limit of \(pluralDays(result.limit)).")
+            }
+            return String(localized: "Away for \(pluralDays(result.used)), \(pluralDays(result.remaining)) more allowed.")
+        }
         // Правило "с въезда", а мы сейчас не в стране: отсчёт сброшен
         if result.autoStart, result.inCountry == false {
             var s: String
@@ -210,6 +255,8 @@ struct RuleCard: View {
 
     private var period: String {
         switch result.type {
+        case .absence:
+            return ""
         case .calendarYear:
             return String(localized: "Year \(String(result.periodStart.prefix(4))).")
         case .rolling:

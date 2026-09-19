@@ -9,6 +9,7 @@ struct MapScreen: View {
 
     @Environment(AppModel.self) private var model
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dismiss) private var dismiss
     @State private var store = WorldMapStore.shared
     @State private var mode: Mode = .countries
     @State private var period: Period = .allTime
@@ -87,6 +88,9 @@ struct MapScreen: View {
             }
             .navigationTitle("Map")
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { dismiss() }
+                }
                 ToolbarItem(placement: .primaryAction) {
                     if !store.countries.isEmpty {
                         ShareLink(

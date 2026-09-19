@@ -34,6 +34,12 @@ struct CountryStat: Codable, Identifiable, Hashable {
 }
 
 struct CurrentStatus: Codable, Equatable {
+    struct EntryRef: Codable, Equatable {
+        let basis: EntryBasis
+        let documentId: String?
+        let date: String
+    }
+
     let countryCode: String
     let countryName: String?
     let city: String?
@@ -41,6 +47,12 @@ struct CurrentStatus: Codable, Equatable {
     let daysInRow: Int
     let daysThisYear: Int
     let lastSeen: String
+    // основание текущего пребывания; nil + entryPending — пора спросить "как въехали?"
+    let entry: EntryRef?
+    let previousEntry: EntryRef?
+    let entryPending: Bool?
+
+    var needsEntryBasis: Bool { entryPending ?? false }
 }
 
 struct Segment: Codable, Identifiable, Hashable {
@@ -64,6 +76,261 @@ struct CityStat: Codable, Identifiable, Hashable {
     // координаты для карты; nil у городов, известных только из ручных записей
     let lat: Double?
     let lon: Double?
+}
+
+// MARK: - Срез за год
+
+struct YearStats: Equatable {
+    /// nil — за всё время
+    let year: Int?
+    let countries: [CountryStat]
+    let cities: [CityStat]
+    let segments: [Segment]
+
+    /// Учтённых дней (каждый день один раз — по основной стране)
+    var totalDays: Int { segments.reduce(0) { $0 + $1.days } }
+    var longestStay: Segment? { segments.max { $0.days < $1.days } }
+    /// Поездок = отрезков в хронологии
+    var trips: Int { segments.count }
+}
+
+extension Segment {
+    /// Разрезать отрезок по границам календарных лет — для группировки хронологии по годам
+    func splitByYear() -> [Segment] {
+        guard let fromYear = Int(from.prefix(4)), let toYear = Int(to.prefix(4)), fromYear != toYear else { return [self] }
+        var out: [Segment] = []
+        for y in fromYear...toYear {
+            let start = y == fromYear ? from : "\(y)-01-01"
+            let end = y == toYear ? to : "\(y)-12-31"
+            let d = (daysBetween(start, end) ?? 0) + 1
+            out.append(Segment(countryCode: countryCode, countryName: countryName, city: city, from: start, to: end, days: d))
+        }
+        return out.reversed()
+    }
+
+    var year: Int { Int(from.prefix(4)) ?? 0 }
+}
+
+// MARK: - Документы (паспорта, визы, ВНЖ)
+
+enum DocumentKind: String, Codable, CaseIterable, Identifiable {
+    case passport, visa, residence
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .passport: return String(localized: "Passport")
+        case .visa: return String(localized: "Visa")
+        case .residence: return String(localized: "Residence permit")
+        }
+    }
+
+    var pluralTitle: String {
+        switch self {
+        case .passport: return String(localized: "Passports")
+        case .visa: return String(localized: "Visas")
+        case .residence: return String(localized: "Residence permits")
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .passport: return "person.text.rectangle"
+        case .visa: return "doc.text"
+        case .residence: return "house"
+        }
+    }
+}
+
+enum VisaEntries: String, Codable, CaseIterable, Identifiable {
+    case single, multiple
+    var id: String { rawValue }
+    var title: String { self == .single ? String(localized: "Single entry") : String(localized: "Multiple entry") }
+}
+
+enum ResidenceType: String, Codable, CaseIterable, Identifiable {
+    case temporary, permanent
+    var id: String { rawValue }
+    var title: String { self == .temporary ? String(localized: "Temporary (residence permit)") : String(localized: "Permanent") }
+}
+
+struct DocumentInput: Codable, Equatable {
+    var kind: DocumentKind
+    var name: String
+    var countryCode: String
+    var countries: [String] = []
+    var passportId: String?
+    var validFrom: String?
+    var validTo: String?
+    var entries: VisaEntries?
+    var maxStayDays: Int?
+    var windowLimitDays: Int?
+    var windowDays: Int?
+    var residenceType: ResidenceType?
+    var minDaysPerYear: Int?
+    var maxAbsenceDays: Int?
+    var note: String?
+    // язык подписей автосозданных правил
+    var lang: String = DocumentInput.currentLang
+
+    static var currentLang: String { Locale.current.language.languageCode?.identifier == "ru" ? "ru" : "en" }
+}
+
+struct TravelDocument: Codable, Identifiable, Equatable {
+    let id: String
+    var kind: DocumentKind
+    var name: String
+    var countryCode: String
+    var countries: [String]
+    var passportId: String?
+    var validFrom: String?
+    var validTo: String?
+    var entries: VisaEntries?
+    var maxStayDays: Int?
+    var windowLimitDays: Int?
+    var windowDays: Int?
+    var residenceType: ResidenceType?
+    var minDaysPerYear: Int?
+    var maxAbsenceDays: Int?
+    var note: String?
+    let createdAt: String
+    let updatedAt: String
+
+    var input: DocumentInput {
+        DocumentInput(kind: kind, name: name, countryCode: countryCode, countries: countries, passportId: passportId,
+                      validFrom: validFrom, validTo: validTo, entries: entries, maxStayDays: maxStayDays,
+                      windowLimitDays: windowLimitDays, windowDays: windowDays, residenceType: residenceType,
+                      minDaysPerYear: minDaysPerYear, maxAbsenceDays: maxAbsenceDays, note: note)
+    }
+
+    /// Дней до истечения; nil — бессрочный; отрицательное — уже истёк
+    var daysUntilExpiry: Int? {
+        guard let validTo else { return nil }
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.timeZone = .current
+        return daysBetween(f.string(from: Date()), validTo)
+    }
+
+    /// Применим ли документ к стране (паспорт — к своей стране, виза/ВНЖ — к зоне)
+    func covers(_ code: String) -> Bool {
+        kind == .passport ? countryCode == code : countries.contains(code)
+    }
+}
+
+enum EntryBasis: String, Codable, CaseIterable, Identifiable {
+    case citizen, visa_free, visa, residence, transit, other
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .citizen: return String(localized: "Citizen")
+        case .visa_free: return String(localized: "Visa-free")
+        case .visa: return String(localized: "Visa")
+        case .residence: return String(localized: "Residence permit")
+        case .transit: return String(localized: "Transit")
+        case .other: return String(localized: "Other")
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .citizen: return "person.crop.circle"
+        case .visa_free: return "checkmark.seal"
+        case .visa: return "doc.text"
+        case .residence: return "house"
+        case .transit: return "airplane"
+        case .other: return "questionmark.circle"
+        }
+    }
+}
+
+struct Entry: Codable, Identifiable, Equatable {
+    let id: String
+    let countryCode: String
+    let date: String
+    var basis: EntryBasis
+    var documentId: String?
+    var note: String?
+    let createdAt: String
+    let updatedAt: String
+}
+
+// MARK: - Справочник визовых режимов
+
+enum VisaRequirement: String, Codable {
+    case visa_free, e_visa, visa_on_arrival, eta, visa_required, no_admission, unknown
+
+    var title: String {
+        switch self {
+        case .visa_free: return String(localized: "Visa-free")
+        case .e_visa: return String(localized: "E-visa")
+        case .visa_on_arrival: return String(localized: "Visa on arrival")
+        case .eta: return String(localized: "Electronic travel authorization")
+        case .visa_required: return String(localized: "Visa required")
+        case .no_admission: return String(localized: "Entry not allowed")
+        case .unknown: return String(localized: "Unknown")
+        }
+    }
+
+    var allowsEntry: Bool { [.visa_free, .e_visa, .visa_on_arrival, .eta].contains(self) }
+    var color: String { allowsEntry ? "green" : (self == .unknown ? "gray" : "red") }
+}
+
+struct VisaInfoRecord: Codable, Equatable {
+    let requirement: VisaRequirement?
+    let visaFreeDays: Int?
+    let description: String?
+    let maxStay: String?
+    let extensionNotes: String?
+    let extensionPossible: Bool?
+    let maxExtensionDays: Int?
+    let passportValidityMonths: Int?
+    let source: String?
+    let verified: Bool?
+    let sourceUrl: String?
+    let lastVerifiedAt: String?
+    let requirementStatus: String?
+    let requirementStatusNote: String?
+    let overstayNotes: String?
+    let fetchedAt: String?
+}
+
+struct RuleSuggestion: Codable, Equatable {
+    let type: RuleType
+    let limitDays: Int
+    let windowDays: Int?
+    let reason: String
+    let confidence: String
+}
+
+struct VisaInfoByPassport: Codable, Identifiable, Equatable {
+    var id: String { passportId }
+    let passportId: String
+    let passportCode: String
+    let passportName: String
+    let isCitizen: Bool
+    let info: VisaInfoRecord?
+    let suggestion: RuleSuggestion?
+    let rule: Rule?
+}
+
+struct VisaInfoResponse: Codable {
+    let country: String
+    let enabled: Bool
+    let passports: [VisaInfoByPassport]
+    let documents: [TravelDocument]
+}
+
+struct VisaCacheStatus: Codable, Identifiable {
+    var id: String { passport }
+    let passport: String
+    let total: Int
+    let cached: Int
+    let fresh: Int
+    let lastFetchedAt: String?
+    let inProgress: Bool
+    let enabled: Bool
 }
 
 // MARK: - Ручные записи
@@ -121,7 +388,7 @@ func daysBetween(_ a: String, _ b: String) -> Int? {
 // MARK: - Правила подсчёта
 
 enum RuleType: String, Codable, CaseIterable, Identifiable {
-    case calendarYear, rolling, fromDate
+    case calendarYear, rolling, fromDate, absence
     var id: String { rawValue }
 
     var title: String {
@@ -129,6 +396,7 @@ enum RuleType: String, Codable, CaseIterable, Identifiable {
         case .calendarYear: return String(localized: "Calendar year")
         case .rolling: return String(localized: "Rolling window")
         case .fromDate: return String(localized: "From a date")
+        case .absence: return String(localized: "Days away")
         }
     }
 
@@ -137,6 +405,7 @@ enum RuleType: String, Codable, CaseIterable, Identifiable {
         case .calendarYear: return String(localized: "Counts days from January 1 to December 31.")
         case .rolling: return String(localized: "In any N consecutive days (for example, 90 out of 180 for Schengen).")
         case .fromDate: return String(localized: "A fixed period starting on a chosen date — for example, a visa term.")
+        case .absence: return String(localized: "Counts consecutive days spent outside the selected countries — a residence permit obligation not to be away longer than N days.")
         }
     }
 }
@@ -169,6 +438,7 @@ struct RuleInput: Codable, Equatable {
     var warnRemainingDays: Int?
     var notify: Bool = true
     var sortOrder: Int = 0
+    var validUntil: String?
 }
 
 struct Rule: Codable, Identifiable, Equatable {
@@ -186,14 +456,22 @@ struct Rule: Codable, Identifiable, Equatable {
     var warnRemainingDays: Int?
     var notify: Bool
     var sortOrder: Int
+    var validUntil: String?
+    // правило создано из документа (визы / ВНЖ); customized — пользователь его переписал
+    var documentId: String?
+    var documentRole: String?
+    var customized: Bool?
     let createdAt: String
     let updatedAt: String
+
+    var isFromDocument: Bool { documentId != nil }
+    var isCustomized: Bool { customized ?? false }
 
     var input: RuleInput {
         RuleInput(
             name: name, enabled: enabled, type: type, countries: countries, limitDays: limitDays,
             windowDays: windowDays, startDate: startDate, autoStart: autoStart, mode: mode, countMode: countMode,
-            warnRemainingDays: warnRemainingDays, notify: notify, sortOrder: sortOrder
+            warnRemainingDays: warnRemainingDays, notify: notify, sortOrder: sortOrder, validUntil: validUntil
         )
     }
 }
@@ -218,6 +496,8 @@ struct RuleResult: Codable, Identifiable, Equatable {
     }
 
     let autoStart: Bool
+    let documentId: String?
+    let validUntil: String?
     let entryDate: String?
     let inCountry: Bool?
     let lastStay: Stay?

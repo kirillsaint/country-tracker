@@ -25,19 +25,44 @@ struct RuleEditView: View {
 
     var body: some View {
         Form {
+            if let rule, rule.isFromDocument {
+                Section {
+                    let doc = model.document(id: rule.documentId)
+                    Label(String(localized: "Created from document: \(doc?.name ?? "—")"), systemImage: "doc.text")
+                        .font(.footnote)
+                    if rule.isCustomized {
+                        Text("You changed this rule by hand, so changes to the document won’t overwrite it.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                        Button("Restore from document") {
+                            Task {
+                                do {
+                                    try await model.resetRule(rule)
+                                    dismiss()
+                                } catch { self.error = error.localizedDescription }
+                            }
+                        }
+                    } else {
+                        Text("Edit anything below if the rule is wrong — your version will be kept.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
+            }
+
             Section("Name") {
                 TextField("For example, Schengen 90/180", text: $draft.name)
             }
 
             Section {
-                Picker("Mode", selection: $draft.mode) {
-                    ForEach(RuleMode.allCases) { Text($0.title).tag($0) }
+                if draft.type != .absence {
+                    Picker("Mode", selection: $draft.mode) {
+                        ForEach(RuleMode.allCases) { Text($0.title).tag($0) }
+                    }
+                    .pickerStyle(.segmented)
                 }
-                .pickerStyle(.segmented)
                 Picker("Period", selection: $draft.type) {
                     ForEach(RuleType.allCases) { Text($0.title).tag($0) }
                 }
-                DaysField(title: draft.mode == .limit ? "No more than" : "Need to reach", value: $draft.limitDays)
+                DaysField(title: draft.type == .absence ? "Max days away in a row" : (draft.mode == .limit ? "No more than" : "Need to reach"), value: $draft.limitDays)
                 if draft.type == .rolling {
                     DaysField(title: "In any", value: windowBinding, range: 2...3660)
                 }
@@ -116,7 +141,7 @@ struct RuleEditView: View {
                 Button(action: save) {
                     if saving { ProgressView() } else { Text("Save") }
                 }
-                .disabled(saving || draft.name.trimmingCharacters(in: .whitespaces).isEmpty)
+                .disabled(saving || draft.name.trimmingCharacters(in: .whitespaces).isEmpty || (draft.type == .absence && draft.countries.isEmpty))
             }
         }
         .confirmationDialog("Delete this rule?", isPresented: $confirmDelete, titleVisibility: .visible) {
@@ -157,6 +182,10 @@ struct RuleEditView: View {
             input.startDate = nil
         case .fromDate:
             input.startDate = input.autoStart ? nil : Self.format(startDate)
+        case .absence:
+            input.windowDays = nil
+            input.startDate = nil
+            input.mode = .limit
         }
         saving = true
         error = nil

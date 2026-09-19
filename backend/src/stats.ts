@@ -217,6 +217,8 @@ export type RuleResult = {
   notify: boolean;
   warnRemainingDays: number | null;
   autoStart: boolean;
+  documentId: string | null;
+  validUntil: string | null;
   // fromDate + autoStart: дата текущего въезда (null, если сейчас не в стране)
   entryDate: string | null;
   // fromDate + autoStart: находимся ли сейчас в странах правила
@@ -274,6 +276,16 @@ type Period = {
 function periodOf(days: DailyPresence, rule: Rule, today: string): Period {
   const none = { entryDate: null, inCountry: null, lastStay: null };
   switch (rule.type) {
+    case "absence": {
+      // Считаем дни подряд ВНЕ стран правила, заканчивая сегодня. Период — текущее отсутствие.
+      const stay = lastStayOf(days, rule, today);
+      const inCountry = !!stay && (stay.to === today || (stay.to === addDays(today, -1) && !days.has(today)));
+      if (!stay || inCountry) {
+        return { start: today, end: addDays(today, rule.limitDays - 1), entryDate: null, inCountry: !!stay, lastStay: stay };
+      }
+      const start = addDays(stay.to, 1);
+      return { start, end: addDays(start, rule.limitDays - 1), entryDate: null, inCountry: false, lastStay: stay };
+    }
     case "calendarYear":
       return { start: `${today.slice(0, 4)}-01-01`, end: `${today.slice(0, 4)}-12-31`, ...none };
     case "rolling":
@@ -303,7 +315,12 @@ export function evaluateRule(days: DailyPresence, rule: Rule, today: string): Ru
   for (const d of datesInRange(days, start, end < today ? end : today)) {
     if (dayMatches(days.get(d), rule)) matched.add(d);
   }
-  const used = matched.size;
+  // absence: использовано = дней подряд вне страны (сегодня включительно); в стране — 0
+  // absence: использовано = дней подряд вне страны (сегодня включительно);
+  // в стране или вообще ещё не были в ней по данным — 0
+  const used = rule.type === "absence"
+    ? (inCountry === false && lastStay ? daysBetween(start, today) + 1 : 0)
+    : matched.size;
   const limit = rule.limitDays;
   const remaining = Math.max(0, limit - used);
   const daysLeftInPeriod = end > today ? daysBetween(today, end) : 0;
@@ -326,6 +343,8 @@ export function evaluateRule(days: DailyPresence, rule: Rule, today: string): Ru
         stay++;
       }
       canStayDays = stay;
+    } else if (rule.type === "absence") {
+      canStayDays = remaining;
     } else {
       // вне страны период ещё не начался — сегодняшний день тоже доступен
       canStayDays = Math.min(remaining, inCountry === false ? daysLeftInPeriod + 1 : daysLeftInPeriod);
@@ -347,6 +366,8 @@ export function evaluateRule(days: DailyPresence, rule: Rule, today: string): Ru
     notify: rule.notify,
     warnRemainingDays: rule.warnRemainingDays,
     autoStart: rule.autoStart ?? false,
+    documentId: rule.documentId ?? null,
+    validUntil: rule.validUntil ?? null,
     entryDate,
     inCountry,
     lastStay,

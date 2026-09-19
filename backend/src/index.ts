@@ -6,6 +6,7 @@ import { config } from "./config.js";
 import { closeDb, connectDb } from "./db.js";
 import { api } from "./routes.js";
 import { auth } from "./authRoutes.js";
+import { startRefreshJob } from "./visaInfo.js";
 
 const app = new Hono();
 
@@ -23,6 +24,7 @@ app.onError((err, c) => {
 });
 
 await connectDb();
+startRefreshJob();
 
 const server = serve({ fetch: app.fetch, port: config.port, hostname: "0.0.0.0" }, (info) => {
   console.log(`API listening on http://0.0.0.0:${info.port}`);

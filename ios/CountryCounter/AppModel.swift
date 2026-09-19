@@ -14,6 +14,8 @@ final class AppModel {
     var ruleResults: [RuleResult] = []
     var overrides: [DayOverride] = []
     var manualRanges: [ManualRange] { ManualRange.group(overrides) }
+    var documents: [TravelDocument] = []
+    var entries: [Entry] = []
     // Для карты "за всё время" — грузится при первом открытии карты и обновляется вместе с остальным
     var allTimeCountries: [CountryStat] = []
     var allTimeCities: [CityStat] = []
@@ -36,10 +38,12 @@ final class AppModel {
             async let current = client.current()
             async let countries = client.countries()
             async let cities = client.cities()
-            async let timeline = client.timeline()
+            async let timeline = client.timeline(from: Self.allTimeFrom)
             async let rules = client.rules()
             async let ruleResults = client.ruleResults()
             async let overrides = client.overrides()
+            async let documents = client.documents()
+            async let entries = client.entries()
             self.current = try await current
             self.countries = try await countries
             self.cities = try await cities
@@ -47,11 +51,17 @@ final class AppModel {
             self.rules = try await rules
             self.ruleResults = try await ruleResults
             self.overrides = try await overrides
+            self.documents = try await documents
+            self.entries = try await entries
             errorMessage = nil
             lastRefresh = Date()
+            // данные изменились — годовые срезы пересчитаются при следующем обращении
+            yearStatsCache.removeAll()
             if allTimeLoaded { await loadAllTime() }
             publishWidgetSnapshot()
             await RuleNotifier.evaluate(self.ruleResults)
+            await RuleNotifier.evaluateDocuments(self.documents)
+            if let now = self.current { await EntryPrompter.promptIfNeeded(current: now, documents: self.documents) }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -84,6 +94,117 @@ final class AppModel {
             try await APIClient.fromSettings().deleteRule(id: rule.id)
             rules.removeAll { $0.id == rule.id }
             ruleResults.removeAll { $0.ruleId == rule.id }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    // MARK: - Документы и въезды
+
+    func document(id: String?) -> TravelDocument? {
+        guard let id else { return nil }
+        return documents.first { $0.id == id }
+    }
+
+    var passports: [TravelDocument] { documents.filter { $0.kind == .passport } }
+
+    func saveDocument(_ input: DocumentInput, id: String?) async throws {
+        let client = try APIClient.fromSettings()
+        let (doc, generated): (TravelDocument, [Rule])
+        if let id {
+            (doc, generated) = try await client.updateDocument(id: id, input)
+            if let i = documents.firstIndex(where: { $0.id == id }) { documents[i] = doc } else { documents.append(doc) }
+        } else {
+            (doc, generated) = try await client.createDocument(input)
+            documents.append(doc)
+        }
+        // правила документа пересобраны на сервере — заменяем их в локальном списке
+        rules.removeAll { $0.documentId == doc.id }
+        rules.append(contentsOf: generated)
+        await refreshRuleResults()
+    }
+
+    func deleteDocument(_ doc: TravelDocument) async {
+        do {
+            try await APIClient.fromSettings().deleteDocument(id: doc.id)
+            documents.removeAll { $0.id == doc.id }
+            rules.removeAll { $0.documentId == doc.id }
+            ruleResults.removeAll { $0.documentId == doc.id }
+            for i in entries.indices where entries[i].documentId == doc.id { entries[i].documentId = nil }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func resetRule(_ rule: Rule) async throws {
+        let restored = try await APIClient.fromSettings().resetRule(id: rule.id)
+        if let i = rules.firstIndex(where: { $0.id == rule.id }) { rules[i] = restored }
+        await refreshRuleResults()
+    }
+
+    /// Правило безвиза для пары паспорт → страна (по справочнику). nil — справочник не знает условий.
+    func ensureVisaFreeRule(country: String, passportId: String) async throws -> Rule? {
+        let rule = try await APIClient.fromSettings().ensureVisaFreeRule(country: country, passportId: passportId)
+        if let rule {
+            if let i = rules.firstIndex(where: { $0.id == rule.id }) { rules[i] = rule } else { rules.append(rule) }
+            await refreshRuleResults()
+        }
+        return rule
+    }
+
+    /// Отрезок текущего пребывания — для листа "как въехали?" с главного экрана
+    var currentSegment: Segment? {
+        guard let c = current else { return nil }
+        return timeline.first { $0.countryCode == c.countryCode && $0.from == c.since }
+            ?? Segment(countryCode: c.countryCode, countryName: c.countryName, city: c.city, from: c.since, to: c.lastSeen, days: c.daysInRow)
+    }
+
+    func entry(for segment: Segment) -> Entry? {
+        entries.first { $0.countryCode == segment.countryCode && $0.date == segment.from }
+    }
+
+    func setEntry(countryCode: String, date: String, basis: EntryBasis, documentId: String?, note: String?) async throws {
+        let e = try await APIClient.fromSettings().setEntry(countryCode: countryCode, date: date, basis: basis, documentId: documentId, note: note)
+        entries.removeAll { $0.countryCode == countryCode && $0.date == date }
+        entries.insert(e, at: 0)
+    }
+
+    func deleteEntry(countryCode: String, date: String) async throws {
+        try await APIClient.fromSettings().deleteEntry(countryCode: countryCode, date: date)
+        entries.removeAll { $0.countryCode == countryCode && $0.date == date }
+    }
+
+    // MARK: - Статистика по годам
+
+    private var yearStatsCache: [Int?: YearStats] = [:]
+    private var yearStatsLoading: Set<Int?> = []
+
+    /// Годы, за которые есть хоть какие-то данные (по всей хронологии), новые сверху. Текущий — всегда.
+    var availableYears: [Int] {
+        var years = Set<Int>([Calendar.current.component(.year, from: Date())])
+        for s in timeline {
+            if let a = Int(s.from.prefix(4)), let b = Int(s.to.prefix(4)) {
+                for y in min(a, b)...max(a, b) { years.insert(y) }
+            }
+        }
+        return years.sorted(by: >)
+    }
+
+    /// nil = за всё время
+    func yearStats(for year: Int?) -> YearStats? { yearStatsCache[year] }
+
+    func loadYearStats(for year: Int?) async {
+        guard yearStatsCache[year] == nil, !yearStatsLoading.contains(year) else { return }
+        guard let client = try? APIClient.fromSettings() else { return }
+        yearStatsLoading.insert(year)
+        defer { yearStatsLoading.remove(year) }
+        let from = year.map { "\($0)-01-01" } ?? Self.allTimeFrom
+        let to = year.map { "\($0)-12-31" }
+        do {
+            async let countries = client.countries(from: from, to: to)
+            async let cities = client.cities(from: from, to: to)
+            async let segments = client.timeline(from: from, to: to)
+            yearStatsCache[year] = YearStats(year: year, countries: try await countries, cities: try await cities, segments: try await segments)
         } catch {
             errorMessage = error.localizedDescription
         }

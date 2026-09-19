@@ -28,7 +28,9 @@ export type RuleType =
   // скользящее окно из windowDays дней, заканчивающееся сегодня
   | "rolling"
   // фиксированный период: с startDate на windowDays дней (или бессрочно, если windowDays = null)
-  | "fromDate";
+  | "fromDate"
+  // максимум дней подряд ВНЕ стран правила (обязательство ВНЖ/ПМЖ не отсутствовать дольше N)
+  | "absence";
 
 export type Rule = {
   userId: ObjectId;
@@ -54,6 +56,97 @@ export type Rule = {
   // слать ли уведомления по этому правилу
   notify: boolean;
   sortOrder: number;
+  // правило порождено документом (визой / ВНЖ): documentId + роль внутри документа.
+  // Такие правила пересоздаются при изменении документа и удаляются вместе с ним.
+  documentId: string | null;
+  documentRole: DocumentRuleRole | null;
+  // пользователь правил автосозданное правило руками — при пересборке документа его не трогаем
+  customized: boolean;
+  // после этой даты правило считается истёкшим и в расчётах не участвует (срок визы/ВНЖ)
+  validUntil: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+// visafree — правило безвиза, привязанное к паспорту (по данным справочника или подтверждённое пользователем)
+export type DocumentRuleRole = "stay" | "window" | "presence" | "absence" | "visafree";
+
+// MARK: справочник визовых режимов (кэш ответов Orizn)
+
+export type VisaRequirement = "visa_free" | "e_visa" | "visa_on_arrival" | "eta" | "visa_required" | "no_admission" | "unknown";
+
+export type VisaCacheEntry = {
+  // ISO alpha-2
+  passport: string;
+  destination: string;
+  fetchedAt: string;
+  // null — у справочника нет данных по паре (404)
+  requirement: VisaRequirement | null;
+  visaFreeDays: number | null;
+  description: string | null;
+  maxStay: string | null;
+  // заметки, из которых извлекаются "90 in any 180", "180 per calendar year"
+  extensionNotes: string | null;
+  extensionPossible: boolean | null;
+  maxExtensionDays: number | null;
+  passportValidityMonths: number | null;
+  source: string | null;
+  verified: boolean | null;
+  sourceUrl: string | null;
+  lastVerifiedAt: string | null;
+  requirementStatus: string | null;
+  requirementStatusNote: string | null;
+  overstayNotes: string | null;
+  // полный ответ — на будущее, чтобы не перезапрашивать
+  raw: unknown;
+};
+
+// MARK: документы
+
+export type DocumentKind = "passport" | "visa" | "residence";
+
+export type TravelDocument = {
+  userId: ObjectId;
+  id: string;
+  kind: DocumentKind;
+  name: string;
+  // passport: страна гражданства; visa/residence: страна документа
+  countryCode: string;
+  // visa/residence: все страны, где документ действует (зона), минимум [countryCode]
+  countries: string[];
+  // visa/residence: по какому паспорту выдан
+  passportId: string | null;
+  validFrom: string | null;
+  validTo: string | null;
+  // visa
+  entries: "single" | "multiple" | null;
+  // максимум дней за один въезд
+  maxStayDays: number | null;
+  // лимит в скользящем окне, например 90 из 180
+  windowLimitDays: number | null;
+  windowDays: number | null;
+  // residence
+  residenceType: "temporary" | "permanent" | null;
+  // обязательства: минимум дней в стране за год / максимум непрерывного отсутствия
+  minDaysPerYear: number | null;
+  maxAbsenceDays: number | null;
+  note: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+// Основание въезда: привязано к отрезку пребывания (страна + дата въезда)
+export type EntryBasis = "citizen" | "visa_free" | "visa" | "residence" | "transit" | "other";
+
+export type Entry = {
+  userId: ObjectId;
+  id: string;
+  countryCode: string;
+  // дата въезда = первый день отрезка, YYYY-MM-DD
+  date: string;
+  basis: EntryBasis;
+  documentId: string | null;
+  note: string | null;
   createdAt: string;
   updatedAt: string;
 };
