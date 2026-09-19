@@ -1,5 +1,7 @@
 FROM node:24-alpine AS build
 WORKDIR /app
+# corepack ставит ровно ту версию pnpm, что в package.json -> packageManager, без интерактивного вопроса
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 RUN corepack enable
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
