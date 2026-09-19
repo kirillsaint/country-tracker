@@ -37,6 +37,7 @@ targets:
         product: GoogleSignIn
       - package: GoogleSignIn
         product: GoogleSignInSwift
+      - target: CountryCounterWidgets
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ge.kirillsaint.countrycounter
@@ -67,3 +68,33 @@ targets:
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
             CFBundleURLSchemes: [$(GOOGLE_REVERSED_CLIENT_ID)]
+
+  # Виджеты домашнего экрана и экрана блокировки. Данные получают из снимка в App Group.
+  CountryCounterWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: CountryCounterWidgets
+      # общий код с приложением: модели, локализация, снимок
+      - path: CountryCounter/Shared
+      - path: CountryCounter/Models.swift
+      - path: CountryCounter/Localization.swift
+      - path: CountryCounter/Localizable.xcstrings
+    # XcodeGen генерирует этот файл заново при каждом запуске — содержимое задаём здесь
+    entitlements:
+      path: CountryCounterWidgets/CountryCounterWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.ge.kirillsaint.countrycounter]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ge.kirillsaint.countrycounter.widgets
+        SKIP_INSTALL: YES
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+    info:
+      path: CountryCounterWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Country Counter
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, ru]
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension

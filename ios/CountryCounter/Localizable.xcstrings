@@ -33,6 +33,28 @@
         }
       }
     },
+    "%@ in a row" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ подряд"
+          }
+        }
+      }
+    },
+    "%@ left" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "осталось %@"
+          }
+        }
+      }
+    },
     "%@ left, you can stay %@ more in a row." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -66,6 +88,17 @@
         }
       }
     },
+    "%@ more in a row" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ещё %@ подряд"
+          }
+        }
+      }
+    },
     "%@ of %lld left." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -84,6 +117,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Осталось %@ из %lld. Можно остаться ещё %@ подряд."
+          }
+        }
+      }
+    },
+    "%@ this year" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ в этом году"
+          }
+        }
+      }
+    },
+    "%@ to go" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "до цели %@"
           }
         }
       }
@@ -549,6 +604,17 @@
         }
       }
     },
+    "App Group unavailable" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Group недоступен"
+          }
+        }
+      }
+    },
     "App language" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -599,6 +665,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Выбрать"
+          }
+        }
+      }
+    },
+    "Choose which counting rule to show." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите, какое правило подсчёта показывать."
           }
         }
       }
@@ -747,6 +824,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Считает, в каких странах и городах вы проводите время."
+          }
+        }
+      }
+    },
+    "Current country and how many days you have been there." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Текущая страна и сколько дней вы там."
           }
         }
       }
@@ -981,6 +1069,17 @@
         }
       }
     },
+    "Goal reached" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Цель достигнута"
+          }
+        }
+      }
+    },
     "Goal reached: %@ of %lld." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1122,6 +1221,16 @@
         }
       }
     },
+    "in a row" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "подряд"
+          }
+        }
+      }
+    },
     "in a row, since %@" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1182,6 +1291,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Лимит"
+          }
+        }
+      }
+    },
+    "Limit exceeded" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Лимит превышен"
           }
         }
       }
@@ -1493,7 +1613,6 @@
       }
     },
     "No rules yet" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -1510,6 +1629,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не найдено окно для показа входа Google."
+          }
+        }
+      }
+    },
+    "Not in the country" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сейчас не в стране"
           }
         }
       }
@@ -1543,6 +1673,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "не запрошено"
+          }
+        }
+      }
+    },
+    "not written yet" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ещё не записан"
           }
         }
       }
@@ -1619,6 +1760,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Открыть настройки iOS"
+          }
+        }
+      }
+    },
+    "Open the app to load data" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Откройте приложение, чтобы загрузить данные"
           }
         }
       }
@@ -1700,6 +1851,17 @@
         }
       }
     },
+    "Progress of one counting rule: days used, days left." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Прогресс по одному правилу: использовано дней, осталось дней."
+          }
+        }
+      }
+    },
     "Recent events" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1718,6 +1880,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Записать точку сейчас"
+          }
+        }
+      }
+    },
+    "Refresh widgets now" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновить виджеты сейчас"
           }
         }
       }
@@ -2060,6 +2233,16 @@
         }
       }
     },
+    "The app writes a data snapshot for widgets after every refresh. If the snapshot is missing, the app can’t reach the shared container." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приложение записывает снимок данных для виджетов после каждого обновления. Если снимка нет — приложению недоступен общий контейнер."
+          }
+        }
+      }
+    },
     "The city comes from the device when a point is recorded; days without a city are shown as “—”." : {
       "localizations" : {
         "ru" : {
@@ -2335,6 +2518,27 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "при использовании"
+          }
+        }
+      }
+    },
+    "Widget data" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Данные виджетов"
+          }
+        }
+      }
+    },
+    "Widgets" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Виджеты"
           }
         }
       }

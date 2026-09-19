@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import WidgetKit
 
 // Состояние экранов: всё, что приходит с сервера, плюс размер локальной очереди.
 @MainActor
@@ -49,6 +50,7 @@ final class AppModel {
             errorMessage = nil
             lastRefresh = Date()
             if allTimeLoaded { await loadAllTime() }
+            publishWidgetSnapshot()
             await RuleNotifier.evaluate(self.ruleResults)
         } catch {
             errorMessage = error.localizedDescription
@@ -84,6 +86,33 @@ final class AppModel {
             ruleResults.removeAll { $0.ruleId == rule.id }
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    // MARK: - Виджеты
+
+    private func publishWidgetSnapshot() {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.timeZone = .current
+        let snapshot = WidgetSnapshot(
+            today: f.string(from: Date()),
+            generatedAt: Date(),
+            current: current.map {
+                WidgetSnapshot.Current(countryCode: $0.countryCode, countryName: $0.countryName, city: $0.city,
+                                       since: $0.since, daysInRow: $0.daysInRow, daysThisYear: $0.daysThisYear)
+            },
+            rules: ruleResults.map {
+                WidgetSnapshot.Rule(id: $0.ruleId, name: $0.name, mode: $0.mode, countries: $0.countries,
+                                    used: $0.used, limit: $0.limit, remaining: $0.remaining, canStayDays: $0.canStayDays,
+                                    status: $0.status, periodEnd: $0.periodEnd, inCountry: $0.inCountry)
+            },
+            countriesThisYear: countries.count,
+            countriesAllTime: allTimeCountries.count
+        )
+        if snapshot != WidgetSnapshot.load() {
+            snapshot.save()
+            WidgetCenter.shared.reloadAllTimelines()
         }
     }
 

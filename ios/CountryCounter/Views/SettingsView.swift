@@ -1,5 +1,6 @@
 import AuthenticationServices
 import SwiftUI
+import WidgetKit
 
 struct SettingsView: View {
     @Environment(AppModel.self) private var model
@@ -125,6 +126,20 @@ struct SettingsView: View {
                 #endif
             }
 
+            Section {
+                LabeledContent("Widget data", value: widgetSnapshotStatus)
+                Button("Refresh widgets now") {
+                    Task {
+                        await model.refresh()
+                        WidgetCenter.shared.reloadAllTimelines()
+                    }
+                }
+            } header: {
+                Text("Widgets")
+            } footer: {
+                Text("The app writes a data snapshot for widgets after every refresh. If the snapshot is missing, the app can’t reach the shared container.")
+            }
+
             Section("Recent events") {
                 if let p = tracker.lastPoint {
                     VStack(alignment: .leading) {
@@ -150,6 +165,12 @@ struct SettingsView: View {
         } message: {
             Text("Your data stays on the server. Points recorded before the next sign-in are kept locally.")
         }
+    }
+
+    private var widgetSnapshotStatus: String {
+        guard WidgetSnapshot.fileURL != nil else { return String(localized: "App Group unavailable") }
+        guard let s = WidgetSnapshot.load() else { return String(localized: "not written yet") }
+        return s.generatedAt.formatted(date: .abbreviated, time: .shortened)
     }
 
     // MARK: - Аккаунт
