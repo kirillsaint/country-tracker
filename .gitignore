@@ -1,0 +1,20 @@
+# env / secrets
+.env
+*.env.local
+
+# node
+node_modules/
+dist/
+
+# xcode
+ios/Config.xcconfig
+ios/*.xcodeproj/
+ios/*.xcworkspace/
+ios/DerivedData/
+ios/build/
+xcuserdata/
+*.xcuserstate
+.build/
+
+# macOS
+.DS_Store

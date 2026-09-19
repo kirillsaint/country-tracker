@@ -1,0 +1,11 @@
+// Скопируйте в Config.xcconfig (он в .gitignore) и заполните.
+
+// Team ID: Xcode -> Settings -> Accounts -> выбрать Apple ID -> колонка Team ID,
+// или https://developer.apple.com/account -> Membership details.
+DEVELOPMENT_TEAM = XXXXXXXXXX
+
+// Google Sign-In. Создать iOS OAuth client в https://console.cloud.google.com/apis/credentials
+// с bundle id ge.kirillsaint.countrycounter. Оттуда же берётся "iOS URL scheme" (reversed client id).
+// Пока не заполнено — кнопка Google в приложении будет неактивна, вход через Apple работает.
+GOOGLE_CLIENT_ID = 000000000000-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com
+GOOGLE_REVERSED_CLIENT_ID = com.googleusercontent.apps.000000000000-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
