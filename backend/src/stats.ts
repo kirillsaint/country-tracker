@@ -312,10 +312,9 @@ function periodOf(days: DailyPresence, rule: Rule, today: string): Period {
 }
 
 export function evaluateRule(days: DailyPresence, rule: Rule, today: string): RuleResult {
-  const period = periodOf(days, rule, today);
-  // правило вступило в силу с новой версии режима — более ранние дни не считаем
-  const start = rule.validFrom && rule.validFrom > period.start ? rule.validFrom : period.start;
-  const { end, entryDate, inCountry, lastStay } = period;
+  // validFrom/validUntil правила — только запись о том, какая версия условий когда действовала.
+  // Считаются все фактические дни: смена условий не обнуляет уже проведённое время в окне.
+  const { start, end, entryDate, inCountry, lastStay } = periodOf(days, rule, today);
   const matched = new Set<string>();
   for (const d of datesInRange(days, start, end < today ? end : today)) {
     if (dayMatches(days.get(d), rule)) matched.add(d);
