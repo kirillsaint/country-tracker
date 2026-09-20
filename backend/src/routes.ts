@@ -272,7 +272,8 @@ const rangeBody = z
     note: z.string().trim().max(500).nullable().optional(),
   })
   .refine((r) => r.from <= r.to, { message: "from must be <= to", path: ["to"] })
-  .refine((r) => daysBetween(r.from, r.to) < 366 * 3, { message: "range too long", path: ["to"] });
+  // до 50 лет одной записью — например, «жил в стране с рождения»
+  .refine((r) => daysBetween(r.from, r.to) < 366 * 50, { message: "range too long (max 50 years)", path: ["to"] });
 
 // Все ручные правки пользователя — приложение само склеивает их в диапазоны
 api.get("/overrides", async (c) => {

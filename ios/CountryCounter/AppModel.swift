@@ -28,7 +28,23 @@ final class AppModel {
     var errorMessage: String?
     var lastRefresh: Date?
 
+    private var refreshTask: Task<Void, Never>?
+
+    /// Полное обновление. Параллельные вызовы (смена сцены, pull-to-refresh, уведомление) ждут одну
+    /// и ту же загрузку: иначе отмена одного из вызывающих Task обрывала запросы и на экране
+    /// появлялась «ошибка» «отменено».
     func refresh() async {
+        if let running = refreshTask {
+            await running.value
+            return
+        }
+        let task = Task { await performRefresh() }
+        refreshTask = task
+        await task.value
+        refreshTask = nil
+    }
+
+    private func performRefresh() async {
         pendingCount = await PendingQueue.shared.count()
         guard let client = try? APIClient.fromSettings() else {
             errorMessage = nil
@@ -72,6 +88,9 @@ final class AppModel {
             if let now = self.current { await EntryPrompter.promptIfNeeded(current: now, documents: self.documents) }
             await RegimeChecks.processPending()
             RuleNotifier.scheduleConditionReminders(current: self.current, regimes: self.regimes)
+        } catch is CancellationError {
+            // обновление перебили — данные остались прежними, это не ошибка
+        } catch let e as URLError where e.code == .cancelled {
         } catch {
             errorMessage = error.localizedDescription
         }

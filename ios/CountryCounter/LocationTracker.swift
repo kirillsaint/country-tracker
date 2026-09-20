@@ -23,7 +23,6 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
     @Published private(set) var lastPoint: PendingPoint?
 
     private let manager = CLLocationManager()
-    private let geocoder = CLGeocoder()
     private let log = Logger(subsystem: "ge.kirillsaint.stamps", category: "location")
 
     private var oneShot: (source: PendingPoint.Source, continuation: CheckedContinuation<Bool, Never>)?
@@ -92,14 +91,27 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
         }
     }
 
-    /// При открытии приложения записываем точку, но не чаще раза в 30 минут.
+    /// При каждом открытии приложения записываем и отправляем точку, чтобы экран сразу показывал
+    /// актуальную страну. Защита только от дребезга (быстрое переключение между приложениями): раз в минуту.
+    /// Возвращает true, когда точка уже ушла на сервер и данные можно перечитать.
     @MainActor
-    func recordForegroundIfNeeded() async {
-        if let last = AppSettings.lastForegroundPointAt, Date().timeIntervalSince(last) < 30 * 60 { return }
-        if await requestOneShot(source: .foreground) {
-            AppSettings.lastForegroundPointAt = Date()
+    func recordForegroundIfNeeded() async -> Bool {
+        if let last = AppSettings.lastForegroundPointAt, Date().timeIntervalSince(last) < 60 {
+            log.info("foreground point skipped: recorded \(Int(Date().timeIntervalSince(last)))s ago")
+            return false
         }
+        guard await requestOneShot(source: .foreground) else {
+            log.info("foreground point: no fix (permission \(self.authorization.rawValue))")
+            return false
+        }
+        AppSettings.lastForegroundPointAt = Date()
+        // requestOneShot завершается по приходу координаты; геокодинг и отправка идут в своей задаче — дожидаемся
+        await recordTask?.value
+        return true
     }
+
+    /// Последняя задача записи точки (геокодинг + очередь + отправка)
+    private var recordTask: Task<Void, Never>?
 
     // MARK: - CLLocationManagerDelegate
 
@@ -130,6 +142,7 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
 
         if let pending = oneShot {
             oneShot = nil
+            log.info("one-shot fix for \(pending.source.rawValue)")
             note(String(localized: "Point on request (\(pending.source.rawValue))"))
             record(location, source: pending.source, arrival: nil, departure: nil)
             pending.continuation.resume(returning: true)
@@ -157,7 +170,7 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
     private func record(_ location: CLLocation, source: PendingPoint.Source, arrival: Date?, departure: Date?) {
         // Если нас подняли в фоне, у нас есть секунд десять. Просим ещё немного на геокодинг и сеть.
         let bgTask = UIApplication.shared.beginBackgroundTask(withName: "record-point")
-        Task { @MainActor in
+        recordTask = Task { @MainActor in
             defer { UIApplication.shared.endBackgroundTask(bgTask) }
 
             var point = PendingPoint(
@@ -175,10 +188,12 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
                 deviceId: UIDevice.current.identifierForVendor?.uuidString
             )
 
+            log.info("record \(source.rawValue): geocoding")
             if let placemark = await reverseGeocode(location) {
                 point.city = placemark.locality ?? placemark.subAdministrativeArea
                 point.region = placemark.administrativeArea
             }
+            log.info("record \(source.rawValue): geocoded \(point.city ?? "-")")
 
             await PendingQueue.shared.enqueue(point)
             lastPoint = point
@@ -189,8 +204,11 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
 
     // Страну сервер определит сам по координатам; с устройства нужен только город. Best-effort.
     private func reverseGeocode(_ location: CLLocation) async -> CLPlacemark? {
-        await withTaskGroup(of: CLPlacemark?.self) { group in
-            group.addTask { [geocoder] in
+        // Свой CLGeocoder на каждый запрос: общий экземпляр обслуживает один запрос за раз, и второй,
+        // начатый параллельно (значимое изменение + точка при открытии), не завершался никогда.
+        let geocoder = CLGeocoder()
+        return await withTaskGroup(of: CLPlacemark?.self) { group in
+            group.addTask {
                 try? await geocoder.reverseGeocodeLocation(location).first
             }
             group.addTask {
@@ -199,6 +217,7 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
             }
             let first = await group.next() ?? nil
             group.cancelAll()
+            geocoder.cancelGeocode()
             return first
         }
     }

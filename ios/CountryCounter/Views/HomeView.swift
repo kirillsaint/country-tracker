@@ -177,23 +177,26 @@ struct HomeView: View {
                     Button {
                         basisSegment = model.currentSegment
                     } label: {
+                        // текст в цвет значка: безвиз зелёный, ВНЖ индиго и т.д.
                         Label {
                             Text(e.isSwitch ? String(localized: "\(e.basis.title) · since \(prettyDate(e.date))") : e.basis.title)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(e.basis.tint)
                         } icon: {
                             Image(systemName: e.basis.homeSystemImage).foregroundStyle(e.basis.tint)
                         }
                         .font(.caption)
                     }
                     .buttonStyle(.borderless)
-                    .tint(.secondary)
+                    .tint(e.basis.tint)
                     // основание не выбрано — ссылка на условия въезда прижимается к левому краю
                     Spacer()
                 }
                 NavigationLink {
                     RegimeView(countryCode: c.countryCode, initialPassportId: c.regime?.passportId)
                 } label: {
-                    Label(c.regime?.stale == true ? "Entry rules · re-check" : "Entry rules", systemImage: "list.bullet.rectangle").font(.caption)
+                    Label(c.regime?.stale == true ? "Entry rules · re-check" : "Entry rules", systemImage: "list.bullet.rectangle")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
         }

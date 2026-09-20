@@ -31,9 +31,13 @@ struct CountryCounterApp: App {
             guard phase == .active else { return }
             BackgroundScheduler.schedule()
             Task {
-                await LocationTracker.shared.recordForegroundIfNeeded()
-                await Uploader.flush()
+                // сначала показываем то, что уже есть, затем свежая точка — и данные перечитываются с ней
                 await model.refresh()
+                if await LocationTracker.shared.recordForegroundIfNeeded() {
+                    await model.refresh()
+                } else {
+                    await Uploader.flush()
+                }
             }
         }
     }
