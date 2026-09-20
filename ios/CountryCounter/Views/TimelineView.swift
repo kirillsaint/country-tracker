@@ -125,7 +125,7 @@ struct TimelineView: View {
                     Text(s.countryCode.countryDisplayName(fallback: s.countryName))
                         .font(.headline)
                     if let city = s.city {
-                        Text(city).foregroundStyle(.secondary)
+                        Text(city.cityDisplayName(country: s.countryCode)).foregroundStyle(.secondary)
                     }
                     Text(verbatim: s.from == s.to ? prettyDate(s.from) : "\(prettyDate(s.from)) – \(prettyDate(s.to))")
                         .font(.caption).foregroundStyle(.secondary)
@@ -172,7 +172,7 @@ struct TimelineView: View {
                     HStack(spacing: 12) {
                         FlagView(code: c.countryCode, width: 36)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(c.city).font(.headline)
+                            Text(c.city.cityDisplayName(country: c.countryCode)).font(.headline)
                             Text(verbatim: "\(c.countryCode.countryDisplayName(fallback: c.countryName)) · \(prettyDate(c.firstDay)) – \(prettyDate(c.lastDay))")
                                 .font(.caption).foregroundStyle(.secondary)
                         }

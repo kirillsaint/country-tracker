@@ -80,7 +80,7 @@ struct StatsSections: View {
             ForEach(s.cities.prefix(10)) { c in
                 rankedRow(
                     flag: c.countryCode,
-                    title: c.city,
+                    title: c.city.cityDisplayName(country: c.countryCode),
                     subtitle: c.countryCode.countryDisplayName(fallback: c.countryName),
                     days: c.days,
                     total: s.totalDays
@@ -125,7 +125,7 @@ struct StatsSections: View {
                     FlagView(code: longest.countryCode, width: 34)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Longest stay").font(.caption).foregroundStyle(.secondary)
-                        Text(verbatim: [longest.countryCode.countryDisplayName(fallback: longest.countryName), longest.city].compactMap { $0 }.joined(separator: " · "))
+                        Text(verbatim: [longest.countryCode.countryDisplayName(fallback: longest.countryName), longest.city?.cityDisplayName(country: longest.countryCode)].compactMap { $0 }.joined(separator: " · "))
                         Text(verbatim: "\(prettyDate(longest.from)) – \(prettyDate(longest.to))").font(.caption).foregroundStyle(.secondary)
                     }
                     Spacer()
@@ -138,7 +138,7 @@ struct StatsSections: View {
                 }
             }
             if let topCity = s.cities.first, topCity.city != "—" {
-                LabeledContent("Most visited city", value: topCity.city)
+                LabeledContent("Most visited city", value: topCity.city.cityDisplayName(country: topCity.countryCode))
             }
             if s.segments.count > 1, let first = s.segments.last, let last = s.segments.first {
                 LabeledContent("Started in") {

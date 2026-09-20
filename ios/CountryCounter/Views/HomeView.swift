@@ -170,7 +170,7 @@ struct HomeView: View {
                     Text(c.countryCode.countryDisplayName(fallback: c.countryName))
                         .font(.title.bold())
                     if let city = c.city {
-                        Text(city).font(.title3).foregroundStyle(.secondary)
+                        Text(city.cityDisplayName(country: c.countryCode)).font(.title3).foregroundStyle(.secondary)
                     }
                 }
             }

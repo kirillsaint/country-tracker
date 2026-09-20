@@ -27,7 +27,7 @@ struct ManualEntriesView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(r.countryCode.countryDisplayName(fallback: r.countryName)).font(.headline)
                         if let city = r.city, !city.isEmpty {
-                            Text(city).foregroundStyle(.secondary)
+                            Text(city.cityDisplayName(country: r.countryCode)).foregroundStyle(.secondary)
                         }
                         Text(verbatim: r.from == r.to ? prettyDate(r.from) : "\(prettyDate(r.from)) – \(prettyDate(r.to))")
                             .font(.caption).foregroundStyle(.secondary)
@@ -136,7 +136,11 @@ struct ManualEntryEditView: View {
                             city = city == name ? "" : name
                         } label: {
                             HStack {
-                                Text(name).foregroundStyle(.primary)
+                                let shown = name.cityDisplayName(country: country)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(shown).foregroundStyle(.primary)
+                                    if shown != name { Text(name).font(.caption).foregroundStyle(.secondary) }
+                                }
                                 Spacer()
                                 if city.trimmingCharacters(in: .whitespaces).caseInsensitiveCompare(name) == .orderedSame {
                                     Image(systemName: "checkmark").foregroundStyle(.tint)
@@ -202,9 +206,10 @@ struct ManualEntryEditView: View {
         error = nil
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
-        let trimmedCity = city.trimmingCharacters(in: .whitespaces)
         let trimmedNote = note.trimmingCharacters(in: .whitespaces)
         Task {
+            // город приводим к английскому написанию, чтобы он сгруппировался с точками с устройства
+            let trimmedCity = await CityNames.canonicalEnglish(city, country: country)
             do {
                 if let existing {
                     try await model.updateRange(

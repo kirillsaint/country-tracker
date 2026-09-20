@@ -33,7 +33,7 @@ struct MapScreen: View {
             visited: Dictionary(countries.map { ($0.countryCode, $0.days) }, uniquingKeysWith: +),
             cities: cities.compactMap { c in
                 guard let lat = c.lat, let lon = c.lon else { return nil }
-                return MapData.City(name: c.city, lat: lat, lon: lon, days: c.days)
+                return MapData.City(name: c.city.cityDisplayName(country: c.countryCode), lat: lat, lon: lon, days: c.days)
             }
         )
     }

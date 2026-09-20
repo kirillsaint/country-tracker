@@ -302,9 +302,9 @@ final class AppModel {
         let snapshot = WidgetSnapshot(
             today: f.string(from: Date()),
             generatedAt: Date(),
-            current: current.map {
-                WidgetSnapshot.Current(countryCode: $0.countryCode, countryName: $0.countryName, city: $0.city,
-                                       since: $0.since, daysInRow: $0.daysInRow, daysThisYear: $0.daysThisYear)
+            current: current.map { c in
+                WidgetSnapshot.Current(countryCode: c.countryCode, countryName: c.countryName, city: c.city?.cityDisplayName(country: c.countryCode),
+                                       since: c.since, daysInRow: c.daysInRow, daysThisYear: c.daysThisYear)
             },
             rules: ruleResults.map {
                 WidgetSnapshot.Rule(id: $0.ruleId, name: $0.name, mode: $0.mode, countries: $0.countries,
