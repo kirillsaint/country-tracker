@@ -58,8 +58,15 @@ struct HomeView: View {
                         } label: {
                             Label("Add a counting rule", systemImage: "plus.circle")
                         }
+                    } else if relevantResults.isEmpty {
+                        NavigationLink {
+                            RulesView()
+                        } label: {
+                            Label("No rules apply to this country. See all rules", systemImage: "list.bullet")
+                                .font(.footnote)
+                        }
                     }
-                    ForEach(model.ruleResults) { result in
+                    ForEach(relevantResults) { result in
                         NavigationLink {
                             if let rule = model.rule(id: result.ruleId) {
                                 RuleEditView(rule: rule)
@@ -70,9 +77,9 @@ struct HomeView: View {
                     }
                 } header: {
                     HStack {
-                        Text("Rules")
+                        Text(model.current == nil ? "Rules" : "Rules for this country")
                         Spacer()
-                        NavigationLink("All") { RulesView() }
+                        NavigationLink("All (\(model.rules.count))") { RulesView() }
                             .font(.caption)
                             .textCase(nil)
                     }
@@ -103,6 +110,12 @@ struct HomeView: View {
                 NavigationStack { EntryBasisSheet(segment: seg, existing: model.entry(for: seg), previous: model.current?.previousEntry, regimeRef: model.current?.regime) }
             }
         }
+    }
+
+    /// Правила, касающиеся текущей страны; правило без стран («любая») касается всех
+    private var relevantResults: [RuleResult] {
+        guard let code = model.current?.countryCode else { return model.ruleResults }
+        return model.ruleResults.filter { $0.countries.isEmpty || $0.countries.contains(code) }
     }
 
     // MARK: - Блоки

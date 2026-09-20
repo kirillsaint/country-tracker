@@ -685,6 +685,17 @@
         }
       }
     },
+    "All (%lld)" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Все (%lld)"
+          }
+        }
+      }
+    },
     "All countries" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1487,6 +1498,17 @@
         }
       }
     },
+    "Disabled — not counted." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выключено — не считается."
+          }
+        }
+      }
+    },
     "Documents" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1719,6 +1741,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Истёк %@"
+          }
+        }
+      }
+    },
+    "Expired %@ — kept for history." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Истекло %@ — хранится для истории."
           }
         }
       }
@@ -2196,6 +2229,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "В любые N подряд идущих дней (например, 90 из 180 для Шенгена)."
+          }
+        }
+      }
+    },
+    "In the country — the away counter is at zero." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В стране — счётчик отсутствия на нуле."
           }
         }
       }
@@ -2929,6 +2973,17 @@
         }
       }
     },
+    "No rules apply to this country. See all rules" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "К этой стране правила не относятся. Все правила"
+          }
+        }
+      }
+    },
     "No rules yet" : {
       "localizations" : {
         "ru" : {
@@ -2960,6 +3015,17 @@
         }
       }
     },
+    "Not evaluated yet." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ещё не посчитано."
+          }
+        }
+      }
+    },
     "Not in the country" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2967,6 +3033,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Сейчас не в стране"
+          }
+        }
+      }
+    },
+    "Not in the country — the count restarts on entry." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сейчас не в стране — при въезде отсчёт начнётся заново."
           }
         }
       }
@@ -3659,11 +3736,23 @@
       }
     },
     "Rules" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Правила"
+          }
+        }
+      }
+    },
+    "Rules for this country" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Правила для этой страны"
           }
         }
       }
