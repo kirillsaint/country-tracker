@@ -114,6 +114,12 @@ struct DocumentEditView: View {
                         Text("Not specified").tag(VisaEntries?.none)
                         ForEach(VisaEntries.allCases) { Text($0.title).tag(VisaEntries?.some($0)) }
                     }
+                    if draft.entries == .single {
+                        Toggle("Already used", isOn: $draft.used)
+                        if let detected = detectedUsage {
+                            Text(detected.label).font(.footnote).foregroundStyle(.secondary)
+                        }
+                    }
                     Toggle("Max stay per entry", isOn: $hasMaxStay)
                     if hasMaxStay {
                         DaysField(title: "Per entry", value: $maxStay)
@@ -126,7 +132,11 @@ struct DocumentEditView: View {
                 } header: {
                     Text("Stay limits")
                 } footer: {
-                    Text("Each limit becomes a counting rule: “per entry” restarts every time you enter, the window rule counts days in any N consecutive days (Schengen 90/180). The visa expiry closes both.")
+                    if draft.entries == .single {
+                        Text("Each limit becomes a counting rule: “per entry” restarts every time you enter, the window rule counts days in any N consecutive days (Schengen 90/180). The visa expiry closes both. A single-entry visa is spent after one trip: the app notices a stay entered with this visa or a manual trip inside its validity; switch “Already used” on if it doesn’t. A used visa sends no expiry reminders and its rules close.")
+                    } else {
+                        Text("Each limit becomes a counting rule: “per entry” restarts every time you enter, the window rule counts days in any N consecutive days (Schengen 90/180). The visa expiry closes both.")
+                    }
                 }
             }
 
@@ -230,6 +240,14 @@ struct DocumentEditView: View {
         }
     }
 
+    /// Использование, найденное по данным (без учёта ручного флага) — подсказка рядом с переключателем
+    private var detectedUsage: VisaUsage? {
+        guard let document else { return nil }
+        var probe = document
+        probe.used = false
+        return probe.usage(entries: model.entries, ranges: model.manualRanges, current: model.current)
+    }
+
     private func save() {
         guard let country else { return }
         var input = draft
@@ -245,6 +263,9 @@ struct DocumentEditView: View {
         input.minDaysPerYear = kind == .residence && hasMinDays ? minDays : nil
         input.maxAbsenceDays = kind == .residence && hasMaxAbsence ? maxAbsence : nil
         if kind != .visa { input.entries = nil }
+        input.used = kind == .visa && input.entries == .single && draft.used
+        // если поездка уже видна в данных — закрываем правила визы её последним днём, а не сегодняшним
+        input.usedAt = input.used ? (detectedUsage?.to ?? detectedUsage?.from) : nil
         if kind != .residence { input.residenceType = nil }
         if kind == .passport { input.passportId = nil }
         input.lang = DocumentInput.currentLang

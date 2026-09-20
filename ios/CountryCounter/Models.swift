@@ -172,6 +172,9 @@ struct DocumentInput: Codable, Equatable {
     var validFrom: String?
     var validTo: String?
     var entries: VisaEntries?
+    // однократная виза уже потрачена (+ с какого дня); сервер закрывает её правила этой датой
+    var used: Bool = false
+    var usedAt: String?
     var maxStayDays: Int?
     var windowLimitDays: Int?
     var windowDays: Int?
@@ -202,6 +205,8 @@ struct TravelDocument: Codable, Identifiable, Equatable {
     var validFrom: String?
     var validTo: String?
     var entries: VisaEntries?
+    var used: Bool?
+    var usedAt: String?
     var maxStayDays: Int?
     var windowLimitDays: Int?
     var windowDays: Int?
@@ -214,7 +219,7 @@ struct TravelDocument: Codable, Identifiable, Equatable {
 
     var input: DocumentInput {
         DocumentInput(kind: kind, name: name, countryCode: countryCode, countries: countries, passportId: passportId,
-                      validFrom: validFrom, validTo: validTo, entries: entries, maxStayDays: maxStayDays,
+                      validFrom: validFrom, validTo: validTo, entries: entries, used: used ?? false, usedAt: usedAt, maxStayDays: maxStayDays,
                       windowLimitDays: windowLimitDays, windowDays: windowDays, residenceType: residenceType,
                       minDaysPerYear: minDaysPerYear, maxAbsenceDays: maxAbsenceDays, note: note)
     }
@@ -231,6 +236,49 @@ struct TravelDocument: Codable, Identifiable, Equatable {
     /// Применим ли документ к стране (паспорт — к своей стране, виза/ВНЖ — к зоне)
     func covers(_ code: String) -> Bool {
         kind == .passport ? countryCode == code : countries.contains(code)
+    }
+
+    var isSingleEntryVisa: Bool { kind == .visa && entries == .single }
+
+    /// Потрачена ли однократная виза. Порядок проверки: флаг, поставленный руками; пребывание,
+    /// оформленное по этой визе и уже закончившееся; ручная запись о поездке в её страну внутри срока действия.
+    /// nil — не однократная виза или использование не обнаружено.
+    func usage(entries: [Entry], ranges: [ManualRange], current: CurrentStatus?) -> VisaUsage? {
+        guard isSingleEntryVisa else { return nil }
+        if used == true { return VisaUsage(source: .flag, from: nil, to: usedAt) }
+        let today = DocumentInput.todayString()
+        if let e = entries.first(where: { e in
+            e.documentId == id && e.basis == .visa
+                && !(current?.countryCode == e.countryCode && current?.entry?.date == e.date)
+        }) {
+            return VisaUsage(source: .entry, from: e.date, to: nil)
+        }
+        if let r = ranges.first(where: { r in
+            covers(r.countryCode) && r.to < today
+                && (validFrom.map { r.from >= $0 } ?? true)
+                && (validTo.map { r.to <= $0 } ?? true)
+        }) {
+            return VisaUsage(source: .manualRange, from: r.from, to: r.to)
+        }
+        return nil
+    }
+}
+
+/// Чем подтверждено, что однократная виза потрачена
+struct VisaUsage: Equatable {
+    enum Source { case flag, entry, manualRange }
+    let source: Source
+    let from: String?
+    let to: String?
+
+    /// «Used · 3 – 17 Mar 2026» / «Used · entered 3 Mar 2026» / «Used»
+    var label: String {
+        switch (from, to) {
+        case let (f?, t?): return String(localized: "Used · \(prettyDate(f)) – \(prettyDate(t))")
+        case let (f?, nil): return String(localized: "Used · entered \(prettyDate(f))")
+        case let (nil, t?): return String(localized: "Used · since \(prettyDate(t))")
+        default: return String(localized: "Used")
+        }
     }
 }
 

@@ -68,7 +68,7 @@ final class AppModel {
             if allTimeLoaded { await loadAllTime() }
             publishWidgetSnapshot()
             await RuleNotifier.evaluate(self.ruleResults)
-            await RuleNotifier.evaluateDocuments(self.documents)
+            await RuleNotifier.evaluateDocuments(self.documents, used: usedVisaIds)
             if let now = self.current { await EntryPrompter.promptIfNeeded(current: now, documents: self.documents) }
             await RegimeChecks.processPending()
             RuleNotifier.scheduleConditionReminders(current: self.current, regimes: self.regimes)
@@ -117,6 +117,13 @@ final class AppModel {
     }
 
     var passports: [TravelDocument] { documents.filter { $0.kind == .passport } }
+
+    /// Потрачена ли однократная виза — по флагу, основанию въезда или ручной записи о поездке
+    func visaUsage(_ doc: TravelDocument) -> VisaUsage? {
+        doc.usage(entries: entries, ranges: manualRanges, current: current)
+    }
+
+    var usedVisaIds: Set<String> { Set(documents.filter { visaUsage($0) != nil }.map(\.id)) }
 
     func saveDocument(_ input: DocumentInput, id: String?) async throws {
         let client = try APIClient.fromSettings()

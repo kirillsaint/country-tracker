@@ -185,6 +185,9 @@ export type TravelDocument = {
   validTo: string | null;
   // visa
   entries: "single" | "multiple" | null;
+  // однократная виза уже потрачена: правила закрываются датой usedAt, напоминаний об истечении нет
+  used: boolean;
+  usedAt: string | null;
   // максимум дней за один въезд
   maxStayDays: number | null;
   // лимит в скользящем окне, например 90 из 180

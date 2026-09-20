@@ -466,6 +466,10 @@ const documentBody = z
     validFrom: isoDate.nullable().default(null),
     validTo: isoDate.nullable().default(null),
     entries: z.enum(["single", "multiple"]).nullable().default(null),
+    // однократная виза уже использована (только для entries = single)
+    used: z.boolean().default(false),
+    // с какого дня считать потраченной (например, конец поездки); по умолчанию — день, когда флаг включили
+    usedAt: isoDate.nullable().default(null),
     maxStayDays: z.number().int().min(1).max(3660).nullable().default(null),
     windowLimitDays: z.number().int().min(1).max(3660).nullable().default(null),
     windowDays: z.number().int().min(2).max(3660).nullable().default(null),
@@ -482,13 +486,17 @@ const documentBody = z
   });
 
 function publicDocument({ userId: _u, _id: _i, ...d }: TravelDocument & { _id?: unknown }) {
-  return d;
+  // документы, созданные до появления флага
+  return { ...d, used: d.used ?? false, usedAt: d.usedAt ?? null };
 }
 
-function documentFromBody(userId: Point["userId"], id: string, body: z.infer<typeof documentBody>, createdAt: string): TravelDocument {
+function documentFromBody(userId: Point["userId"], id: string, body: z.infer<typeof documentBody>, prev: TravelDocument | null): TravelDocument {
   const { lang: _lang, ...rest } = body;
   const countries = rest.kind === "passport" ? [rest.countryCode] : (rest.countries.length ? rest.countries : [rest.countryCode]);
-  return { userId, id, ...rest, countries, createdAt, updatedAt: new Date().toISOString() };
+  const used = rest.kind === "visa" && rest.entries === "single" && rest.used;
+  // дата, с которой виза считается потраченной: фиксируем при первом включении, чтобы правила закрылись один раз
+  const usedAt = used ? (rest.usedAt ?? prev?.usedAt ?? new Date().toISOString().slice(0, 10)) : null;
+  return { userId, id, ...rest, used, usedAt, countries, createdAt: prev?.createdAt ?? new Date().toISOString(), updatedAt: new Date().toISOString() };
 }
 
 api.get("/documents", async (c) => {
@@ -499,7 +507,7 @@ api.get("/documents", async (c) => {
 api.post("/documents", zValidator("json", documentBody), async (c) => {
   const userId = c.get("userId");
   const body = c.req.valid("json");
-  const doc = documentFromBody(userId, randomUUID(), body, new Date().toISOString());
+  const doc = documentFromBody(userId, randomUUID(), body, null);
   await documents.insertOne(doc);
   const generated = await syncRulesForDocument(userId, doc, body.lang);
   return c.json({ document: publicDocument(doc), rules: generated.map(publicRule) }, 201);
@@ -511,7 +519,7 @@ api.put("/documents/:id", zValidator("param", z.object({ id: z.string().uuid() }
   const body = c.req.valid("json");
   const prev = await documents.findOne({ userId, id });
   if (!prev) throw new HTTPException(404, { message: "document not found" });
-  const doc = documentFromBody(userId, id, body, prev.createdAt);
+  const doc = documentFromBody(userId, id, body, prev);
   await documents.replaceOne({ userId, id }, doc);
   const generated = await syncRulesForDocument(userId, doc, body.lang);
   return c.json({ document: publicDocument(doc), rules: generated.map(publicRule) });

@@ -59,8 +59,11 @@ enum RuleNotifier {
     private static let docStateKey = "documentNotifierState"
 
     /// Напоминания об истечении паспортов, виз и ВНЖ: за 30 дней, за 7 дней и в день истечения — по разу.
-    static func evaluateDocuments(_ docs: [TravelDocument]) async {
+    /// Молчим о прошлом: при первом запуске, для документов, добавленных уже просроченными,
+    /// и для использованных однократных виз ступени просто отмечаются как пройденные.
+    static func evaluateDocuments(_ docs: [TravelDocument], used: Set<String> = []) async {
         guard AppSettings.notificationsEnabled, await authorizationStatus() == .authorized else { return }
+        let firstRun = UserDefaults.standard.object(forKey: docStateKey) == nil
         var state = UserDefaults.standard.dictionary(forKey: docStateKey) as? [String: Int] ?? [:]
         let ids = Set(docs.map(\.id))
         state = state.filter { ids.contains($0.key) }
@@ -69,6 +72,8 @@ enum RuleNotifier {
             let stage = left <= 0 ? 3 : left <= 7 ? 2 : left <= 30 ? 1 : 0
             guard stage > 0, (state[d.id] ?? 0) < stage else { continue }
             state[d.id] = stage
+            let addedAfterExpiry = d.validTo.map { String(d.createdAt.prefix(10)) > $0 } ?? false
+            if firstRun || addedAfterExpiry || used.contains(d.id) { continue }
             let content = UNMutableNotificationContent()
             content.title = d.name
             content.sound = .default

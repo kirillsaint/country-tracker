@@ -53,6 +53,8 @@ export async function syncRulesForDocument(userId: ObjectId, doc: TravelDocument
   const existing = await rules.find({ userId, documentId: doc.id }).toArray();
   const now = new Date().toISOString();
   const kept: Rule[] = [];
+  // использованная однократная виза: её правила заканчиваются в день, когда её отметили потраченной
+  const closesAt = doc.used && doc.usedAt ? (doc.validTo && doc.validTo < doc.usedAt ? doc.validTo : doc.usedAt) : doc.validTo;
 
   for (const t of wanted) {
     const prev = existing.find((r) => r.documentRole === t.role);
@@ -66,12 +68,12 @@ export async function syncRulesForDocument(userId: ObjectId, doc: TravelDocument
       autoStart: t.autoStart,
       mode: t.mode,
       countMode: "any" as const,
-      validUntil: doc.validTo,
+      validUntil: closesAt,
       updatedAt: now,
     };
     if (prev?.customized) {
       // правило переписано пользователем — оставляем как есть, обновляем только срок документа
-      const updated = await rules.findOneAndUpdate({ userId, id: prev.id }, { $set: { validUntil: doc.validTo, updatedAt: now } }, { returnDocument: "after" });
+      const updated = await rules.findOneAndUpdate({ userId, id: prev.id }, { $set: { validUntil: closesAt, updatedAt: now } }, { returnDocument: "after" });
       if (updated) kept.push(updated);
     } else if (prev) {
       // пользовательские настройки уведомлений и включённости не трогаем

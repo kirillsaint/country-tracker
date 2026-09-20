@@ -26,7 +26,7 @@ struct DocumentsView: View {
                                 NavigationLink {
                                     DocumentEditView(document: doc)
                                 } label: {
-                                    DocumentRow(document: doc, passport: model.document(id: doc.passportId), rules: model.rules.filter { $0.documentId == doc.id })
+                                    DocumentRow(document: doc, passport: model.document(id: doc.passportId), rules: model.rules.filter { $0.documentId == doc.id }, usage: model.visaUsage(doc))
                                 }
                             }
                             .onDelete { offsets in
@@ -135,6 +135,8 @@ struct DocumentRow: View {
     let document: TravelDocument
     let passport: TravelDocument?
     let rules: [Rule]
+    /// однократная виза уже потрачена — вместо срока показываем это
+    var usage: VisaUsage? = nil
 
     var body: some View {
         HStack(spacing: 12) {
@@ -179,6 +181,7 @@ struct DocumentRow: View {
     }
 
     private var expiryText: (text: String, color: Color)? {
+        if let usage { return (usage.label, .secondary) }
         guard let left = document.daysUntilExpiry, let to = document.validTo else { return nil }
         if left < 0 { return (String(localized: "Expired \(prettyFullDate(to))"), .red) }
         if left <= 30 { return (String(localized: "Expires in \(pluralDays(left))"), .orange) }
