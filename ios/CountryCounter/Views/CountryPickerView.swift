@@ -5,6 +5,8 @@ import SwiftUI
 struct CountryPickerView: View {
     @Binding var selection: [String]
     var single = false
+    /// в режиме single: закрывать экран после выбора (false — когда родитель сам переключает контент)
+    var dismissOnSelect = true
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
 
@@ -59,7 +61,7 @@ struct CountryPickerView: View {
         Button {
             if single {
                 selection = [code]
-                dismiss()
+                if dismissOnSelect { dismiss() }
             } else if let i = selection.firstIndex(of: code) {
                 selection.remove(at: i)
             } else {

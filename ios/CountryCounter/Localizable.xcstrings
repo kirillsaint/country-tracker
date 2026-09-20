@@ -980,6 +980,28 @@
         }
       }
     },
+    "Checked %@ ago" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверено %@ назад"
+          }
+        }
+      }
+    },
+    "Checked %@ ago — re-check" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверено %@ назад — пора перепроверить"
+          }
+        }
+      }
+    },
     "Checked %@ ago." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -987,6 +1009,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Проверено %@ назад."
+          }
+        }
+      }
+    },
+    "Checked today" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверено сегодня"
+          }
+        }
+      }
+    },
+    "Checked today." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверено сегодня."
           }
         }
       }
@@ -2667,6 +2711,17 @@
         }
       }
     },
+    "Never checked" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не проверялось"
+          }
+        }
+      }
+    },
     "New entry" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2696,6 +2751,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Новое правило"
+          }
+        }
+      }
+    },
+    "No active version" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нет активной версии"
           }
         }
       }
@@ -2750,6 +2816,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Условий въезда для этого паспорта и страны ещё нет — помощник их найдёт; вы подтверждаете до применения."
+          }
+        }
+      }
+    },
+    "No entry rules recorded yet. Check a country to see what your passport allows — or wait: the app asks when you arrive somewhere new." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Условий въезда пока нет. Проверьте страну, чтобы узнать, что разрешает ваш паспорт, — или просто дождитесь прилёта: приложение спросит само."
           }
         }
       }

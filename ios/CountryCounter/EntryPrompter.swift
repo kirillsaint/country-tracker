@@ -126,7 +126,10 @@ enum EntryPrompter {
         let documentId = parts[1].isEmpty ? nil : String(parts[1])
         let recheck = parts.count >= 3 && parts[2] == "check"
         // "Другое…" открывает приложение — там пользователь выберет сам
-        if basis == .other { return }
+        if basis == .other {
+            Router.shared.pending = .entryBasis(country: country)
+            return
+        }
 
         guard let client = try? APIClient.fromSettings() else { return }
         do {
@@ -156,6 +159,19 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
+        let info = response.notification.request.content.userInfo
+        // Тап по самому уведомлению (не по кнопке) — открыть нужный экран
+        if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
+            if info["regimeCheck"] != nil, let country = info["country"] as? String {
+                await MainActor.run { Router.shared.pending = .regime(country: country, passportId: info["passportId"] as? String) }
+                return
+            }
+            if info["since"] != nil, let country = info["country"] as? String {
+                await MainActor.run { Router.shared.pending = .entryBasis(country: country) }
+                return
+            }
+            return
+        }
         await EntryPrompter.handle(response)
     }
 }

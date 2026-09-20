@@ -150,7 +150,7 @@ struct RegimeView: View {
             let days = daysBetween(String(last.prefix(10)), DocumentInput.todayString()) ?? 0
             s += " " + (info?.stale == true
                 ? String(localized: "Last checked \(pluralDays(days)) ago — worth re-checking.")
-                : String(localized: "Checked \(pluralDays(days)) ago."))
+                : (days == 0 ? String(localized: "Checked today.") : String(localized: "Checked \(pluralDays(days)) ago.")))
         }
         return s
     }
@@ -542,8 +542,13 @@ struct CountryLookupView: View {
     var body: some View {
         if let code = selection.first {
             RegimeView(countryCode: code)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Countries", systemImage: "chevron.left") { selection = [] }
+                    }
+                }
         } else {
-            CountryPickerView(selection: $selection, single: true)
+            CountryPickerView(selection: $selection, single: true, dismissOnSelect: false)
         }
     }
 }

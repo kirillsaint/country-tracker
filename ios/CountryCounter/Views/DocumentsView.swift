@@ -16,6 +16,8 @@ struct DocumentsView: View {
                         description: Text("Add your passport, then visas and residence permits. Counting rules for them are created automatically.")
                     )
                 }
+                regimesSection
+
                 ForEach(DocumentKind.allCases) { kind in
                     let docs = model.documents.filter { $0.kind == kind }
                     if !docs.isEmpty {
@@ -71,6 +73,61 @@ struct DocumentsView: View {
                 NavigationStack { DocumentEditView(document: nil, kind: kind) }
             }
         }
+    }
+}
+
+extension DocumentsView {
+    @ViewBuilder
+    var regimesSection: some View {
+        if !model.passports.isEmpty {
+            Section {
+                if model.regimes.isEmpty {
+                    Text("No entry rules recorded yet. Check a country to see what your passport allows — or wait: the app asks when you arrive somewhere new.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+                ForEach(model.regimes.sorted { $0.updatedAt > $1.updatedAt }) { r in
+                    NavigationLink {
+                        RegimeView(countryCode: r.countryCode, initialPassportId: r.passportId)
+                    } label: {
+                        RegimeRow(regime: r, freshDays: model.regimeFreshDays)
+                    }
+                }
+                Button("Check a country", systemImage: "magnifyingglass") { showLookup = true }
+            } header: {
+                Text("Entry rules")
+            }
+        }
+    }
+}
+
+struct RegimeRow: View {
+    let regime: Regime
+    let freshDays: Int
+
+    var body: some View {
+        HStack(spacing: 12) {
+            FlagView(code: regime.countryCode, width: 40)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(regime.countryCode.countryDisplayName(fallback: nil)).font(.headline)
+                Text(subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                Text(status.text).font(.caption).foregroundStyle(status.color)
+            }
+        }
+    }
+
+    private var subtitle: String {
+        guard let a = regime.active else { return String(localized: "No active version") }
+        let parts = a.constraints.map(\.summary)
+        let head = a.requirement == .visa_free && !parts.isEmpty ? parts.joined(separator: " · ") : a.requirement.title
+        return "\(regime.passportCode.flagEmoji) \(head)"
+    }
+
+    private var status: (text: String, color: Color) {
+        guard let last = regime.lastCheckedAt else { return (String(localized: "Never checked"), .orange) }
+        let days = daysBetween(String(last.prefix(10)), DocumentInput.todayString()) ?? 0
+        if days >= freshDays { return (String(localized: "Checked \(pluralDays(days)) ago — re-check"), .orange) }
+        if days == 0 { return (String(localized: "Checked today"), .secondary) }
+        return (String(localized: "Checked \(pluralDays(days)) ago"), .secondary)
     }
 }
 

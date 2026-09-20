@@ -4,6 +4,7 @@ struct RootView: View {
     @Environment(AppModel.self) private var model
     @Environment(AuthManager.self) private var auth
     @State private var tab = Self.initialTab
+    @State private var router = Router.shared
 
     // В Debug-сборке вкладку можно выбрать аргументом запуска: -debugInitialTab 1
     private static var initialTab: Int {
@@ -38,6 +39,22 @@ struct RootView: View {
                 await model.refresh()
                 // Точки, накопленные до входа, уезжают сразу после входа
                 await Uploader.flush()
+            }
+            .sheet(item: $router.pending) { link in
+                NavigationStack {
+                    switch link {
+                    case .regime(let country, let passportId):
+                        RegimeView(countryCode: country, initialPassportId: passportId)
+                            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { router.pending = nil } } }
+                    case .entryBasis:
+                        if let seg = model.currentSegment {
+                            EntryBasisSheet(segment: seg, existing: model.entry(for: seg), previous: model.current?.previousEntry, regimeRef: model.current?.regime)
+                        } else {
+                            ContentUnavailableView("No data yet", systemImage: "globe")
+                                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { router.pending = nil } } }
+                        }
+                    }
+                }
             }
         } else {
             AuthView()
