@@ -12,8 +12,7 @@ final class AppModel {
     var timeline: [Segment] = []
     var rules: [Rule] = []
     var ruleResults: [RuleResult] = []
-    var overrides: [DayOverride] = []
-    var manualRanges: [ManualRange] { ManualRange.group(overrides) }
+    var manualRanges: [ManualRange] = []
     var documents: [TravelDocument] = []
     var entries: [Entry] = []
     var regimes: [Regime] = []
@@ -60,7 +59,7 @@ final class AppModel {
             async let timeline = client.timeline(from: Self.allTimeFrom)
             async let rules = client.rules()
             async let ruleResults = client.ruleResults()
-            async let overrides = client.overrides()
+            async let manualRanges = client.manualRanges()
             async let documents = client.documents()
             async let entries = client.entries()
             async let regimes = client.regimes()
@@ -70,7 +69,7 @@ final class AppModel {
             self.timeline = try await timeline
             self.rules = try await rules
             self.ruleResults = try await ruleResults
-            self.overrides = try await overrides
+            self.manualRanges = try await manualRanges
             self.documents = try await documents
             self.entries = try await entries
             let reg = try await regimes

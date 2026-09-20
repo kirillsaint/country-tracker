@@ -281,6 +281,28 @@ api.get("/overrides", async (c) => {
   return c.json({ overrides: list });
 });
 
+// Те же правки, но склеенные в периоды «с … по …»: подряд идущие дни одной страны с одинаковыми
+// городом и заметкой. Приложению нужны именно периоды — запись на 40 лет иначе весила бы мегабайты.
+api.get("/overrides/ranges", async (c) => {
+  const list = await dayOverrides
+    .find({ userId: c.get("userId") }, { projection: { _id: 0, localDate: 1, countryCode: 1, countryName: 1, city: 1, note: 1 } })
+    .sort({ countryCode: 1, localDate: 1 })
+    .toArray();
+  type Range = { from: string; to: string; countryCode: string; countryName: string | null; city: string | null; note: string | null; days: number };
+  const out: Range[] = [];
+  for (const o of list) {
+    const last = out[out.length - 1];
+    if (last && last.countryCode === o.countryCode && last.city === o.city && last.note === o.note && daysBetween(last.to, o.localDate) === 1) {
+      last.to = o.localDate;
+      last.days++;
+    } else {
+      out.push({ from: o.localDate, to: o.localDate, countryCode: o.countryCode, countryName: o.countryName, city: o.city, note: o.note, days: 1 });
+    }
+  }
+  out.sort((a, b) => (a.from < b.from ? 1 : a.from > b.from ? -1 : 0));
+  return c.json({ ranges: out });
+});
+
 // "Был в стране X с ... по ..." — одна правка на каждый день диапазона
 api.put("/overrides/range", zValidator("json", rangeBody), async (c) => {
   const userId = c.get("userId");

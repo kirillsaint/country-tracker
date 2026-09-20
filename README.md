@@ -107,7 +107,8 @@ GET  /api/timeline?from&to&tz                    отрезки «страна: 
 GET  /api/days?from&to&tz                        календарь по дням
 PUT  /api/days/:date         { countryCode, city?, note? }   ручная правка дня
 DELETE /api/days/:date
-GET  /api/overrides                              все ручные правки
+GET  /api/overrides                              все ручные правки по дням
+GET  /api/overrides/ranges                       они же, склеенные в периоды «с … по …» (это использует приложение)
 PUT  /api/overrides/range    { from, to, countryCode, city?, note? }   «был в стране с … по …» (история до установки), до 50 лет одной записью
 DELETE /api/overrides/range?from&to
 

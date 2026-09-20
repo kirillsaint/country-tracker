@@ -133,10 +133,10 @@ struct APIClient {
 
     // MARK: - Ручные записи
 
-    func overrides() async throws -> [DayOverride] {
-        struct R: Decodable { let overrides: [DayOverride] }
-        let r: R = try await send("GET", "/api/overrides")
-        return r.overrides
+    func manualRanges() async throws -> [ManualRange] {
+        struct R: Decodable { let ranges: [ManualRange] }
+        let r: R = try await send("GET", "/api/overrides/ranges")
+        return r.ranges
     }
 
     func setRange(from: String, to: String, countryCode: String, city: String?, note: String?) async throws {

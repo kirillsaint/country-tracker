@@ -528,18 +528,8 @@ struct RegimeVersionInput: Codable, Identifiable {
 
 // MARK: - Ручные записи
 
-struct DayOverride: Codable, Identifiable, Equatable {
-    var id: String { localDate }
-    let localDate: String
-    let countryCode: String
-    let countryName: String?
-    let city: String?
-    let note: String?
-    let createdAt: String
-}
-
-// Подряд идущие правки с одинаковой страной/городом/заметкой — одна запись "с ... по ..."
-struct ManualRange: Identifiable, Equatable {
+// Ручная запись "был в стране с ... по ...": сервер сам склеивает дни в периоды (GET /overrides/ranges)
+struct ManualRange: Codable, Identifiable, Equatable {
     var id: String { "\(from)-\(to)-\(countryCode)" }
     let from: String
     let to: String
@@ -548,23 +538,7 @@ struct ManualRange: Identifiable, Equatable {
     let city: String?
     let note: String?
 
-    var days: Int { (daysBetween(from, to) ?? 0) + 1 }
-
-    static func group(_ overrides: [DayOverride]) -> [ManualRange] {
-        // сначала по стране, потом по дате — иначе две страны в один день перемешают группы
-        let sorted = overrides.sorted { ($0.countryCode, $0.localDate) < ($1.countryCode, $1.localDate) }
-        var out: [ManualRange] = []
-        for o in sorted {
-            if let last = out.last,
-               last.countryCode == o.countryCode, last.city == o.city, last.note == o.note,
-               daysBetween(last.to, o.localDate) == 1 {
-                out[out.count - 1] = ManualRange(from: last.from, to: o.localDate, countryCode: last.countryCode, countryName: last.countryName, city: last.city, note: last.note)
-            } else {
-                out.append(ManualRange(from: o.localDate, to: o.localDate, countryCode: o.countryCode, countryName: o.countryName, city: o.city, note: o.note))
-            }
-        }
-        return out.sorted { $0.from > $1.from }
-    }
+    let days: Int
 }
 
 private let isoDayFormatter: DateFormatter = {
