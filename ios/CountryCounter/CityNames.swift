@@ -82,6 +82,39 @@ final class CityNames {
     }
 }
 
+// MARK: - Починка старых записей
+
+extension CityNames {
+    private static let repairedKey = "cityNamesRepaired"
+
+    /// Города, записанные не латиницей (например «Дубай» от геокодера на русском языке телефона),
+    /// один раз переименовываются в английские во всей истории на сервере. Возвращает, было ли что-то переименовано.
+    static func repairNonLatin(_ cities: [CityStat]) async -> Bool {
+        var done = Set(UserDefaults.standard.stringArray(forKey: repairedKey) ?? [])
+        var changed = false
+        var seen = Set<String>()
+        for c in cities {
+            let key = "\(c.countryCode)|\(c.city)"
+            guard c.city != "—", !done.contains(key), seen.insert(key).inserted, isNonLatin(c.city) else { continue }
+            let english = await canonicalEnglish(c.city, country: c.countryCode)
+            if english != c.city, !isNonLatin(english) {
+                if let n = try? await APIClient.fromSettings().renameCity(countryCode: c.countryCode, from: c.city, to: english), n > 0 {
+                    changed = true
+                }
+            }
+            // и удачу, и неудачу запоминаем — не долбить геокодер при каждом запуске
+            done.insert(key)
+            UserDefaults.standard.set(Array(done), forKey: repairedKey)
+        }
+        return changed
+    }
+
+    /// Есть ли в названии буквы не латинского алфавита (кириллица, арабица и т.п.)
+    static func isNonLatin(_ s: String) -> Bool {
+        s.range(of: "[^\\p{Latin}\\p{Common}\\p{Inherited}]", options: .regularExpression) != nil
+    }
+}
+
 extension String {
     /// Город на языке приложения (см. CityNames)
     @MainActor

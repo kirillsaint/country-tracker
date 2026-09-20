@@ -144,6 +144,14 @@ struct APIClient {
 
     // MARK: - Ручные записи
 
+    /// Переименовать город во всей истории (точки + ручные записи)
+    func renameCity(countryCode: String, from: String, to: String) async throws -> Int {
+        struct Body: Encodable { let countryCode: String; let from: String; let to: String }
+        struct R: Decodable { let points: Int; let overrides: Int }
+        let r: R = try await send("POST", "/api/cities/rename", body: Body(countryCode: countryCode, from: from, to: to))
+        return r.points + r.overrides
+    }
+
     func manualRanges() async throws -> [ManualRange] {
         struct R: Decodable { let ranges: [ManualRange] }
         let r: R = try await send("GET", "/api/overrides/ranges")

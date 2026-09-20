@@ -140,6 +140,24 @@ api.get("/stats/countries", zValidator("query", rangeQuery), async (c) => {
   return c.json({ from, to, today, countries: countryStats(days, from, to) });
 });
 
+// Переименовать город во всей истории: точки с устройства и ручные правки. Нужно приложению,
+// чтобы привести старые записи к английскому написанию («Дубай» → «Dubai»); исходное имя сохраняется в cityRaw.
+const renameCityBody = z.object({
+  countryCode,
+  from: z.string().trim().min(1).max(200),
+  to: z.string().trim().min(1).max(200),
+});
+api.post("/cities/rename", zValidator("json", renameCityBody), async (c) => {
+  const userId = c.get("userId");
+  const { countryCode: cc, from, to } = c.req.valid("json");
+  if (from === to) return c.json({ points: 0, overrides: 0 });
+  const [p, o] = await Promise.all([
+    points.updateMany({ userId, countryCode: cc, city: from }, [{ $set: { cityRaw: { $ifNull: ["$cityRaw", "$city"] }, city: to } }]),
+    dayOverrides.updateMany({ userId, countryCode: cc, city: from }, { $set: { city: to } }),
+  ]);
+  return c.json({ points: p.modifiedCount, overrides: o.modifiedCount });
+});
+
 api.get("/stats/cities", zValidator("query", rangeQuery), async (c) => {
   const userId = c.get("userId");
   const q = c.req.valid("query");
