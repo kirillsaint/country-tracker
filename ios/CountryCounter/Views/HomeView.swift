@@ -42,6 +42,8 @@ struct HomeView: View {
                 Section {
                     if let current = model.current {
                         currentCard(current)
+                    } else if model.showSkeleton {
+                        SkeletonCurrentCard()
                     } else {
                         ContentUnavailableView(
                             "No data yet",
@@ -52,7 +54,9 @@ struct HomeView: View {
                 }
 
                 Section {
-                    if model.ruleResults.isEmpty {
+                    if model.showSkeleton {
+                        SkeletonRuleCard()
+                    } else if model.ruleResults.isEmpty {
                         NavigationLink {
                             RulesView()
                         } label: {
@@ -79,7 +83,7 @@ struct HomeView: View {
                     HStack {
                         Text(model.current == nil ? "Rules" : "Rules for this country")
                         Spacer()
-                        NavigationLink("All (\(model.rules.count))") { RulesView() }
+                        NavigationLink(model.showSkeleton ? String(localized: "All") : String(localized: "All (\(model.rules.count))")) { RulesView() }
                             .font(.caption)
                             .textCase(nil)
                     }
@@ -87,6 +91,9 @@ struct HomeView: View {
 
                 if showCountries {
                     Section {
+                        if model.showSkeleton {
+                            ForEach(0..<2, id: \.self) { _ in SkeletonRow(flag: 36) }
+                        }
                         ForEach(model.countries) { c in
                             countryRow(c)
                         }

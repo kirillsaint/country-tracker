@@ -9,7 +9,10 @@ struct DocumentsView: View {
     var body: some View {
         NavigationStack {
             List {
-                if model.documents.isEmpty {
+                if model.showSkeleton {
+                    Section { SkeletonRow(lines: 2, trailing: false) } header: { SkeletonBar(width: 90, height: 12).skeleton() }
+                    Section { SkeletonRow(lines: 3, trailing: false) } header: { SkeletonBar(width: 60, height: 12).skeleton() }
+                } else if model.documents.isEmpty {
                     ContentUnavailableView(
                         "No documents yet",
                         systemImage: "person.text.rectangle",

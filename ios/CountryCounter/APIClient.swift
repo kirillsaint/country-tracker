@@ -1,5 +1,16 @@
 import Foundation
 
+extension Error {
+    /// Запрос перебит другим (смена сцены, повторное обновление) — это не ошибка для пользователя.
+    /// Отмена может прийти как CancellationError, URLError.cancelled или то же самое внутри APIError.transport.
+    var isCancellation: Bool {
+        if self is CancellationError { return true }
+        if let u = self as? URLError, u.code == .cancelled { return true }
+        if let api = self as? APIError, case .transport(let inner) = api { return inner.isCancellation }
+        return false
+    }
+}
+
 enum APIError: LocalizedError {
     case noServer
     case notSignedIn

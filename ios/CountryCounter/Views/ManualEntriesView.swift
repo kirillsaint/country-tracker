@@ -9,7 +9,9 @@ struct ManualEntriesView: View {
 
     var body: some View {
         List {
-            if model.manualRanges.isEmpty {
+            if model.showSkeleton {
+                ForEach(0..<3, id: \.self) { _ in SkeletonRow(flag: 36, lines: 3) }
+            } else if model.manualRanges.isEmpty {
                 ContentUnavailableView(
                     "No manual entries",
                     systemImage: "square.and.pencil",

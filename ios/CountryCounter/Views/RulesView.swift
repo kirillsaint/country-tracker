@@ -7,7 +7,9 @@ struct RulesView: View {
 
     var body: some View {
         List {
-            if model.rules.isEmpty {
+            if model.showSkeleton {
+                ForEach(0..<3, id: \.self) { _ in SkeletonRuleCard() }
+            } else if model.rules.isEmpty {
                 ContentUnavailableView(
                     "No rules yet",
                     systemImage: "list.bullet.clipboard",

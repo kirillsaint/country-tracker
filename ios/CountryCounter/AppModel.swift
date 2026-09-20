@@ -27,6 +27,15 @@ final class AppModel {
     var errorMessage: String?
     var lastRefresh: Date?
 
+    /// Сервер ещё ни разу не ответил — экраны показывают скелетоны вместо пустых состояний
+    var showSkeleton: Bool { lastRefresh == nil && errorMessage == nil }
+
+    /// Показать ошибку в плашке. Отмены запросов (их перебило следующее обновление) не показываем.
+    private func report(_ error: Error) {
+        if error.isCancellation { return }
+        errorMessage = error.localizedDescription
+    }
+
     private var refreshTask: Task<Void, Never>?
 
     /// Полное обновление. Параллельные вызовы (смена сцены, pull-to-refresh, уведомление) ждут одну
@@ -87,11 +96,8 @@ final class AppModel {
             if let now = self.current { await EntryPrompter.promptIfNeeded(current: now, documents: self.documents) }
             await RegimeChecks.processPending()
             RuleNotifier.scheduleConditionReminders(current: self.current, regimes: self.regimes)
-        } catch is CancellationError {
-            // обновление перебили — данные остались прежними, это не ошибка
-        } catch let e as URLError where e.code == .cancelled {
         } catch {
-            errorMessage = error.localizedDescription
+            report(error)
         }
         pendingCount = await PendingQueue.shared.count()
     }
@@ -114,7 +120,7 @@ final class AppModel {
     func setEnabled(_ rule: Rule, _ enabled: Bool) async {
         var input = rule.input
         input.enabled = enabled
-        do { try await save(input, id: rule.id) } catch { errorMessage = error.localizedDescription }
+        do { try await save(input, id: rule.id) } catch { report(error) }
     }
 
     func delete(_ rule: Rule) async {
@@ -123,7 +129,7 @@ final class AppModel {
             rules.removeAll { $0.id == rule.id }
             ruleResults.removeAll { $0.ruleId == rule.id }
         } catch {
-            errorMessage = error.localizedDescription
+            report(error)
         }
     }
 
@@ -169,7 +175,7 @@ final class AppModel {
             ruleResults.removeAll { $0.documentId == doc.id }
             for i in entries.indices where entries[i].documentId == doc.id { entries[i].documentId = nil }
         } catch {
-            errorMessage = error.localizedDescription
+            report(error)
         }
     }
 
@@ -202,7 +208,7 @@ final class AppModel {
             rules.removeAll { $0.regimeId == regime.id }
             ruleResults.removeAll { $0.regimeId == regime.id }
         } catch {
-            errorMessage = error.localizedDescription
+            report(error)
         }
     }
 
@@ -211,7 +217,7 @@ final class AppModel {
             let updated = try await APIClient.fromSettings().setCondition(regimeId: regime.id, conditionId: condition.id, done: done)
             if let i = regimes.firstIndex(where: { $0.id == regime.id }) { regimes[i] = updated }
         } catch {
-            errorMessage = error.localizedDescription
+            report(error)
         }
     }
 
@@ -283,7 +289,7 @@ final class AppModel {
             async let segments = client.timeline(from: from, to: to)
             yearStatsCache[year] = YearStats(year: year, countries: try await countries, cities: try await cities, segments: try await segments)
         } catch {
-            errorMessage = error.localizedDescription
+            report(error)
         }
     }
 
@@ -332,7 +338,7 @@ final class AppModel {
             allTimeCities = try await cities
             allTimeLoaded = true
         } catch {
-            errorMessage = error.localizedDescription
+            report(error)
         }
     }
 
@@ -356,7 +362,7 @@ final class AppModel {
             try await APIClient.fromSettings().deleteRange(from: range.from, to: range.to, countryCode: range.countryCode)
             await refresh()
         } catch {
-            errorMessage = error.localizedDescription
+            report(error)
         }
     }
 

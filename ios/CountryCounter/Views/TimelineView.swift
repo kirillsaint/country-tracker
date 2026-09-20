@@ -87,7 +87,15 @@ struct TimelineView: View {
     @ViewBuilder
     private var timelineSections: some View {
         if sectionsByYear.isEmpty {
-            ContentUnavailableView("History is empty", systemImage: "calendar.badge.clock")
+            if model.showSkeleton {
+                Section {
+                    ForEach(0..<4, id: \.self) { _ in SkeletonRow(lines: 3) }
+                } header: {
+                    SkeletonBar(width: 48, height: 14).skeleton()
+                }
+            } else {
+                ContentUnavailableView("History is empty", systemImage: "calendar.badge.clock")
+            }
         } else {
             ForEach(sectionsByYear, id: \.year) { section in
                 Section {
@@ -151,8 +159,10 @@ struct TimelineView: View {
     @ViewBuilder
     private var citySection: some View {
         if cities.isEmpty {
-            if year != nil && model.yearStats(for: year) == nil {
-                HStack { Spacer(); ProgressView(); Spacer() }
+            if model.showSkeleton || (year != nil && model.yearStats(for: year) == nil) {
+                Section {
+                    ForEach(0..<5, id: \.self) { _ in SkeletonRow(flag: 32) }
+                }
             } else {
                 ContentUnavailableView("No cities yet", systemImage: "building.2")
             }

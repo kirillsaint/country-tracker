@@ -19,8 +19,18 @@ struct StatsSections: View {
                 highlights(stats)
             }
         } else {
-            HStack { Spacer(); ProgressView(); Spacer() }
-                .listRowBackground(Color.clear)
+            // грузится: те же блоки, что появятся, но плашками
+            Section { SkeletonTiles() }
+            Section {
+                ForEach(0..<4, id: \.self) { _ in SkeletonRow(flag: 32) }
+            } header: {
+                SkeletonBar(width: 80, height: 12).skeleton()
+            }
+            Section {
+                ForEach(0..<3, id: \.self) { _ in SkeletonRow(flag: 32) }
+            } header: {
+                SkeletonBar(width: 60, height: 12).skeleton()
+            }
         }
     }
 
