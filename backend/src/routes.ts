@@ -10,6 +10,7 @@ import { config } from "./config.js";
 import { isAiEnabled } from "./ai.js";
 import { cachedCheck, confirmVersion, deleteRegime, diffVersions, isStale, startCheck } from "./regimes.js";
 import { countryAt, countryName, localDateOf } from "./geo.js";
+import { cityCoords, searchCities } from "./cities.js";
 import { SCHENGEN } from "./presets.js";
 import {
   addDays,
@@ -140,6 +141,13 @@ api.get("/stats/countries", zValidator("query", rangeQuery), async (c) => {
   return c.json({ from, to, today, countries: countryStats(days, from, to) });
 });
 
+// Справочник городов (GeoNames) для выбора в ручной записи: ?country=AE&q=дуб — по префиксу любого имени,
+// без q — самые крупные города страны
+api.get("/cities", zValidator("query", z.object({ country: countryCode, q: z.string().trim().max(100).default(""), limit: z.coerce.number().int().min(1).max(100).default(40) })), async (c) => {
+  const { country, q, limit } = c.req.valid("query");
+  return c.json({ cities: await searchCities(country, q, limit) });
+});
+
 // Переименовать город во всей истории: точки с устройства и ручные правки. Нужно приложению,
 // чтобы привести старые записи к английскому написанию («Дубай» → «Dubai»); исходное имя сохраняется в cityRaw.
 const renameCityBody = z.object({
@@ -173,10 +181,15 @@ api.get("/stats/cities", zValidator("query", rangeQuery), async (c) => {
     ])
     .toArray();
   const byKey = new Map(coords.map((x) => [`${x._id.countryCode}|${x._id.city}`, x]));
-  const cities = stats.map((s) => {
-    const p = byKey.get(`${s.countryCode}|${s.city}`);
-    return { ...s, lat: p ? Number(p.lat.toFixed(4)) : null, lon: p ? Number(p.lon.toFixed(4)) : null };
-  });
+  const cities = await Promise.all(
+    stats.map(async (s) => {
+      const p = byKey.get(`${s.countryCode}|${s.city}`);
+      if (p) return { ...s, lat: Number(p.lat.toFixed(4)), lon: Number(p.lon.toFixed(4)) };
+      // город только из ручных записей — координаты из справочника
+      const g = s.city === "—" ? null : await cityCoords(s.countryCode, s.city);
+      return { ...s, lat: g?.lat ?? null, lon: g?.lon ?? null };
+    }),
+  );
   return c.json({ from, to, today, cities });
 });
 

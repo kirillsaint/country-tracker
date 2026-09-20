@@ -7,6 +7,7 @@ import { closeDb, connectDb } from "./db.js";
 import { api } from "./routes.js";
 import { auth } from "./authRoutes.js";
 import { resumeChecks } from "./regimes.js";
+import { ensureCities } from "./cities.js";
 
 const app = new Hono();
 
@@ -25,6 +26,8 @@ app.onError((err, c) => {
 
 await connectDb();
 void resumeChecks();
+// справочник городов подтягивается в фоне, если его ещё нет
+void ensureCities();
 
 const server = serve({ fetch: app.fetch, port: config.port, hostname: "0.0.0.0" }, (info) => {
   console.log(`API listening on http://0.0.0.0:${info.port}`);

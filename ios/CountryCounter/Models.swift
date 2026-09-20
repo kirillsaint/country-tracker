@@ -528,6 +528,16 @@ struct RegimeVersionInput: Codable, Identifiable {
 
 // MARK: - Ручные записи
 
+/// Город из справочника GeoNames на сервере
+struct CityOption: Codable, Identifiable, Hashable {
+    let id: Int
+    let name: String
+    let region: String?
+    let lat: Double
+    let lon: Double
+    let population: Int
+}
+
 // Ручная запись "был в стране с ... по ...": сервер сам склеивает дни в периоды (GET /overrides/ranges)
 struct ManualRange: Codable, Identifiable, Equatable {
     var id: String { "\(from)-\(to)-\(countryCode)" }

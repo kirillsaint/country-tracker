@@ -5120,6 +5120,106 @@
           }
         }
       }
+    },
+    "No city": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Без города"
+          }
+        }
+      }
+    },
+    "From your history": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Из вашей истории"
+          }
+        }
+      }
+    },
+    "No cities in the directory for this country.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В справочнике нет городов этой страны."
+          }
+        }
+      }
+    },
+    "Nothing found — try another spelling or the English name.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ничего не нашлось. Попробуйте другое написание или английское название."
+          }
+        }
+      }
+    },
+    "Largest cities": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Крупнейшие города"
+          }
+        }
+      }
+    },
+    "City directory: GeoNames (CC BY 4.0). Type any spelling — Russian works too.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Справочник городов: GeoNames (CC BY 4.0). Можно искать в любом написании, по-русски тоже."
+          }
+        }
+      }
+    },
+    "City": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Город"
+          }
+        }
+      }
+    },
+    "Search city": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поиск города"
+          }
+        }
+      }
+    },
+    "Pick the country first": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сначала выберите страну"
+          }
+        }
+      }
+    },
+    "Optional": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Необязательно"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

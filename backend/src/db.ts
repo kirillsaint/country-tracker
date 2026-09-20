@@ -1,6 +1,7 @@
 import { MongoClient, type Collection } from "mongodb";
 import { config } from "./config.js";
 import type { DayOverride, Entry, Point, Regime, RegimeCheck, Rule, Session, TravelDocument, User } from "./types.js";
+import type { City } from "./cities.js";
 
 const client = new MongoClient(config.mongoUrl);
 
@@ -13,6 +14,9 @@ export let documents: Collection<TravelDocument>;
 export let entries: Collection<Entry>;
 export let regimes: Collection<Regime>;
 export let regimeChecks: Collection<RegimeCheck>;
+// справочник городов GeoNames (общий для всех пользователей)
+export let cities: Collection<City>;
+export let citiesMeta: Collection<{ _id: string; source: string; importedAt: string; count: number }>;
 
 export async function connectDb() {
   await client.connect();
@@ -26,6 +30,8 @@ export async function connectDb() {
   entries = db.collection<Entry>("entries");
   regimes = db.collection<Regime>("regimes");
   regimeChecks = db.collection<RegimeCheck>("regime_checks");
+  cities = db.collection<City>("cities");
+  citiesMeta = db.collection("cities_meta");
 
   await Promise.all([
     rules.createIndex({ userId: 1, id: 1 }, { unique: true }),
@@ -49,6 +55,8 @@ export async function connectDb() {
     // раньше день был уникален сам по себе; теперь две страны могут делить день перелёта
     dayOverrides.dropIndex("userId_1_localDate_1").catch(() => {}),
     dayOverrides.createIndex({ userId: 1, localDate: 1, countryCode: 1 }, { unique: true }),
+    cities.createIndex({ countryCode: 1, population: -1 }),
+    cities.createIndex({ countryCode: 1, search: 1 }),
   ]);
 
   console.log(`Mongo connected: ${db.databaseName}`);

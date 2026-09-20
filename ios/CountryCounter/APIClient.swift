@@ -144,6 +144,13 @@ struct APIClient {
 
     // MARK: - Ручные записи
 
+    /// Справочник городов страны: без запроса — крупнейшие, с запросом — по префиксу любого написания
+    func cities(country: String, query: String) async throws -> [CityOption] {
+        struct R: Decodable { let cities: [CityOption] }
+        let r: R = try await send("GET", "/api/cities", query: ["country": country, "q": query.isEmpty ? nil : query, "limit": "40"])
+        return r.cities
+    }
+
     /// Переименовать город во всей истории (точки + ручные записи)
     func renameCity(countryCode: String, from: String, to: String) async throws -> Int {
         struct Body: Encodable { let countryCode: String; let from: String; let to: String }

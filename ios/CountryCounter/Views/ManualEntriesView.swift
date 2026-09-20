@@ -126,33 +126,22 @@ struct ManualEntryEditView: View {
                         }
                     }
                 }
-                TextField("City (optional)", text: $city)
-            }
-
-            if let country, !knownCities(for: country).isEmpty {
-                Section {
-                    ForEach(knownCities(for: country), id: \.self) { name in
-                        Button {
-                            city = city == name ? "" : name
-                        } label: {
-                            HStack {
-                                let shown = name.cityDisplayName(country: country)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(shown).foregroundStyle(.primary)
-                                    if shown != name { Text(name).font(.caption).foregroundStyle(.secondary) }
-                                }
-                                Spacer()
-                                if city.trimmingCharacters(in: .whitespaces).caseInsensitiveCompare(name) == .orderedSame {
-                                    Image(systemName: "checkmark").foregroundStyle(.tint)
-                                }
-                            }
+                NavigationLink {
+                    if let country {
+                        CityPickerView(country: country, known: knownCities(for: country), selection: $city)
+                    }
+                } label: {
+                    HStack {
+                        Text("City")
+                        Spacer()
+                        if let country, !city.isEmpty {
+                            Text(city.cityDisplayName(country: country)).foregroundStyle(.secondary)
+                        } else {
+                            Text(country == nil ? "Pick the country first" : "Optional").foregroundStyle(.secondary)
                         }
                     }
-                } header: {
-                    Text("Known cities")
-                } footer: {
-                    Text("Cities from your history for this country. You can also type any name above.")
                 }
+                .disabled(country == nil)
             }
 
             Section {
@@ -197,6 +186,7 @@ struct ManualEntryEditView: View {
             }
         }
         .onChange(of: from) { _, newFrom in if to < newFrom { to = newFrom } }
+        .onChange(of: countries) { old, new in if old.first != new.first, old.first != nil { city = "" } }
         .task { await model.loadAllTimeIfNeeded() }
     }
 
@@ -207,9 +197,9 @@ struct ManualEntryEditView: View {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
         let trimmedNote = note.trimmingCharacters(in: .whitespaces)
+        // город выбирается из справочника — уже английский
+        let trimmedCity = city.trimmingCharacters(in: .whitespaces)
         Task {
-            // город приводим к английскому написанию, чтобы он сгруппировался с точками с устройства
-            let trimmedCity = await CityNames.canonicalEnglish(city, country: country)
             do {
                 if let existing {
                     try await model.updateRange(
