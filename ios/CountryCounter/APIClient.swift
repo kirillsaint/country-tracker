@@ -225,30 +225,47 @@ struct APIClient {
         let _: R = try await send("DELETE", "/api/entries/\(countryCode)/\(date)")
     }
 
-    // MARK: - Справочник виз
+    // MARK: - Режимы въезда
 
-    func visaInfo(country: String) async throws -> VisaInfoResponse {
-        try await send("GET", "/api/visa-info", query: ["country": country, "lang": DocumentInput.currentLang])
+    func regimes() async throws -> (aiEnabled: Bool, freshDays: Int, regimes: [Regime]) {
+        struct R: Decodable { let aiEnabled: Bool; let freshDays: Int; let regimes: [Regime] }
+        let r: R = try await send("GET", "/api/regimes")
+        return (r.aiEnabled, r.freshDays, r.regimes)
     }
 
-    /// Создать/подтвердить правило безвиза. Без параметров — по подсказке справочника.
-    func ensureVisaFreeRule(country: String, passportId: String, type: RuleType? = nil, limitDays: Int? = nil, windowDays: Int? = nil) async throws -> Rule? {
-        struct Body: Encodable { let country: String; let passportId: String; let lang: String; let type: RuleType?; let limitDays: Int?; let windowDays: Int? }
-        struct R: Decodable { let rule: Rule? }
-        let r: R = try await send("POST", "/api/visa-info/rule", body: Body(country: country, passportId: passportId, lang: DocumentInput.currentLang, type: type, limitDays: limitDays, windowDays: windowDays))
-        return r.rule
+    func regimeInfo(passportId: String, country: String) async throws -> RegimeInfoResponse {
+        try await send("GET", "/api/regimes/\(passportId)/\(country)", query: ["lang": DocumentInput.currentLang])
     }
 
-    func visaCacheStatus() async throws -> (enabled: Bool, passports: [VisaCacheStatus]) {
-        struct R: Decodable { let enabled: Bool; let passports: [VisaCacheStatus] }
-        let r: R = try await send("GET", "/api/visa-info/status")
-        return (r.enabled, r.passports)
+    func confirmRegime(passportId: String, country: String, _ input: RegimeVersionInput) async throws -> (Regime, [Rule], Bool) {
+        struct R: Decodable { let regime: Regime; let rules: [Rule]; let changed: Bool }
+        let r: R = try await send("PUT", "/api/regimes/\(passportId)/\(country)", body: input)
+        return (r.regime, r.rules, r.changed)
     }
 
-    func refreshVisaCache(passport: String) async throws {
-        struct Body: Encodable { let passport: String }
-        struct R: Decodable { let started: Bool }
-        let _: R = try await send("POST", "/api/visa-info/refresh", body: Body(passport: passport))
+    func deleteRegime(id: String) async throws {
+        struct R: Decodable { let deleted: Bool }
+        let _: R = try await send("DELETE", "/api/regimes/\(id)")
+    }
+
+    func setCondition(regimeId: String, conditionId: String, done: Bool) async throws -> Regime {
+        struct Body: Encodable { let done: Bool }
+        struct R: Decodable { let regime: Regime }
+        let r: R = try await send("POST", "/api/regimes/\(regimeId)/conditions/\(conditionId)", body: Body(done: done))
+        return r.regime
+    }
+
+    func startRegimeCheck(passportId: String, country: String, force: Bool) async throws -> RegimeCheck {
+        struct Body: Encodable { let lang: String; let force: Bool }
+        struct R: Decodable { let check: RegimeCheck }
+        let r: R = try await send("POST", "/api/regimes/\(passportId)/\(country)/check", body: Body(lang: DocumentInput.currentLang, force: force))
+        return r.check
+    }
+
+    func regimeCheck(id: String, passportId: String?) async throws -> (RegimeCheck, RegimeDiff?) {
+        struct R: Decodable { let check: RegimeCheck; let diff: RegimeDiff? }
+        let r: R = try await send("GET", "/api/regime-checks/\(id)", query: ["passportId": passportId])
+        return (r.check, r.diff)
     }
 
     func ruleResults() async throws -> [RuleResult] {

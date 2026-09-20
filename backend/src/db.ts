@@ -1,6 +1,6 @@
 import { MongoClient, type Collection } from "mongodb";
 import { config } from "./config.js";
-import type { DayOverride, Entry, Point, Rule, Session, TravelDocument, User, VisaCacheEntry } from "./types.js";
+import type { DayOverride, Entry, Point, Regime, RegimeCheck, Rule, Session, TravelDocument, User } from "./types.js";
 
 const client = new MongoClient(config.mongoUrl);
 
@@ -11,7 +11,8 @@ export let dayOverrides: Collection<DayOverride>;
 export let rules: Collection<Rule>;
 export let documents: Collection<TravelDocument>;
 export let entries: Collection<Entry>;
-export let visaCache: Collection<VisaCacheEntry>;
+export let regimes: Collection<Regime>;
+export let regimeChecks: Collection<RegimeCheck>;
 
 export async function connectDb() {
   await client.connect();
@@ -23,7 +24,8 @@ export async function connectDb() {
   rules = db.collection<Rule>("rules");
   documents = db.collection<TravelDocument>("documents");
   entries = db.collection<Entry>("entries");
-  visaCache = db.collection<VisaCacheEntry>("visa_cache");
+  regimes = db.collection<Regime>("regimes");
+  regimeChecks = db.collection<RegimeCheck>("regime_checks");
 
   await Promise.all([
     rules.createIndex({ userId: 1, id: 1 }, { unique: true }),
@@ -31,8 +33,11 @@ export async function connectDb() {
     documents.createIndex({ userId: 1, id: 1 }, { unique: true }),
     entries.createIndex({ userId: 1, id: 1 }, { unique: true }),
     entries.createIndex({ userId: 1, countryCode: 1, date: 1 }, { unique: true }),
-    visaCache.createIndex({ passport: 1, destination: 1 }, { unique: true }),
-    visaCache.createIndex({ passport: 1, fetchedAt: 1 }),
+    regimes.createIndex({ userId: 1, id: 1 }, { unique: true }),
+    regimes.createIndex({ userId: 1, passportId: 1, countryCode: 1 }, { unique: true }),
+    regimeChecks.createIndex({ id: 1 }, { unique: true }),
+    regimeChecks.createIndex({ passportCode: 1, countryCode: 1, requestedAt: -1 }),
+    rules.createIndex({ userId: 1, regimeId: 1 }),
     users.createIndex({ "apple.sub": 1 }, { unique: true, sparse: true }),
     users.createIndex({ "google.sub": 1 }, { unique: true, sparse: true }),
     users.createIndex({ email: 1 }, { sparse: true }),

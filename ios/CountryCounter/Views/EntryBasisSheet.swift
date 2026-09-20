@@ -14,10 +14,13 @@ struct EntryBasisSheet: View {
     @State private var saving = false
     @State private var error: String?
     @State private var info: String?
+    @State private var recheck = true
+    let regimeRef: CurrentStatus.RegimeRef?
 
-    init(segment: Segment, existing: Entry?, previous: CurrentStatus.EntryRef? = nil) {
+    init(segment: Segment, existing: Entry?, previous: CurrentStatus.EntryRef? = nil, regimeRef: CurrentStatus.RegimeRef? = nil) {
         self.segment = segment
         self.previous = previous
+        self.regimeRef = regimeRef
         _basis = State(initialValue: existing?.basis)
         _documentId = State(initialValue: existing?.documentId)
         _note = State(initialValue: existing?.note ?? "")
@@ -25,6 +28,16 @@ struct EntryBasisSheet: View {
 
     private var options: [EntryOption] {
         EntryOption.options(for: segment.countryCode, documents: model.documents, previous: previous)
+    }
+
+    /// Показывать переключатель перепроверки по умолчанию включённым только если режим устарел/отсутствует
+    private func seedRecheck() {
+        if let documentId, let r = model.regime(passportId: documentId, country: segment.countryCode), let last = r.lastCheckedAt,
+           (daysBetween(String(last.prefix(10)), DocumentInput.todayString()) ?? 0) < model.regimeFreshDays {
+            recheck = false
+        } else {
+            recheck = true
+        }
     }
 
     var body: some View {
@@ -63,16 +76,26 @@ struct EntryBasisSheet: View {
                 }
             } header: {
                 Text("Entered as")
-            } footer: {
-                if basis == .visa_free {
-                    Text("A stay-limit rule will be created from the visa reference for this passport. You can check or change it in “Entry conditions”.")
+            }
+
+            if basis == .visa_free, let documentId, model.aiEnabled {
+                Section {
+                    Toggle("Re-check entry rules with the assistant", isOn: $recheck)
+                } footer: {
+                    if let r = model.regime(passportId: documentId, country: segment.countryCode) {
+                        let days = r.lastCheckedAt.map { daysBetween(String($0.prefix(10)), DocumentInput.todayString()) ?? 0 }
+                        Text(days.map { String(localized: "Rules were last checked \(pluralDays($0)) ago. The assistant searches again and shows what changed.") }
+                             ?? String(localized: "Rules for this passport haven’t been checked yet."))
+                    } else {
+                        Text("No entry rules recorded for this passport and country yet — the assistant will research them; you confirm before anything is applied.")
+                    }
                 }
             }
 
             NavigationLink {
-                CountryInfoView(countryCode: segment.countryCode)
+                RegimeView(countryCode: segment.countryCode, initialPassportId: documentId)
             } label: {
-                Label("Entry conditions for this country", systemImage: "list.bullet.rectangle")
+                Label("Entry rules for this country", systemImage: "list.bullet.rectangle")
             }
 
             Section {
@@ -101,6 +124,8 @@ struct EntryBasisSheet: View {
         }
         .navigationTitle("Entry basis")
         .navigationBarTitleDisplayMode(.inline)
+        .onChange(of: documentId) { _, _ in seedRecheck() }
+        .onAppear(perform: seedRecheck)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
             ToolbarItem(placement: .confirmationAction) {
@@ -120,11 +145,10 @@ struct EntryBasisSheet: View {
         Task {
             do {
                 try await model.setEntry(countryCode: segment.countryCode, date: segment.from, basis: basis, documentId: documentId, note: trimmed.isEmpty ? nil : trimmed)
-                if basis == .visa_free, let documentId {
-                    // Правило безвиза по справочнику; если справочник молчит — просто сохраняем основание
-                    if let rule = try? await model.ensureVisaFreeRule(country: segment.countryCode, passportId: documentId) {
-                        info = String(localized: "Rule created: \(rule.name)")
-                        try? await Task.sleep(for: .seconds(1))
+                if basis == .visa_free, let documentId, recheck, model.aiEnabled {
+                    // Проверка условий — в фоне; результат придёт уведомлением
+                    if let check = try? await APIClient.fromSettings().startRegimeCheck(passportId: documentId, country: segment.countryCode, force: false) {
+                        RegimeChecks.remember(check, passportId: documentId)
                     }
                 }
                 dismiss()

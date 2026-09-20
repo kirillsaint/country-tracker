@@ -25,6 +25,20 @@ struct RuleEditView: View {
 
     var body: some View {
         Form {
+            if let rule, let regimeId = rule.regimeId, let regime = model.regimes.first(where: { $0.id == regimeId }) {
+                Section {
+                    NavigationLink {
+                        RegimeView(countryCode: regime.countryCode, initialPassportId: regime.passportId)
+                    } label: {
+                        Label(String(localized: "From entry rules: \(regime.countryCode.countryDisplayName(fallback: nil)) \(regime.passportCode.flagEmoji)"), systemImage: "list.bullet.rectangle")
+                            .font(.footnote)
+                    }
+                    Text(rule.isCustomized
+                         ? "You changed this rule by hand; re-confirming the entry rules won’t overwrite it."
+                         : "Change the numbers in the entry rules to keep everything consistent, or edit here — your version will be kept.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+            }
             if let rule, rule.isFromDocument {
                 Section {
                     let doc = model.document(id: rule.documentId)

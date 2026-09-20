@@ -10,7 +10,8 @@ services:
       APPLE_BUNDLE_ID: ${APPLE_BUNDLE_ID:-ge.kirillsaint.countrycounter}
       GOOGLE_CLIENT_IDS: ${GOOGLE_CLIENT_IDS:-}
       ALLOWED_EMAILS: ${ALLOWED_EMAILS:-}
-      ORIZN_API_KEY: ${ORIZN_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openai/gpt-5.6-sol}
     depends_on:
       mongo:
         condition: service_healthy

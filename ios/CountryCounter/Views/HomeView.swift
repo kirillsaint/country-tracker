@@ -100,7 +100,7 @@ struct HomeView: View {
             }
             .sheet(isPresented: $showMap) { MapScreen() }
             .sheet(item: $basisSegment) { seg in
-                NavigationStack { EntryBasisSheet(segment: seg, existing: model.entry(for: seg), previous: model.current?.previousEntry) }
+                NavigationStack { EntryBasisSheet(segment: seg, existing: model.entry(for: seg), previous: model.current?.previousEntry, regimeRef: model.current?.regime) }
             }
         }
     }
@@ -151,9 +151,9 @@ struct HomeView: View {
                 }
                 Spacer()
                 NavigationLink {
-                    CountryInfoView(countryCode: c.countryCode)
+                    RegimeView(countryCode: c.countryCode, initialPassportId: c.regime?.passportId)
                 } label: {
-                    Label("Entry conditions", systemImage: "list.bullet.rectangle").font(.caption)
+                    Label(c.regime?.stale == true ? "Entry rules · re-check" : "Entry rules", systemImage: "list.bullet.rectangle").font(.caption)
                 }
             }
         }

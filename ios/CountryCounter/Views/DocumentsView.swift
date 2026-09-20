@@ -4,8 +4,6 @@ import SwiftUI
 struct DocumentsView: View {
     @Environment(AppModel.self) private var model
     @State private var newKind: DocumentKind?
-    @State private var cacheStatus: [VisaCacheStatus] = []
-    @State private var referenceEnabled = true
     @State private var showLookup = false
 
     var body: some View {
@@ -36,17 +34,13 @@ struct DocumentsView: View {
                         } header: {
                             Text(kind.pluralTitle)
                         } footer: {
-                            if kind == .passport { referenceFooter }
+                            if kind == .passport { Text("Entry rules per country are kept under “Check a country” and appear automatically when you arrive somewhere new.") }
                         }
                     }
                 }
             }
             .navigationTitle("Documents")
-            .refreshable {
-                await model.refresh()
-                await loadStatus()
-            }
-            .task(id: model.passports.count) { await loadStatus() }
+            .refreshable { await model.refresh() }
             .onAppear {
                 #if DEBUG
                 // xcrun simctl launch … -debugCountryInfo GE — сразу открыть условия въезда
@@ -77,46 +71,6 @@ struct DocumentsView: View {
                 NavigationStack { DocumentEditView(document: nil, kind: kind) }
             }
         }
-    }
-}
-
-extension DocumentsView {
-    @ViewBuilder
-    var referenceFooter: some View {
-        if !referenceEnabled {
-            Text("Visa reference is off on the server — entry conditions are set by hand.")
-        } else if cacheStatus.isEmpty {
-            Text("The visa reference downloads entry conditions for each passport and refreshes them weekly.")
-        } else {
-            VStack(alignment: .leading, spacing: 4) {
-                ForEach(cacheStatus) { st in
-                    HStack(spacing: 6) {
-                        Text(verbatim: st.passport.flagEmoji)
-                        if st.inProgress {
-                            ProgressView().controlSize(.mini)
-                            Text("Downloading reference: \(st.cached) of \(st.total)")
-                        } else if let last = st.lastFetchedAt {
-                            Text("Reference: \(st.fresh) of \(st.total) destinations, updated \(prettyDate(String(last.prefix(10))))")
-                        } else {
-                            Text("Reference not downloaded yet")
-                        }
-                        Button("Refresh") {
-                            Task {
-                                try? await APIClient.fromSettings().refreshVisaCache(passport: st.passport)
-                                await loadStatus()
-                            }
-                        }
-                        .font(.footnote)
-                    }
-                }
-            }
-        }
-    }
-
-    func loadStatus() async {
-        guard let client = try? APIClient.fromSettings(), let st = try? await client.visaCacheStatus() else { return }
-        referenceEnabled = st.enabled
-        cacheStatus = st.passports
     }
 }
 

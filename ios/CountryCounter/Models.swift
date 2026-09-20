@@ -47,10 +47,19 @@ struct CurrentStatus: Codable, Equatable {
     let daysInRow: Int
     let daysThisYear: Int
     let lastSeen: String
+    struct RegimeRef: Codable, Equatable {
+        let passportId: String
+        let regimeId: String?
+        let lastCheckedAt: String?
+        let stale: Bool
+    }
+
     // основание текущего пребывания; nil + entryPending — пора спросить "как въехали?"
     let entry: EntryRef?
     let previousEntry: EntryRef?
     let entryPending: Bool?
+    // режим безвиза для этой страны: есть ли и не пора ли перепроверить
+    let regime: RegimeRef?
 
     var needsEntryBasis: Bool { entryPending ?? false }
 }
@@ -174,6 +183,13 @@ struct DocumentInput: Codable, Equatable {
     var lang: String = DocumentInput.currentLang
 
     static var currentLang: String { Locale.current.language.languageCode?.identifier == "ru" ? "ru" : "en" }
+
+    static func todayString() -> String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.timeZone = .current
+        return f.string(from: Date())
+    }
 }
 
 struct TravelDocument: Codable, Identifiable, Equatable {
@@ -256,81 +272,186 @@ struct Entry: Codable, Identifiable, Equatable {
     let updatedAt: String
 }
 
-// MARK: - Справочник визовых режимов
+// MARK: - Режимы въезда (безвиз)
 
-enum VisaRequirement: String, Codable {
-    case visa_free, e_visa, visa_on_arrival, eta, visa_required, no_admission, unknown
+enum ConstraintType: String, Codable, CaseIterable, Identifiable {
+    case perEntry, rolling, calendarYear, fromDate
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .perEntry: return String(localized: "Per entry")
+        case .rolling: return String(localized: "In a rolling window")
+        case .calendarYear: return String(localized: "Per calendar year")
+        case .fromDate: return String(localized: "From a date")
+        }
+    }
+}
+
+enum ConditionKind: String, Codable, CaseIterable, Identifiable {
+    case registration, passportValidity, insurance, funds, ticket, other
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .registration: return String(localized: "Registration")
+        case .passportValidity: return String(localized: "Passport validity")
+        case .insurance: return String(localized: "Insurance")
+        case .funds: return String(localized: "Proof of funds")
+        case .ticket: return String(localized: "Return ticket")
+        case .other: return String(localized: "Other")
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .registration: return "building.columns"
+        case .passportValidity: return "person.text.rectangle"
+        case .insurance: return "cross.case"
+        case .funds: return "banknote"
+        case .ticket: return "airplane.departure"
+        case .other: return "checklist"
+        }
+    }
+}
+
+enum RegimeRequirement: String, Codable, CaseIterable, Identifiable {
+    case visa_free, e_visa, visa_on_arrival, visa_required, unknown
+    var id: String { rawValue }
 
     var title: String {
         switch self {
         case .visa_free: return String(localized: "Visa-free")
         case .e_visa: return String(localized: "E-visa")
         case .visa_on_arrival: return String(localized: "Visa on arrival")
-        case .eta: return String(localized: "Electronic travel authorization")
         case .visa_required: return String(localized: "Visa required")
-        case .no_admission: return String(localized: "Entry not allowed")
         case .unknown: return String(localized: "Unknown")
         }
     }
 
-    var allowsEntry: Bool { [.visa_free, .e_visa, .visa_on_arrival, .eta].contains(self) }
-    var color: String { allowsEntry ? "green" : (self == .unknown ? "gray" : "red") }
+    var allowsEntry: Bool { [.visa_free, .e_visa, .visa_on_arrival].contains(self) }
 }
 
-struct VisaInfoRecord: Codable, Equatable {
-    let requirement: VisaRequirement?
-    let visaFreeDays: Int?
-    let description: String?
-    let maxStay: String?
-    let extensionNotes: String?
-    let extensionPossible: Bool?
-    let maxExtensionDays: Int?
-    let passportValidityMonths: Int?
-    let source: String?
-    let verified: Bool?
-    let sourceUrl: String?
-    let lastVerifiedAt: String?
-    let requirementStatus: String?
-    let requirementStatusNote: String?
-    let overstayNotes: String?
-    let fetchedAt: String?
+struct RegimeConstraint: Codable, Identifiable, Equatable {
+    var id: String = UUID().uuidString
+    var type: ConstraintType
+    var limitDays: Int
+    var windowDays: Int?
+    var startDate: String?
+    var note: String?
+
+    var summary: String {
+        switch type {
+        case .perEntry: return String(localized: "\(pluralDays(limitDays)) per entry")
+        case .rolling: return String(localized: "\(pluralDays(limitDays)) in any \(windowDays ?? 0) days")
+        case .calendarYear: return String(localized: "\(pluralDays(limitDays)) per calendar year")
+        case .fromDate: return String(localized: "\(pluralDays(limitDays)) from \(startDate.map(prettyDate) ?? "—")")
+        }
+    }
 }
 
-struct RuleSuggestion: Codable, Equatable {
-    let type: RuleType
-    let limitDays: Int
-    let windowDays: Int?
-    let reason: String
+struct RegimeCondition: Codable, Identifiable, Equatable {
+    var id: String = UUID().uuidString
+    var kind: ConditionKind
+    var text: String
+    var withinDays: Int?
+    var done: Bool = false
+}
+
+struct RegimeSource: Codable, Identifiable, Equatable {
+    var id: String { url }
+    let url: String
+    let title: String?
+    let official: Bool
+    let quote: String?
+}
+
+struct RegimeVersion: Codable, Identifiable, Equatable {
+    let id: String
+    var requirement: RegimeRequirement
+    var constraints: [RegimeConstraint]
+    var conditions: [RegimeCondition]
+    var sources: [RegimeSource]
+    var origin: String
+    var model: String?
+    var notes: String?
+    let effectiveFrom: String
+    let effectiveTo: String?
+    let confirmedAt: String
+}
+
+struct Regime: Codable, Identifiable, Equatable {
+    let id: String
+    let passportId: String
+    let passportCode: String
+    let countryCode: String
+    var active: RegimeVersion?
+    var history: [RegimeVersion]
+    var lastCheckedAt: String?
+    let createdAt: String
+    let updatedAt: String
+
+    /// Версия, действовавшая в указанную дату — для истории поездок
+    func version(on date: String) -> RegimeVersion? {
+        if let a = active, a.effectiveFrom <= date { return a }
+        return history.last { $0.effectiveFrom <= date && ($0.effectiveTo ?? "9999") > date }
+    }
+}
+
+// Черновик нейросети
+struct RegimeDraft: Codable, Equatable {
+    var requirement: RegimeRequirement
+    var constraints: [RegimeConstraint]
+    var conditions: [RegimeCondition]
+    var sources: [RegimeSource]
+    let summary: String
+    let asOf: String?
+    let recentChange: String?
     let confidence: String
 }
 
-struct VisaInfoByPassport: Codable, Identifiable, Equatable {
-    var id: String { passportId }
-    let passportId: String
+enum CheckStatus: String, Codable { case queued, running, done, failed }
+
+struct RegimeCheck: Codable, Identifiable, Equatable {
+    let id: String
     let passportCode: String
-    let passportName: String
-    let isCitizen: Bool
-    let info: VisaInfoRecord?
-    let suggestion: RuleSuggestion?
-    let rule: Rule?
+    let countryCode: String
+    let lang: String
+    let status: CheckStatus
+    let model: String
+    let requestedAt: String
+    let finishedAt: String?
+    let draft: RegimeDraft?
+    let error: String?
 }
 
-struct VisaInfoResponse: Codable {
-    let country: String
-    let enabled: Bool
-    let passports: [VisaInfoByPassport]
+struct RegimeDiff: Codable, Equatable {
+    let changed: Bool
+    let added: [String]
+    let removed: [String]
+    let requirementChanged: String?
+}
+
+struct RegimeInfoResponse: Codable {
+    let aiEnabled: Bool
+    let isCitizen: Bool
+    let regime: Regime?
+    let stale: Bool
+    let cachedCheck: RegimeCheck?
     let documents: [TravelDocument]
 }
 
-struct VisaCacheStatus: Codable, Identifiable {
-    var id: String { passport }
-    let passport: String
-    let total: Int
-    let cached: Int
-    let fresh: Int
-    let lastFetchedAt: String?
-    let inProgress: Bool
-    let enabled: Bool
+// Что уходит на сервер при подтверждении версии
+struct RegimeVersionInput: Codable, Identifiable {
+    var id: String { "\(requirement.rawValue)|\(constraints.map(\.id).joined())|\(origin)" }
+    var requirement: RegimeRequirement
+    var constraints: [RegimeConstraint]
+    var conditions: [RegimeCondition]
+    var sources: [RegimeSource]
+    var origin: String
+    var model: String?
+    var notes: String?
+    var lang: String = DocumentInput.currentLang
 }
 
 // MARK: - Ручные записи
@@ -457,9 +578,12 @@ struct Rule: Codable, Identifiable, Equatable {
     var notify: Bool
     var sortOrder: Int
     var validUntil: String?
-    // правило создано из документа (визы / ВНЖ); customized — пользователь его переписал
+    // правило создано из документа (визы / ВНЖ) или режима въезда; customized — пользователь его переписал
     var documentId: String?
     var documentRole: String?
+    var regimeId: String?
+    var constraintId: String?
+    var validFrom: String?
     var customized: Bool?
     let createdAt: String
     let updatedAt: String
@@ -497,6 +621,8 @@ struct RuleResult: Codable, Identifiable, Equatable {
 
     let autoStart: Bool
     let documentId: String?
+    let regimeId: String?
+    let validFrom: String?
     let validUntil: String?
     let entryDate: String?
     let inCountry: Bool?

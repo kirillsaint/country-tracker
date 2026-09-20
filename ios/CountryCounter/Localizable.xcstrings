@@ -1,6 +1,16 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%@ from %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ с %@"
+          }
+        }
+      }
+    },
     "%@ has been linked to your existing account.": {
       "extractionState": "stale",
       "localizations": {
@@ -19,6 +29,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ подряд"
+          }
+        }
+      }
+    },
+    "%@ in any %lld days": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ в любые %lld дней"
           }
         }
       }
@@ -100,6 +120,16 @@
         }
       }
     },
+    "%@ per calendar year": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ за календарный год"
+          }
+        }
+      }
+    },
     "%@ per entry": {
       "localizations": {
         "ru": {
@@ -110,6 +140,7 @@
         }
       }
     },
+    "%@ rules": {},
     "%@ this year": {
       "extractionState": "stale",
       "localizations": {
@@ -170,6 +201,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ ждут отправки на сервер"
+          }
+        }
+      }
+    },
+    "%@ · re-check rules": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · проверить условия"
+          }
+        }
+      }
+    },
+    "%@: tomorrow is the deadline": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: завтра истекает срок"
           }
         }
       }
@@ -333,16 +384,6 @@
         }
       }
     },
-    "%lld months": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld мес."
-          }
-        }
-      }
-    },
     "%lld of %lld": {
       "extractionState": "stale",
       "localizations": {
@@ -408,6 +449,7 @@
       }
     },
     "%lld rules": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -436,6 +478,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "365 дней с въезда, сбрасывается при выезде"
+          }
+        }
+      }
+    },
+    "A country can have several limits at once — for example, 60 days per entry and 90 in any 180. Each becomes its own counting rule.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "У страны может быть несколько ограничений сразу — например, 60 дней за въезд и 90 в любые 180. Каждое становится отдельным правилом подсчёта."
           }
         }
       }
@@ -472,16 +524,6 @@
         }
       }
     },
-    "A stay-limit rule will be created from the visa reference for this passport. You can check or change it in “Entry conditions”.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Правило подсчёта создастся по справочнику для этого паспорта. Проверить или изменить его можно в «Условиях въезда»."
-          }
-        }
-      }
-    },
     "Account": {
       "localizations": {
         "ru": {
@@ -503,6 +545,16 @@
         }
       }
     },
+    "Add a condition": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавить условие"
+          }
+        }
+      }
+    },
     "Add a counting rule": {
       "extractionState": "stale",
       "localizations": {
@@ -514,12 +566,22 @@
         }
       }
     },
-    "Add a passport in Documents to see entry conditions.": {
+    "Add a limit": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Добавьте паспорт в «Документах», чтобы увидеть условия въезда."
+            "value": "Добавить ограничение"
+          }
+        }
+      }
+    },
+    "Add a passport in Documents first — entry rules depend on citizenship.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сначала добавьте паспорт в «Документах» — условия въезда зависят от гражданства."
           }
         }
       }
@@ -694,7 +756,18 @@
         }
       }
     },
+    "Assistant result": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Результат помощника"
+          }
+        }
+      }
+    },
     "At least": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -704,7 +777,28 @@
         }
       }
     },
+    "Automatic research failed.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Автоматический поиск не удался."
+          }
+        }
+      }
+    },
+    "Automatic research failed. You can fill the rules in by hand.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Автоматический поиск не удался. Условия можно заполнить вручную."
+          }
+        }
+      }
+    },
     "Away for %@ — over the limit of %@.": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -715,6 +809,7 @@
       }
     },
     "Away for %@, %@ more allowed.": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -746,12 +841,43 @@
         }
       }
     },
+    "Change the numbers in the entry rules to keep everything consistent, or edit here — your version will be kept.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Меняйте числа в условиях въезда, чтобы всё было согласовано, или правьте здесь — ваша версия сохранится."
+          }
+        }
+      }
+    },
     "Check a country": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Проверить страну"
+          }
+        }
+      }
+    },
+    "Checked %@ ago.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверено %@ назад."
+          }
+        }
+      }
+    },
+    "Checked — no changes. Tap to see the sources.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверено — без изменений. Откройте, чтобы увидеть источники."
           }
         }
       }
@@ -788,6 +914,7 @@
       }
     },
     "Citizen": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -798,6 +925,7 @@
       }
     },
     "Citizenship": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -819,6 +947,7 @@
       }
     },
     "Clear basis": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -839,12 +968,42 @@
         }
       }
     },
-    "Couldn’t create the rule.": {
+    "Condition": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Не удалось создать правило."
+            "value": "Условие"
+          }
+        }
+      }
+    },
+    "Conditions": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Условия"
+          }
+        }
+      }
+    },
+    "Confirm": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подтвердить"
+          }
+        }
+      }
+    },
+    "Confirmed %@ · %@.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подтверждено %@ · %@."
           }
         }
       }
@@ -866,16 +1025,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Подсчёт"
-          }
-        }
-      }
-    },
-    "Counting rule": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Правило подсчёта"
           }
         }
       }
@@ -955,6 +1104,7 @@
       }
     },
     "Counts consecutive days spent outside the selected countries — a residence permit obligation not to be away longer than N days.": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -985,17 +1135,8 @@
         }
       }
     },
-    "Create rule": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Создать правило"
-          }
-        }
-      }
-    },
     "Created from document: %@": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1028,6 +1169,7 @@
       }
     },
     "Days away": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1049,11 +1191,32 @@
       }
     },
     "Delete document": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Удалить документ"
+          }
+        }
+      }
+    },
+    "Delete entry rules": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить условия въезда"
+          }
+        }
+      }
+    },
+    "Delete entry rules for this country?": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить условия въезда для этой страны?"
           }
         }
       }
@@ -1070,6 +1233,7 @@
       }
     },
     "Delete this document?": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1091,6 +1255,7 @@
       }
     },
     "Details": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1111,7 +1276,18 @@
         }
       }
     },
+    "Differs from your current rules:": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отличается от ваших текущих условий:"
+          }
+        }
+      }
+    },
     "Documents": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1132,12 +1308,12 @@
         }
       }
     },
-    "Downloading reference: %lld of %lld": {
+    "Downloading reference: %@ of %@": {
       "localizations": {
-        "ru": {
+        "en": {
           "stringUnit": {
-            "state": "translated",
-            "value": "Загрузка справочника: %lld из %lld"
+            "state": "new",
+            "value": "Downloading reference: %1$@ of %2$@"
           }
         }
       }
@@ -1173,6 +1349,16 @@
         }
       }
     },
+    "Edit": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Изменить"
+          }
+        }
+      }
+    },
     "Edit anything below if the rule is wrong — your version will be kept.": {
       "localizations": {
         "ru": {
@@ -1183,12 +1369,12 @@
         }
       }
     },
-    "Electronic travel authorization": {
+    "Edit entry rules": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Электронное разрешение (ETA)"
+            "value": "Изменить условия въезда"
           }
         }
       }
@@ -1215,6 +1401,7 @@
       }
     },
     "Entries": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1224,7 +1411,18 @@
         }
       }
     },
+    "Entry": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Въезд"
+          }
+        }
+      }
+    },
     "Entry basis": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1234,7 +1432,7 @@
         }
       }
     },
-    "Entry conditions": {
+    "Entry rules": {
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1244,7 +1442,7 @@
         }
       }
     },
-    "Entry conditions for this country": {
+    "Entry rules for this country": {
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1254,12 +1452,42 @@
         }
       }
     },
-    "Entry not allowed": {
+    "Entry rules for this passport aren’t recorded yet. Fill them in automatically — the assistant searches official sources and you confirm — or by hand.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Въезд запрещён"
+            "value": "Условия въезда для этого паспорта ещё не записаны. Заполните автоматически — помощник ищет по официальным источникам, а вы подтверждаете — или вручную."
+          }
+        }
+      }
+    },
+    "Entry rules per country are kept under “Check a country” and appear automatically when you arrive somewhere new.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Условия въезда по странам — в «Проверить страну»; при прилёте в новую страну они появляются сами."
+          }
+        }
+      }
+    },
+    "Entry rules · re-check": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Условия въезда · проверить"
+          }
+        }
+      }
+    },
+    "Entry rules: %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Условия въезда: %@"
           }
         }
       }
@@ -1276,6 +1504,7 @@
       }
     },
     "Expired %@": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1286,6 +1515,7 @@
       }
     },
     "Expired on %@.": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1296,6 +1526,7 @@
       }
     },
     "Expires in %@": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1306,6 +1537,7 @@
       }
     },
     "Expires in %@ — %@.": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1326,12 +1558,22 @@
         }
       }
     },
-    "Extension": {
+    "Fill in automatically": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Продление"
+            "value": "Заполнить автоматически"
+          }
+        }
+      }
+    },
+    "Fill in by hand": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Заполнить вручную"
           }
         }
       }
@@ -1367,6 +1609,16 @@
         }
       }
     },
+    "For registration deadlines the app reminds you a day before, counting from your entry date.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "О сроке регистрации приложение напомнит за день, считая от даты въезда."
+          }
+        }
+      }
+    },
     "Found": {
       "extractionState": "stale",
       "localizations": {
@@ -1374,6 +1626,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Найдено"
+          }
+        }
+      }
+    },
+    "Found: %@. Review and confirm.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Найдено: %@. Проверьте и подтвердите."
           }
         }
       }
@@ -1407,6 +1669,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "С даты"
+          }
+        }
+      }
+    },
+    "From entry rules: %@ %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Из условий въезда: %@ %@"
           }
         }
       }
@@ -1575,6 +1847,7 @@
       }
     },
     "How did you enter? This sets the stay-limit rule.": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1590,6 +1863,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Как считать"
+          }
+        }
+      }
+    },
+    "In a rolling window": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В скользящем окне"
           }
         }
       }
@@ -1617,6 +1900,7 @@
       }
     },
     "In the country — the away counter is at zero. Allowed: up to %@ away in a row.": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1636,7 +1920,18 @@
         }
       }
     },
+    "Insurance": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Страховка"
+          }
+        }
+      }
+    },
     "Issued on passport": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1652,6 +1947,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Его правила тоже удалятся. Визы, выданные по удалённому паспорту, останутся, но потеряют привязку."
+          }
+        }
+      }
+    },
+    "Keep mine": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оставить моё"
+          }
+        }
+      }
+    },
+    "Kind": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вид"
+          }
+        }
+      }
+    },
+    "Last checked %@ ago — worth re-checking.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последняя проверка %@ назад — стоит перепроверить."
           }
         }
       }
@@ -1711,6 +2036,7 @@
       }
     },
     "Limit within a window": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1827,7 +2153,28 @@
         }
       }
     },
+    "Mark as checked": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отметить проверенным"
+          }
+        }
+      }
+    },
+    "Matches your current rules.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Совпадает с вашими текущими условиями."
+          }
+        }
+      }
+    },
     "Max days away in a row": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1837,17 +2184,8 @@
         }
       }
     },
-    "Max stay": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Максимальный срок"
-          }
-        }
-      }
-    },
     "Max stay per entry": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1858,6 +2196,7 @@
       }
     },
     "Maximum days away in a row": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1868,6 +2207,7 @@
       }
     },
     "Minimum days per year": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1922,11 +2262,22 @@
       }
     },
     "Multiple entry": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Многократная"
+          }
+        }
+      }
+    },
+    "N days from a date": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "N дней с даты"
           }
         }
       }
@@ -1938,6 +2289,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "N дней с въезда в страну"
+          }
+        }
+      }
+    },
+    "N days in any M": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "N дней в любые M"
+          }
+        }
+      }
+    },
+    "N days per calendar year": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "N дней за календарный год"
+          }
+        }
+      }
+    },
+    "N days per entry": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "N дней за въезд"
           }
         }
       }
@@ -1954,6 +2335,7 @@
       }
     },
     "Name, e.g. Georgia residence permit": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1964,6 +2346,7 @@
       }
     },
     "Name, e.g. Russian passport": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -1974,6 +2357,7 @@
       }
     },
     "Name, e.g. Schengen visa C": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -2001,6 +2385,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Новая запись"
+          }
+        }
+      }
+    },
+    "New entry rules": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новые условия въезда"
           }
         }
       }
@@ -2050,11 +2444,22 @@
       }
     },
     "No documents yet": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Документов пока нет"
+          }
+        }
+      }
+    },
+    "No entry rules recorded for this passport and country yet — the assistant will research them; you confirm before anything is applied.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Условий въезда для этого паспорта и страны ещё нет — помощник их найдёт; вы подтверждаете до применения."
           }
         }
       }
@@ -2114,22 +2519,22 @@
         }
       }
     },
-    "No reference data for this pair yet.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "По этой паре в справочнике пока нет данных."
-          }
-        }
-      }
-    },
     "No rules yet": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Правил пока нет"
+          }
+        }
+      }
+    },
+    "No stay limits recorded.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ограничений по сроку не записано."
           }
         }
       }
@@ -2195,6 +2600,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Заметка (необязательно)"
+          }
+        }
+      }
+    },
+    "Notes": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Заметки"
+          }
+        }
+      }
+    },
+    "Notes (optional)": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Заметки (необязательно)"
           }
         }
       }
@@ -2305,6 +2730,7 @@
       }
     },
     "Other": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -2325,16 +2751,6 @@
         }
       }
     },
-    "Overstay": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Просрочка"
-          }
-        }
-      }
-    },
     "Passport": {
       "localizations": {
         "ru": {
@@ -2346,6 +2762,7 @@
       }
     },
     "Passport %@": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -2360,17 +2777,38 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Срок действия паспорта"
+            "value": "Срок паспорта"
           }
         }
       }
     },
     "Passports": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Паспорта"
+          }
+        }
+      }
+    },
+    "Past stays are evaluated against the rules that were in force at the time.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Прошлые поездки считаются по правилам, действовавшим тогда."
+          }
+        }
+      }
+    },
+    "Per calendar year": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "За календарный год"
           }
         }
       }
@@ -2406,7 +2844,18 @@
         }
       }
     },
+    "Period length": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Длительность периода"
+          }
+        }
+      }
+    },
     "Permanent": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -2481,6 +2930,16 @@
         }
       }
     },
+    "Previous versions (%lld)": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Предыдущие версии (%lld)"
+          }
+        }
+      }
+    },
     "Progress of one counting rule: days used, days left.": {
       "extractionState": "stale",
       "localizations": {
@@ -2488,6 +2947,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Прогресс по одному правилу: использовано дней, осталось дней."
+          }
+        }
+      }
+    },
+    "Proof of funds": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подтверждение средств"
+          }
+        }
+      }
+    },
+    "Re-check current rules": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перепроверить условия"
+          }
+        }
+      }
+    },
+    "Re-check entry rules with the assistant": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перепроверить условия въезда помощником"
           }
         }
       }
@@ -2514,32 +3003,12 @@
         }
       }
     },
-    "Reference not downloaded yet": {
+    "Reference: %@ of %@ destinations, updated %@": {
       "localizations": {
-        "ru": {
+        "en": {
           "stringUnit": {
-            "state": "translated",
-            "value": "Справочник ещё не загружен"
-          }
-        }
-      }
-    },
-    "Reference: %lld of %lld destinations, updated %@": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Справочник: %lld из %lld направлений, обновлён %@"
-          }
-        }
-      }
-    },
-    "Refresh": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Обновить"
+            "state": "new",
+            "value": "Reference: %1$@ of %2$@ destinations, updated %3$@"
           }
         }
       }
@@ -2555,6 +3024,26 @@
         }
       }
     },
+    "Registration": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Регистрация"
+          }
+        }
+      }
+    },
+    "Registration, passport validity, insurance — anything that isn’t a day count.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Регистрация, срок паспорта, страховка — всё, что не считается днями."
+          }
+        }
+      }
+    },
     "Request permission": {
       "extractionState": "stale",
       "localizations": {
@@ -2562,6 +3051,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Запросить разрешение"
+          }
+        }
+      }
+    },
+    "Research finished — review the result.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поиск завершён — проверьте результат."
           }
         }
       }
@@ -2578,6 +3077,7 @@
       }
     },
     "Residence permit": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -2588,6 +3088,7 @@
       }
     },
     "Residence permit %@": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -2598,6 +3099,7 @@
       }
     },
     "Residence permits": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -2619,6 +3121,7 @@
       }
     },
     "Restore from document": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -2628,12 +3131,32 @@
         }
       }
     },
-    "Rolling": {
+    "Return ticket": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "В окне"
+            "value": "Обратный билет"
+          }
+        }
+      }
+    },
+    "Review and add": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверить и добавить"
+          }
+        }
+      }
+    },
+    "Review and apply changes": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверить и применить изменения"
           }
         }
       }
@@ -2656,16 +3179,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Правило"
-          }
-        }
-      }
-    },
-    "Rule created: %@": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Правило создано: %@"
           }
         }
       }
@@ -2702,7 +3215,18 @@
         }
       }
     },
+    "Rules for this passport haven’t been checked yet.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Условия для этого паспорта ещё не проверялись."
+          }
+        }
+      }
+    },
     "Rules from this document": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -2712,7 +3236,28 @@
         }
       }
     },
+    "Rules then: %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Правила тогда: %@"
+          }
+        }
+      }
+    },
+    "Rules were last checked %@ ago. The assistant searches again and shows what changed.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Условия проверялись %@ назад. Помощник поищет заново и покажет изменения."
+          }
+        }
+      }
+    },
     "Same as last time: %@": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -2750,6 +3295,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Шенген 90/180"
+          }
+        }
+      }
+    },
+    "Searching official sources…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ищу по официальным источникам…"
           }
         }
       }
@@ -2931,6 +3486,7 @@
       }
     },
     "Single entry": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -2940,12 +3496,12 @@
         }
       }
     },
-    "Source: Orizn · %@. Treat as a hint, not legal advice.": {
+    "Sources": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Источник: Orizn · %@. Это подсказка, а не юридическая консультация."
+            "value": "Источники"
           }
         }
       }
@@ -2962,7 +3518,6 @@
       }
     },
     "Starting on": {
-      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -2993,16 +3548,6 @@
         }
       }
     },
-    "Suggested from the reference: %@. Check the type — the reference gives the number of days but not how they are counted.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Подсказка справочника: %@. Проверьте тип — справочник даёт число дней, но не способ их подсчёта."
-          }
-        }
-      }
-    },
     "Tax residency": {
       "extractionState": "stale",
       "localizations": {
@@ -3015,6 +3560,7 @@
       }
     },
     "Temporary (residence permit)": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -3040,6 +3586,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Приложение записывает снимок данных для виджетов после каждого обновления. Если снимка нет — приложению недоступен общий контейнер."
+          }
+        }
+      }
+    },
+    "The assistant searches again and shows what changed. Nothing is applied without your confirmation.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Помощник ищет заново и показывает, что изменилось. Без вашего подтверждения ничего не применяется."
           }
         }
       }
@@ -3118,26 +3674,6 @@
         }
       }
     },
-    "The visa reference downloads entry conditions for each passport and refreshes them weekly.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Справочник скачивает условия въезда для каждого паспорта и обновляет их раз в неделю."
-          }
-        }
-      }
-    },
-    "The visa reference is off on the server (no ORIZN_API_KEY). Set the conditions by hand below.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Справочник виз на сервере выключен (нет ORIZN_API_KEY). Задайте условия вручную ниже."
-          }
-        }
-      }
-    },
     "This year": {
       "localizations": {
         "ru": {
@@ -3180,6 +3716,7 @@
       }
     },
     "Transit": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -3189,7 +3726,18 @@
         }
       }
     },
+    "Try again": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Попробовать снова"
+          }
+        }
+      }
+    },
     "Type": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -3243,6 +3791,7 @@
       }
     },
     "Until": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -3274,7 +3823,18 @@
         }
       }
     },
+    "Usually 20–60 seconds. You can leave — a notification will arrive when it’s done.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обычно 20–60 секунд. Можно уйти — по готовности придёт уведомление."
+          }
+        }
+      }
+    },
     "Valid from": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -3285,6 +3845,7 @@
       }
     },
     "Valid until": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -3295,6 +3856,7 @@
       }
     },
     "Valid until %@": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -3305,6 +3867,7 @@
       }
     },
     "Validity": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -3315,6 +3878,7 @@
       }
     },
     "Visa": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -3325,6 +3889,7 @@
       }
     },
     "Visa %@": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -3355,16 +3920,6 @@
         }
       }
     },
-    "Visa reference is off on the server — entry conditions are set by hand.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Справочник виз на сервере выключен — условия въезда задаются вручную."
-          }
-        }
-      }
-    },
     "Visa required": {
       "localizations": {
         "ru": {
@@ -3376,6 +3931,7 @@
       }
     },
     "Visa-free": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -3386,6 +3942,7 @@
       }
     },
     "Visas": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -3481,6 +4038,26 @@
         }
       }
     },
+    "With a visa required, add the visa itself in Documents — its limits become rules there.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Если нужна виза, добавьте саму визу в «Документах» — её лимиты станут правилами там."
+          }
+        }
+      }
+    },
+    "Within days of entry": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дней после въезда"
+          }
+        }
+      }
+    },
     "Year": {
       "extractionState": "stale",
       "localizations": {
@@ -3519,6 +4096,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Вы изменили это правило вручную — при изменении документа оно не перезапишется."
+          }
+        }
+      }
+    },
+    "You changed this rule by hand; re-confirming the entry rules won’t overwrite it.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вы изменили правило вручную; повторное подтверждение условий его не перезапишет."
           }
         }
       }
@@ -3575,6 +4162,7 @@
       }
     },
     "You’re in %@": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -3606,7 +4194,18 @@
         }
       }
     },
+    "assistant (%@), confirmed by you": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "помощник (%@), подтверждено вами"
+          }
+        }
+      }
+    },
     "by %@ passport": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -3656,6 +4255,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "запрещено"
+          }
+        }
+      }
+    },
+    "entered by you": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "введено вами"
           }
         }
       }
@@ -3715,6 +4324,16 @@
         }
       }
     },
+    "high confidence": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "высокая уверенность"
+          }
+        }
+      }
+    },
     "in a row": {
       "localizations": {
         "ru": {
@@ -3736,6 +4355,26 @@
         }
       }
     },
+    "low confidence": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "низкая уверенность"
+          }
+        }
+      }
+    },
+    "medium confidence": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "средняя уверенность"
+          }
+        }
+      }
+    },
     "no more than %@ %@": {
       "extractionState": "stale",
       "localizations": {
@@ -3748,6 +4387,7 @@
       }
     },
     "no more than %@ away in a row": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -3790,16 +4430,6 @@
         }
       }
     },
-    "not verified against an official source": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "не сверено с официальным источником"
-          }
-        }
-      }
-    },
     "not written yet": {
       "extractionState": "stale",
       "localizations": {
@@ -3807,16 +4437,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "ещё не записан"
-          }
-        }
-      }
-    },
-    "officially verified %@": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "проверено по официальному источнику %@"
           }
         }
       }
@@ -3865,16 +4485,6 @@
         }
       }
     },
-    "up to %@": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "до %@"
-          }
-        }
-      }
-    },
     "while using": {
       "extractionState": "stale",
       "localizations": {
@@ -3882,6 +4492,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "при использовании"
+          }
+        }
+      }
+    },
+    "within %@ of entry": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "в течение %@ после въезда"
           }
         }
       }
@@ -3919,6 +4539,7 @@
       }
     },
     "≤ %@ away": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -3929,6 +4550,7 @@
       }
     },
     "≥ %@ a year": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {

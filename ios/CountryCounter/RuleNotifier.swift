@@ -83,6 +83,41 @@ enum RuleNotifier {
         UserDefaults.standard.set(state, forKey: docStateKey)
     }
 
+    // MARK: условия режима (регистрация и т.п.)
+
+    /// Напоминание за день до дедлайна условия "в течение N дней после въезда" для текущего пребывания
+    static func scheduleConditionReminders(current: CurrentStatus?, regimes: [Regime]) {
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: pendingConditionIds)
+        var ids: [String] = []
+        defer { UserDefaults.standard.set(ids, forKey: conditionIdsKey) }
+        guard AppSettings.notificationsEnabled, let current, let entry = current.entry, entry.basis == .visa_free,
+              let pid = entry.documentId, let regime = regimes.first(where: { $0.passportId == pid && $0.countryCode == current.countryCode }),
+              let version = regime.active else { return }
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.timeZone = .current
+        guard let entryDate = f.date(from: current.since) else { return }
+        for c in version.conditions where !c.done {
+            guard let within = c.withinDays else { continue }
+            // за день до дедлайна в 10:00; если уже поздно — не шлём
+            guard let due = Calendar.current.date(byAdding: .day, value: within - 1, to: entryDate) else { continue }
+            var comps = Calendar.current.dateComponents([.year, .month, .day], from: due)
+            comps.hour = 10
+            guard let fire = Calendar.current.date(from: comps), fire > Date() else { continue }
+            let content = UNMutableNotificationContent()
+            content.title = String(localized: "\(c.kind.title): tomorrow is the deadline")
+            content.body = c.text
+            content.sound = .default
+            let id = "condition-\(regime.id)-\(c.id)-\(current.since)"
+            ids.append(id)
+            center.add(UNNotificationRequest(identifier: id, content: content, trigger: UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)))
+        }
+    }
+
+    private static let conditionIdsKey = "conditionReminderIds"
+    private static var pendingConditionIds: [String] { UserDefaults.standard.stringArray(forKey: conditionIdsKey) ?? [] }
+
     private static func schedule(for r: RuleResult) {
         let content = UNMutableNotificationContent()
         content.title = r.name

@@ -60,6 +60,11 @@ export type Rule = {
   // Такие правила пересоздаются при изменении документа и удаляются вместе с ним.
   documentId: string | null;
   documentRole: DocumentRuleRole | null;
+  // правило порождено режимом въезда (безвиз): regimeId + id ограничения версии
+  regimeId: string | null;
+  constraintId: string | null;
+  // дни раньше этой даты не считаются — правило вступило в силу с новой версии режима
+  validFrom: string | null;
   // пользователь правил автосозданное правило руками — при пересборке документа его не трогаем
   customized: boolean;
   // после этой даты правило считается истёкшим и в расчётах не участвует (срок визы/ВНЖ)
@@ -68,37 +73,97 @@ export type Rule = {
   updatedAt: string;
 };
 
-// visafree — правило безвиза, привязанное к паспорту (по данным справочника или подтверждённое пользователем)
-export type DocumentRuleRole = "stay" | "window" | "presence" | "absence" | "visafree";
+export type DocumentRuleRole = "stay" | "window" | "presence" | "absence";
 
-// MARK: справочник визовых режимов (кэш ответов Orizn)
+// MARK: режимы въезда (безвиз по паспорту)
 
-export type VisaRequirement = "visa_free" | "e_visa" | "visa_on_arrival" | "eta" | "visa_required" | "no_admission" | "unknown";
+export type ConstraintType = "perEntry" | "rolling" | "calendarYear" | "fromDate";
 
-export type VisaCacheEntry = {
-  // ISO alpha-2
-  passport: string;
-  destination: string;
-  fetchedAt: string;
-  // null — у справочника нет данных по паре (404)
-  requirement: VisaRequirement | null;
-  visaFreeDays: number | null;
-  description: string | null;
-  maxStay: string | null;
-  // заметки, из которых извлекаются "90 in any 180", "180 per calendar year"
-  extensionNotes: string | null;
-  extensionPossible: boolean | null;
-  maxExtensionDays: number | null;
-  passportValidityMonths: number | null;
-  source: string | null;
-  verified: boolean | null;
-  sourceUrl: string | null;
-  lastVerifiedAt: string | null;
-  requirementStatus: string | null;
-  requirementStatusNote: string | null;
-  overstayNotes: string | null;
-  // полный ответ — на будущее, чтобы не перезапрашивать
-  raw: unknown;
+export type RegimeConstraint = {
+  id: string;
+  type: ConstraintType;
+  limitDays: number;
+  windowDays: number | null;
+  startDate: string | null;
+  note: string | null;
+};
+
+export type ConditionKind = "registration" | "passportValidity" | "insurance" | "funds" | "ticket" | "other";
+
+// Условие въезда, не считающееся в днях: "зарегистрироваться в течение 3 дней", "паспорт 6 месяцев"
+export type RegimeCondition = {
+  id: string;
+  kind: ConditionKind;
+  text: string;
+  // для registration: напомнить через N дней после въезда
+  withinDays: number | null;
+  done: boolean;
+};
+
+export type RegimeSource = {
+  url: string;
+  title: string | null;
+  // официальный домен (МИД, консульство, gov)
+  official: boolean;
+  quote: string | null;
+};
+
+export type RegimeRequirement = "visa_free" | "e_visa" | "visa_on_arrival" | "visa_required" | "unknown";
+
+// Одна версия режима. При изменении условий старая уходит в history с effectiveTo.
+export type RegimeVersion = {
+  id: string;
+  requirement: RegimeRequirement;
+  constraints: RegimeConstraint[];
+  conditions: RegimeCondition[];
+  sources: RegimeSource[];
+  origin: "user" | "ai";
+  model: string | null;
+  notes: string | null;
+  effectiveFrom: string;
+  effectiveTo: string | null;
+  confirmedAt: string;
+};
+
+export type Regime = {
+  userId: ObjectId;
+  id: string;
+  passportId: string;
+  passportCode: string;
+  countryCode: string;
+  active: RegimeVersion | null;
+  history: RegimeVersion[];
+  lastCheckedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+// Черновик от нейросети — то, что пользователь проверяет перед добавлением
+export type RegimeDraft = {
+  requirement: RegimeRequirement;
+  constraints: RegimeConstraint[];
+  conditions: RegimeCondition[];
+  sources: RegimeSource[];
+  summary: string;
+  // на какую дату актуальна информация / когда менялась
+  asOf: string | null;
+  recentChange: string | null;
+  confidence: "high" | "medium" | "low";
+};
+
+// Запуск проверки: фоновая задача + кэш результата по паре (паспорт, страна), общий для всех
+export type RegimeCheck = {
+  id: string;
+  passportCode: string;
+  countryCode: string;
+  lang: string;
+  status: "queued" | "running" | "done" | "failed";
+  model: string;
+  requestedAt: string;
+  finishedAt: string | null;
+  draft: RegimeDraft | null;
+  error: string | null;
+  raw: string | null;
 };
 
 // MARK: документы

@@ -218,6 +218,8 @@ export type RuleResult = {
   warnRemainingDays: number | null;
   autoStart: boolean;
   documentId: string | null;
+  regimeId: string | null;
+  validFrom: string | null;
   validUntil: string | null;
   // fromDate + autoStart: дата текущего въезда (null, если сейчас не в стране)
   entryDate: string | null;
@@ -310,7 +312,10 @@ function periodOf(days: DailyPresence, rule: Rule, today: string): Period {
 }
 
 export function evaluateRule(days: DailyPresence, rule: Rule, today: string): RuleResult {
-  const { start, end, entryDate, inCountry, lastStay } = periodOf(days, rule, today);
+  const period = periodOf(days, rule, today);
+  // правило вступило в силу с новой версии режима — более ранние дни не считаем
+  const start = rule.validFrom && rule.validFrom > period.start ? rule.validFrom : period.start;
+  const { end, entryDate, inCountry, lastStay } = period;
   const matched = new Set<string>();
   for (const d of datesInRange(days, start, end < today ? end : today)) {
     if (dayMatches(days.get(d), rule)) matched.add(d);
@@ -367,6 +372,8 @@ export function evaluateRule(days: DailyPresence, rule: Rule, today: string): Ru
     warnRemainingDays: rule.warnRemainingDays,
     autoStart: rule.autoStart ?? false,
     documentId: rule.documentId ?? null,
+    regimeId: rule.regimeId ?? null,
+    validFrom: rule.validFrom ?? null,
     validUntil: rule.validUntil ?? null,
     entryDate,
     inCountry,

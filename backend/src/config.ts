@@ -20,9 +20,12 @@ export const config = {
   // впишите свои email'ы, иначе любой, кто найдёт адрес, заведёт себе аккаунт.
   allowedEmails: new Set(list("ALLOWED_EMAILS").map((e) => e.toLowerCase())),
 
-  // Orizn Visa API — справочник визовых режимов. Пусто = справочник выключен.
-  oriznApiKey: process.env.ORIZN_API_KEY ?? "",
-  oriznBaseUrl: process.env.ORIZN_BASE_URL ?? "https://visa.orizn.app",
+  // OpenRouter — нейросеть с веб-поиском для «Заполнить автоматически». Пусто = только ручной ввод.
+  openRouterApiKey: process.env.OPENROUTER_API_KEY ?? "",
+  openRouterModel: process.env.OPENROUTER_MODEL ?? "openai/gpt-5.6-sol",
+  openRouterBaseUrl: process.env.OPENROUTER_BASE_URL ?? "https://openrouter.ai/api/v1",
+  // сколько дней результат проверки режима считается свежим (кэш + порог «перепроверить при въезде»)
+  regimeFreshDays: Number(process.env.REGIME_FRESH_DAYS ?? 30),
 };
 
 if (config.googleClientIds.length === 0) {

@@ -48,6 +48,7 @@ enum Uploader {
             await RuleNotifier.check()
             await EntryPrompter.check()
         }
+        await RegimeChecks.processPending()
         return sent
     }
 }

@@ -4,9 +4,11 @@ import { zValidator } from "@hono/zod-validator";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { type AuthEnv, requireSession } from "./auth.js";
-import { dayOverrides, documents, entries, points, rules, users, visaCache } from "./db.js";
+import { dayOverrides, documents, entries, points, regimeChecks, regimes, rules, users } from "./db.js";
 import { deleteRulesForDocument, resetRuleFromDocument, syncRulesForDocument } from "./documents.js";
-import { cacheStatus, ensureVisaFreeRule, findVisaFreeRule, getPair, isEnabled as visaInfoEnabled, prefetchPassport, suggestRule } from "./visaInfo.js";
+import { config } from "./config.js";
+import { isAiEnabled } from "./ai.js";
+import { cachedCheck, confirmVersion, deleteRegime, diffVersions, isStale, startCheck } from "./regimes.js";
 import { countryAt, countryName, localDateOf } from "./geo.js";
 import { SCHENGEN } from "./presets.js";
 import {
@@ -20,7 +22,7 @@ import {
   primaryOf,
   timeline,
 } from "./stats.js";
-import { type Entry, type Point, type Rule, type TravelDocument, publicProjection } from "./types.js";
+import { type Entry, type Point, type Regime, type RegimeCheck, type Rule, type TravelDocument, publicProjection } from "./types.js";
 
 export const api = new Hono<AuthEnv>();
 api.use("*", requireSession);
@@ -182,9 +184,20 @@ api.get("/stats/current", zValidator("query", z.object(tzQuery)), async (c) => {
   // "Как в прошлый раз": последнее основание для этой же страны до текущего въезда
   const previous = await entries.find({ userId, countryCode: current.countryCode, date: { $lt: current.since } }).sort({ date: -1 }).limit(1).toArray();
   const strip = (e: Entry | null) => (e ? { basis: e.basis, documentId: e.documentId, date: e.date } : null);
+  // Режим безвиза для этой страны по паспорту въезда (или первому паспорту): есть ли и не устарел ли
+  const passportId = entry?.basis === "visa_free" && entry.documentId
+    ? entry.documentId
+    : (await documents.findOne({ userId, kind: "passport" }, { sort: { createdAt: 1 } }))?.id ?? null;
+  const regime = passportId ? await regimes.findOne({ userId, passportId, countryCode: current.countryCode }) : null;
   return c.json({
     today,
-    current: { ...current, entry: strip(entry), previousEntry: strip(previous[0] ?? null), entryPending: !entry },
+    current: {
+      ...current,
+      entry: strip(entry),
+      previousEntry: strip(previous[0] ?? null),
+      entryPending: !entry,
+      regime: passportId ? { passportId, regimeId: regime?.id ?? null, lastCheckedAt: regime?.lastCheckedAt ?? null, stale: isStale(regime) } : null,
+    },
   });
 });
 
@@ -325,7 +338,17 @@ const ruleBody = z
 // insertOne дописывает _id в объект, find возвращает его — наружу не отдаём ни его, ни userId.
 // autoStart появился позже — у старых документов его нет.
 function publicRule({ userId: _u, _id: _i, ...r }: Rule & { _id?: unknown }) {
-  return { ...r, autoStart: r.autoStart ?? false, documentId: r.documentId ?? null, documentRole: r.documentRole ?? null, customized: r.customized ?? false, validUntil: r.validUntil ?? null };
+  return {
+    ...r,
+    autoStart: r.autoStart ?? false,
+    documentId: r.documentId ?? null,
+    documentRole: r.documentRole ?? null,
+    regimeId: r.regimeId ?? null,
+    constraintId: r.constraintId ?? null,
+    customized: r.customized ?? false,
+    validFrom: r.validFrom ?? null,
+    validUntil: r.validUntil ?? null,
+  };
 }
 
 // Правила по умолчанию для нового пользователя — один раз, потом он волен всё удалить
@@ -351,6 +374,9 @@ async function ensureDefaultRules(userId: Point["userId"]) {
     sortOrder: 0,
     documentId: null,
     documentRole: null,
+    regimeId: null,
+    constraintId: null,
+    validFrom: null,
     customized: false,
     validUntil: null,
     createdAt: now,
@@ -370,7 +396,7 @@ api.post("/rules", zValidator("json", ruleBody), async (c) => {
   const userId = c.get("userId");
   await ensureDefaultRules(userId);
   const now = new Date().toISOString();
-  const rule: Rule = { userId, id: randomUUID(), documentId: null, documentRole: null, customized: false, ...c.req.valid("json"), createdAt: now, updatedAt: now };
+  const rule: Rule = { userId, id: randomUUID(), documentId: null, documentRole: null, regimeId: null, constraintId: null, validFrom: null, customized: false, ...c.req.valid("json"), createdAt: now, updatedAt: now };
   await rules.insertOne(rule);
   return c.json({ rule: publicRule(rule) }, 201);
 });
@@ -385,7 +411,7 @@ api.put("/rules/:id", zValidator("param", z.object({ id: z.string().uuid() })), 
   // Переключение enabled/notify правкой не считаем.
   const substantive = (["type", "countries", "limitDays", "windowDays", "startDate", "autoStart", "mode", "countMode", "name"] as const)
     .some((k) => JSON.stringify(body[k]) !== JSON.stringify(prev[k]));
-  const customized = prev.documentId ? (prev.customized || substantive) : false;
+  const customized = (prev.documentId || prev.regimeId) ? (prev.customized || substantive) : false;
   const updated = await rules.findOneAndUpdate(
     { userId, id },
     { $set: { ...body, customized, updatedAt: new Date().toISOString() } },
@@ -473,7 +499,6 @@ api.post("/documents", zValidator("json", documentBody), async (c) => {
   const doc = documentFromBody(userId, randomUUID(), body, new Date().toISOString());
   await documents.insertOne(doc);
   const generated = await syncRulesForDocument(userId, doc, body.lang);
-  if (doc.kind === "passport") prefetchPassport(doc.countryCode);
   return c.json({ document: publicDocument(doc), rules: generated.map(publicRule) }, 201);
 });
 
@@ -550,76 +575,140 @@ api.delete("/entries/:countryCode/:date", zValidator("param", z.object({ country
   return c.json({ deleted: res.deletedCount === 1 });
 });
 
-// MARK: справочник визовых режимов
+// MARK: режимы въезда (безвиз)
 
-// Что доступно в стране по каждому из паспортов пользователя + подсказка правила + документы на страну
-api.get("/visa-info", zValidator("query", z.object({ country: countryCode, lang: z.enum(["ru", "en"]).default("en") })), async (c) => {
-  const userId = c.get("userId");
-  const { country } = c.req.valid("query");
-  const passports = await documents.find({ userId, kind: "passport" }).sort({ createdAt: 1 }).toArray();
-  const byPassport = await Promise.all(
-    passports.map(async (p) => {
-      const isCitizen = p.countryCode === country;
-      const entry = isCitizen ? null : await getPair(p.countryCode, country);
-      const suggestion = entry ? suggestRule(entry) : null;
-      const rule = await findVisaFreeRule(userId, p.id, country);
-      const { raw: _raw, ...info } = entry ?? ({} as any);
-      return {
-        passportId: p.id,
-        passportCode: p.countryCode,
-        passportName: p.name,
-        isCitizen,
-        info: entry ? info : null,
-        suggestion,
-        rule: rule ? publicRule(rule) : null,
-      };
-    }),
-  );
-  const covering = await documents.find({ userId, kind: { $in: ["visa", "residence"] }, countries: country }).toArray();
-  return c.json({ country, enabled: visaInfoEnabled(), passports: byPassport, documents: covering.map(publicDocument) });
+function publicRegime({ userId: _u, _id: _i, ...r }: Regime & { _id?: unknown }) {
+  return r;
+}
+function publicCheck({ _id: _i, raw: _r, ...c }: RegimeCheck & { _id?: unknown }) {
+  return c;
+}
+
+const constraintBody = z.object({
+  id: z.string().min(1).max(64).optional(),
+  type: z.enum(["perEntry", "rolling", "calendarYear", "fromDate"]),
+  limitDays: z.number().int().min(1).max(3660),
+  windowDays: z.number().int().min(2).max(3660).nullable().default(null),
+  startDate: isoDate.nullable().default(null),
+  note: z.string().trim().max(300).nullable().default(null),
+});
+const conditionBody = z.object({
+  id: z.string().min(1).max(64).optional(),
+  kind: z.enum(["registration", "passportValidity", "insurance", "funds", "ticket", "other"]),
+  text: z.string().trim().min(1).max(300),
+  withinDays: z.number().int().min(1).max(365).nullable().default(null),
+  done: z.boolean().default(false),
+});
+const versionBody = z
+  .object({
+    requirement: z.enum(["visa_free", "e_visa", "visa_on_arrival", "visa_required", "unknown"]).default("visa_free"),
+    constraints: z.array(constraintBody).max(6).default([]),
+    conditions: z.array(conditionBody).max(10).default([]),
+    sources: z.array(z.object({ url: z.string().url(), title: z.string().max(200).nullable().default(null), official: z.boolean().default(false), quote: z.string().max(400).nullable().default(null) })).max(10).default([]),
+    origin: z.enum(["user", "ai"]).default("user"),
+    model: z.string().max(100).nullable().default(null),
+    notes: z.string().trim().max(1200).nullable().default(null),
+    lang: z.enum(["ru", "en"]).default("en"),
+  })
+  .superRefine((v, ctx) => {
+    v.constraints.forEach((c, i) => {
+      if (c.type === "rolling" && !c.windowDays) ctx.addIssue({ code: "custom", path: ["constraints", i, "windowDays"], message: "rolling needs windowDays" });
+      if (c.type === "fromDate" && !c.startDate) ctx.addIssue({ code: "custom", path: ["constraints", i, "startDate"], message: "fromDate needs startDate" });
+    });
+  });
+
+async function passportOr404(userId: Point["userId"], passportId: string) {
+  const p = await documents.findOne({ userId, id: passportId, kind: "passport" });
+  if (!p) throw new HTTPException(404, { message: "passport not found" });
+  return p;
+}
+
+// Все режимы пользователя
+api.get("/regimes", async (c) => {
+  const list = await regimes.find({ userId: c.get("userId") }).sort({ updatedAt: -1 }).toArray();
+  return c.json({ aiEnabled: isAiEnabled(), freshDays: config.regimeFreshDays, regimes: list.map(publicRegime) });
 });
 
-// Создать/подтвердить правило безвиза для пары паспорт → страна.
-// Без параметров — по подсказке справочника; с параметрами — как указал пользователь.
+// Режим для страны по паспорту + документы на страну + свежая проверка из кэша (если была)
+api.get("/regimes/:passportId/:country", zValidator("param", z.object({ passportId: z.string().uuid(), country: countryCode })), zValidator("query", z.object({ lang: z.enum(["ru", "en"]).default("en") })), async (c) => {
+  const userId = c.get("userId");
+  const { passportId, country } = c.req.valid("param");
+  const passport = await passportOr404(userId, passportId);
+  const regime = await regimes.findOne({ userId, passportId, countryCode: country });
+  const check = await cachedCheck(passport.countryCode, country, c.req.valid("query").lang);
+  const covering = await documents.find({ userId, kind: { $in: ["visa", "residence"] }, countries: country }).toArray();
+  return c.json({
+    aiEnabled: isAiEnabled(),
+    isCitizen: passport.countryCode === country,
+    regime: regime ? publicRegime(regime) : null,
+    stale: isStale(regime),
+    cachedCheck: check ? publicCheck(check) : null,
+    documents: covering.map(publicDocument),
+  });
+});
+
+// Подтвердить условия (вручную или из черновика нейросети)
+api.put("/regimes/:passportId/:country", zValidator("param", z.object({ passportId: z.string().uuid(), country: countryCode })), zValidator("json", versionBody), async (c) => {
+  const userId = c.get("userId");
+  const { passportId, country } = c.req.valid("param");
+  const passport = await passportOr404(userId, passportId);
+  const { lang, ...body } = c.req.valid("json");
+  const input = {
+    ...body,
+    constraints: body.constraints.map((x) => ({ ...x, id: x.id ?? randomUUID() })),
+    conditions: body.conditions.map((x) => ({ ...x, id: x.id ?? randomUUID() })),
+  };
+  const result = await confirmVersion(userId, { id: passport.id, countryCode: passport.countryCode }, country, input, lang);
+  return c.json({ regime: publicRegime(result.regime), rules: result.rules.map(publicRule), changed: result.changed });
+});
+
+api.delete("/regimes/:id", zValidator("param", z.object({ id: z.string().uuid() })), async (c) => {
+  await deleteRegime(c.get("userId"), c.req.valid("param").id);
+  return c.json({ deleted: true });
+});
+
+// Отметить условие чек-листа
 api.post(
-  "/visa-info/rule",
-  zValidator(
-    "json",
-    z.object({
-      country: countryCode,
-      passportId: z.string().uuid(),
-      lang: z.enum(["ru", "en"]).default("en"),
-      type: z.enum(["calendarYear", "rolling", "fromDate"]).optional(),
-      limitDays: z.number().int().min(1).max(3660).optional(),
-      windowDays: z.number().int().min(2).max(3660).nullable().optional(),
-    }),
-  ),
+  "/regimes/:id/conditions/:conditionId",
+  zValidator("param", z.object({ id: z.string().uuid(), conditionId: z.string() })),
+  zValidator("json", z.object({ done: z.boolean() })),
   async (c) => {
     const userId = c.get("userId");
-    const body = c.req.valid("json");
-    const passport = await documents.findOne({ userId, id: body.passportId, kind: "passport" });
-    if (!passport) throw new HTTPException(404, { message: "passport not found" });
-    const override = body.type && body.limitDays ? { type: body.type, limitDays: body.limitDays, windowDays: body.windowDays ?? null } : undefined;
-    const rule = await ensureVisaFreeRule(userId, passport.id, passport.countryCode, body.country, body.lang, override);
-    return c.json({ rule: rule ? publicRule(rule) : null });
+    const { id, conditionId } = c.req.valid("param");
+    const updated = await regimes.findOneAndUpdate(
+      { userId, id, "active.conditions.id": conditionId },
+      { $set: { "active.conditions.$.done": c.req.valid("json").done, updatedAt: new Date().toISOString() } },
+      { returnDocument: "after" },
+    );
+    if (!updated) throw new HTTPException(404, { message: "condition not found" });
+    return c.json({ regime: publicRegime(updated) });
   },
 );
 
-// Состояние кэша справочника по паспортам пользователя
-api.get("/visa-info/status", async (c) => {
-  const passports = await documents.find({ userId: c.get("userId"), kind: "passport" }).toArray();
-  const codes = [...new Set(passports.map((p) => p.countryCode))];
-  return c.json({ enabled: visaInfoEnabled(), passports: await Promise.all(codes.map(cacheStatus)) });
-});
+// Запустить проверку нейросетью (фон). force — не брать свежий результат из кэша
+api.post(
+  "/regimes/:passportId/:country/check",
+  zValidator("param", z.object({ passportId: z.string().uuid(), country: countryCode })),
+  zValidator("json", z.object({ lang: z.enum(["ru", "en"]).default("en"), force: z.boolean().default(false) })),
+  async (c) => {
+    const userId = c.get("userId");
+    const { passportId, country } = c.req.valid("param");
+    const passport = await passportOr404(userId, passportId);
+    const { lang, force } = c.req.valid("json");
+    const check = await startCheck(passport.countryCode, country, lang, force);
+    return c.json({ check: publicCheck(check) }, check.status === "done" ? 200 : 202);
+  },
+);
 
-// Принудительно обновить справочник по паспорту (кнопка в приложении)
-api.post("/visa-info/refresh", zValidator("json", z.object({ passport: countryCode })), async (c) => {
-  const { passport } = c.req.valid("json");
-  const owned = await documents.findOne({ userId: c.get("userId"), kind: "passport", countryCode: passport });
-  if (!owned) throw new HTTPException(404, { message: "no such passport" });
-  await visaCache.updateMany({ passport }, { $set: { fetchedAt: "1970-01-01T00:00:00.000Z" } });
-  prefetchPassport(passport);
-  return c.json({ started: visaInfoEnabled() });
+// Состояние проверки + диф с активной версией режима (если пользователь дал passportId)
+api.get("/regime-checks/:id", zValidator("param", z.object({ id: z.string().uuid() })), zValidator("query", z.object({ passportId: z.string().uuid().optional() })), async (c) => {
+  const userId = c.get("userId");
+  const check = await regimeChecks.findOne({ id: c.req.valid("param").id });
+  if (!check) throw new HTTPException(404, { message: "check not found" });
+  const { passportId } = c.req.valid("query");
+  const regime = passportId ? await regimes.findOne({ userId, passportId, countryCode: check.countryCode }) : null;
+  const diff = check.draft ? diffVersions(check.lang, regime?.active ?? null, check.draft) : null;
+  return c.json({ check: publicCheck(check), diff });
 });
 
 // MARK: экспорт

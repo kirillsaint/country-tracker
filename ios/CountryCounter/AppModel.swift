@@ -16,6 +16,9 @@ final class AppModel {
     var manualRanges: [ManualRange] { ManualRange.group(overrides) }
     var documents: [TravelDocument] = []
     var entries: [Entry] = []
+    var regimes: [Regime] = []
+    var aiEnabled = true
+    var regimeFreshDays = 30
     // Для карты "за всё время" — грузится при первом открытии карты и обновляется вместе с остальным
     var allTimeCountries: [CountryStat] = []
     var allTimeCities: [CityStat] = []
@@ -44,6 +47,7 @@ final class AppModel {
             async let overrides = client.overrides()
             async let documents = client.documents()
             async let entries = client.entries()
+            async let regimes = client.regimes()
             self.current = try await current
             self.countries = try await countries
             self.cities = try await cities
@@ -53,6 +57,10 @@ final class AppModel {
             self.overrides = try await overrides
             self.documents = try await documents
             self.entries = try await entries
+            let reg = try await regimes
+            self.regimes = reg.regimes
+            self.aiEnabled = reg.aiEnabled
+            self.regimeFreshDays = reg.freshDays
             errorMessage = nil
             lastRefresh = Date()
             // данные изменились — годовые срезы пересчитаются при следующем обращении
@@ -62,6 +70,8 @@ final class AppModel {
             await RuleNotifier.evaluate(self.ruleResults)
             await RuleNotifier.evaluateDocuments(self.documents)
             if let now = self.current { await EntryPrompter.promptIfNeeded(current: now, documents: self.documents) }
+            await RegimeChecks.processPending()
+            RuleNotifier.scheduleConditionReminders(current: self.current, regimes: self.regimes)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -142,14 +152,40 @@ final class AppModel {
         await refreshRuleResults()
     }
 
-    /// Правило безвиза для пары паспорт → страна (по справочнику). nil — справочник не знает условий.
-    func ensureVisaFreeRule(country: String, passportId: String) async throws -> Rule? {
-        let rule = try await APIClient.fromSettings().ensureVisaFreeRule(country: country, passportId: passportId)
-        if let rule {
-            if let i = rules.firstIndex(where: { $0.id == rule.id }) { rules[i] = rule } else { rules.append(rule) }
-            await refreshRuleResults()
+    // MARK: - Режимы въезда
+
+    func regime(passportId: String, country: String) -> Regime? {
+        regimes.first { $0.passportId == passportId && $0.countryCode == country }
+    }
+
+    func confirmRegime(passportId: String, country: String, _ input: RegimeVersionInput) async throws -> (Regime, Bool) {
+        let (regime, generated, changed) = try await APIClient.fromSettings().confirmRegime(passportId: passportId, country: country, input)
+        if let i = regimes.firstIndex(where: { $0.id == regime.id }) { regimes[i] = regime } else { regimes.append(regime) }
+        // правила режима на сервере пересобраны: старые версии выключены, новые созданы
+        rules.removeAll { $0.regimeId == regime.id && $0.enabled }
+        rules.append(contentsOf: generated)
+        await refreshRuleResults()
+        return (regime, changed)
+    }
+
+    func deleteRegime(_ regime: Regime) async {
+        do {
+            try await APIClient.fromSettings().deleteRegime(id: regime.id)
+            regimes.removeAll { $0.id == regime.id }
+            rules.removeAll { $0.regimeId == regime.id }
+            ruleResults.removeAll { $0.regimeId == regime.id }
+        } catch {
+            errorMessage = error.localizedDescription
         }
-        return rule
+    }
+
+    func setCondition(_ regime: Regime, _ condition: RegimeCondition, done: Bool) async {
+        do {
+            let updated = try await APIClient.fromSettings().setCondition(regimeId: regime.id, conditionId: condition.id, done: done)
+            if let i = regimes.firstIndex(where: { $0.id == regime.id }) { regimes[i] = updated }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     /// Отрезок текущего пребывания — для листа "как въехали?" с главного экрана

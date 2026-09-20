@@ -118,6 +118,12 @@ struct TimelineView: View {
                         .font(.caption).foregroundStyle(.secondary)
                     if let entry {
                         EntryBadge(entry: entry, document: model.document(id: entry.documentId))
+                        if entry.basis == .visa_free, let pid = entry.documentId,
+                           let version = model.regime(passportId: pid, country: s.countryCode)?.version(on: original.from),
+                           !version.constraints.isEmpty {
+                            Text(String(localized: "Rules then: \(version.constraints.map(\.summary).joined(separator: ", "))"))
+                                .font(.caption2).foregroundStyle(.tertiary)
+                        }
                     }
                 }
                 Spacer()

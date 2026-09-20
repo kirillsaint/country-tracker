@@ -15,8 +15,10 @@ struct EntryOption: Identifiable, Equatable {
     let document: TravelDocument?
     /// "как в прошлый раз"
     let isRepeat: Bool
+    /// безвиз, условия которого давно не проверялись — предложить перепроверку
+    var recheck: Bool = false
 
-    var id: String { "\(basis.rawValue)|\(document?.id ?? "")|\(isRepeat)" }
+    var id: String { "\(basis.rawValue)|\(document?.id ?? "")|\(isRepeat)|\(recheck)" }
 
     var title: String {
         var t = basis.title
@@ -24,6 +26,7 @@ struct EntryOption: Identifiable, Equatable {
             t += " \(document.countryCode.flagEmoji)"
         }
         if isRepeat { t = String(localized: "Same as last time: \(t)") }
+        if recheck { t = String(localized: "\(t) · re-check rules") }
         return t
     }
 
@@ -73,15 +76,21 @@ enum EntryPrompter {
         guard await UNUserNotificationCenter.current().notificationSettings().authorizationStatus == .authorized else { return }
         UserDefaults.standard.set(key, forKey: promptedKey)
 
-        // До четырёх кнопок: самое вероятное сверху, транзит и "другое" — всегда
-        var picks = EntryOption.options(for: current.countryCode, documents: documents, previous: current.previousEntry)
+        // До четырёх кнопок: самое вероятное сверху, транзит и "другое" — всегда.
+        // Если режим безвиза для страны не проверялся дольше порога — кнопка безвиза заодно запускает перепроверку.
+        let stale = current.regime?.stale ?? true
+        var picks = EntryOption.options(for: current.countryCode, documents: documents, previous: current.previousEntry).map { o in
+            var o = o
+            if o.basis == .visa_free, stale { o.recheck = true }
+            return o
+        }
         let tail = picks.filter { $0.basis == .transit || $0.basis == .other }
         picks = Array(picks.filter { $0.basis != .transit && $0.basis != .other }.prefix(2)) + tail
         picks = Array(picks.prefix(4))
 
         let actions = picks.map { o in
             UNNotificationAction(
-                identifier: "\(o.basis.rawValue)|\(o.document?.id ?? "")",
+                identifier: "\(o.basis.rawValue)|\(o.document?.id ?? "")|\(o.recheck ? "check" : "")",
                 title: o.title,
                 options: o.basis == .other ? [.foreground] : []
             )
@@ -113,16 +122,19 @@ enum EntryPrompter {
         let info = response.notification.request.content.userInfo
         guard let country = info["country"] as? String, let since = info["since"] as? String else { return }
         let parts = response.actionIdentifier.split(separator: "|", omittingEmptySubsequences: false)
-        guard parts.count == 2, let basis = EntryBasis(rawValue: String(parts[0])) else { return }
+        guard parts.count >= 2, let basis = EntryBasis(rawValue: String(parts[0])) else { return }
         let documentId = parts[1].isEmpty ? nil : String(parts[1])
+        let recheck = parts.count >= 3 && parts[2] == "check"
         // "Другое…" открывает приложение — там пользователь выберет сам
         if basis == .other { return }
 
         guard let client = try? APIClient.fromSettings() else { return }
         do {
             _ = try await client.setEntry(countryCode: country, date: since, basis: basis, documentId: documentId, note: nil)
-            if basis == .visa_free, let documentId {
-                _ = try await client.ensureVisaFreeRule(country: country, passportId: documentId)
+            // Безвиз: запустить проверку условий нейросетью (в фоне); результат придёт уведомлением
+            if basis == .visa_free, let documentId, recheck {
+                let check = try await client.startRegimeCheck(passportId: documentId, country: country, force: false)
+                RegimeChecks.remember(check, passportId: documentId)
             }
             NotificationCenter.default.post(name: .entryBasisChanged, object: nil)
             WidgetCenter.shared.reloadAllTimelines()
