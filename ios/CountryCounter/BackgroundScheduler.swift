@@ -7,8 +7,8 @@ import os
 // зависит от того, как часто вы открываете приложение. Основная нагрузка лежит на visits и
 // significant changes, а это — страховка.
 enum BackgroundScheduler {
-    static let refreshIdentifier = "ge.kirillsaint.countrycounter.refresh"
-    private static let log = Logger(subsystem: "ge.kirillsaint.countrycounter", category: "bgtask")
+    static let refreshIdentifier = "ge.kirillsaint.stamps.refresh"
+    private static let log = Logger(subsystem: "ge.kirillsaint.stamps", category: "bgtask")
 
     static func register() {
         BGTaskScheduler.shared.register(forTaskWithIdentifier: refreshIdentifier, using: nil) { task in

@@ -7,7 +7,7 @@ services:
       - "127.0.0.1:${PORT:-3000}:3000"
     environment:
       MONGO_URL: mongodb://mongo:27017/country_counter
-      APPLE_BUNDLE_ID: ${APPLE_BUNDLE_ID:-ge.kirillsaint.countrycounter}
+      APPLE_BUNDLE_ID: ${APPLE_BUNDLE_ID:-ge.kirillsaint.stamps}
       GOOGLE_CLIENT_IDS: ${GOOGLE_CLIENT_IDS:-}
       ALLOWED_EMAILS: ${ALLOWED_EMAILS:-}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}

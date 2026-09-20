@@ -4,7 +4,7 @@ import os
 // Отправляет накопленную очередь на сервер. Безопасно дёргать откуда угодно и сколько угодно:
 // одновременно работает только одна отправка, остальные вызовы просто выходят.
 enum Uploader {
-    private static let log = Logger(subsystem: "ge.kirillsaint.countrycounter", category: "upload")
+    private static let log = Logger(subsystem: "ge.kirillsaint.stamps", category: "upload")
     private static let gate = Gate()
 
     private actor Gate {

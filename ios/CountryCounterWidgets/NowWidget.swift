@@ -29,7 +29,7 @@ struct NowProvider: TimelineProvider {
 
 struct NowWidget: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "ge.kirillsaint.countrycounter.now", provider: NowProvider()) { entry in
+        StaticConfiguration(kind: "ge.kirillsaint.stamps.now", provider: NowProvider()) { entry in
             NowWidgetView(entry: entry)
                 .containerBackground(.background, for: .widget)
         }

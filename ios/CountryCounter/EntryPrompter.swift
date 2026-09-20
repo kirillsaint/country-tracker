@@ -57,7 +57,7 @@ struct EntryOption: Identifiable, Equatable {
 // без основания. Один раз на (страна, дата въезда).
 @MainActor
 enum EntryPrompter {
-    private static let log = Logger(subsystem: "ge.kirillsaint.countrycounter", category: "entry")
+    private static let log = Logger(subsystem: "ge.kirillsaint.stamps", category: "entry")
     private static let promptedKey = "entryPromptedKey"
     private static let categoryPrefix = "entry-basis|"
 

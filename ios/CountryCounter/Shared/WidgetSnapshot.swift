@@ -35,7 +35,7 @@ struct WidgetSnapshot: Codable, Equatable {
     let countriesThisYear: Int
     let countriesAllTime: Int
 
-    static let appGroup = "group.ge.kirillsaint.countrycounter"
+    static let appGroup = "group.ge.kirillsaint.stamps.shared"
     static let fileName = "widget-snapshot.json"
 
     static var fileURL: URL? {

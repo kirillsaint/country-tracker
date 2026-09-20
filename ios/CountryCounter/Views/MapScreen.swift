@@ -96,7 +96,7 @@ struct MapScreen: View {
                 }
                 ToolbarItem(placement: .primaryAction) {
                     if let exportURL {
-                        ShareLink(item: exportURL, preview: SharePreview("Country Counter map", image: Image(systemName: "map"))) {
+                        ShareLink(item: exportURL, preview: SharePreview("Stamps map", image: Image(systemName: "map"))) {
                             Label("Export PNG", systemImage: "square.and.arrow.up")
                         }
                     } else if !store.countries.isEmpty {
@@ -395,7 +395,7 @@ struct MapExportView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 32) {
             HStack(alignment: .firstTextBaseline) {
-                Text(verbatim: "Country Counter")
+                Text(verbatim: "Stamps")
                     .font(.system(size: 64, weight: .bold))
                 Spacer()
                 Text(caption)

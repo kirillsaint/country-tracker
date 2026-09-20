@@ -3,7 +3,7 @@ import Security
 
 // Минимальная обёртка над Keychain для токена сессии.
 enum Keychain {
-    private static let service = "ge.kirillsaint.countrycounter"
+    private static let service = "ge.kirillsaint.stamps"
 
     static func get(_ key: String) -> String? {
         let query: [String: Any] = [

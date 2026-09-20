@@ -8,7 +8,7 @@
 	</array>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.ge.kirillsaint.countrycounter</string>
+		<string>group.ge.kirillsaint.stamps.shared</string>
 	</array>
 </dict>
 </plist>

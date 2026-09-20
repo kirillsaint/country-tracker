@@ -40,7 +40,7 @@ targets:
       - target: CountryCounterWidgets
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: ge.kirillsaint.countrycounter
+        PRODUCT_BUNDLE_IDENTIFIER: ge.kirillsaint.stamps
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
@@ -50,8 +50,8 @@ targets:
     info:
       path: CountryCounter/Info.plist
       properties:
-        CFBundleDisplayName: Country Counter
-        # Языки приложения — по ним iOS показывает выбор языка в Настройках -> Country Counter
+        CFBundleDisplayName: Stamps
+        # Языки приложения — по ним iOS показывает выбор языка в Настройках -> Stamps
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, ru]
         CFBundleShortVersionString: "0.1.0"
@@ -62,7 +62,7 @@ targets:
         NSLocationWhenInUseUsageDescription: Чтобы определять страну и город, где вы находитесь.
         NSLocationAlwaysAndWhenInUseUsageDescription: Чтобы считать дни по странам, приложению нужна геолокация и в фоне — иначе оно узнает о переезде только когда вы его откроете.
         UIBackgroundModes: [location, fetch, processing]
-        BGTaskSchedulerPermittedIdentifiers: [ge.kirillsaint.countrycounter.refresh]
+        BGTaskSchedulerPermittedIdentifiers: [ge.kirillsaint.stamps.refresh]
         # Google Sign-In: значения подставляются из Config.xcconfig на этапе сборки
         GIDClientID: $(GOOGLE_CLIENT_ID)
         CFBundleURLTypes:
@@ -84,16 +84,16 @@ targets:
     entitlements:
       path: CountryCounterWidgets/CountryCounterWidgets.entitlements
       properties:
-        com.apple.security.application-groups: [group.ge.kirillsaint.countrycounter]
+        com.apple.security.application-groups: [group.ge.kirillsaint.stamps.shared]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: ge.kirillsaint.countrycounter.widgets
+        PRODUCT_BUNDLE_IDENTIFIER: ge.kirillsaint.stamps.widget
         SKIP_INSTALL: YES
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
     info:
       path: CountryCounterWidgets/Info.plist
       properties:
-        CFBundleDisplayName: Country Counter
+        CFBundleDisplayName: Stamps
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, ru]
         NSExtension:

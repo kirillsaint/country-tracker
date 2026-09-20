@@ -99,7 +99,7 @@ struct HomeView: View {
                     }
                 }
             }
-            .navigationTitle("Country Counter")
+            .navigationTitle("Stamps")
             .refreshable { await model.refresh() }
             .toolbar {
                 if model.isLoading { ProgressView() }

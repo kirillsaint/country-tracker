@@ -228,7 +228,7 @@ Apple «Скрыть e-mail» даёт relay-адрес, он не совпад�
    работать месяцами, это не вариант.
 4. `cp ios/Config.xcconfig.example ios/Config.xcconfig`, вписать `DEVELOPMENT_TEAM`.
 5. Для Google: в [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials)
-   создать OAuth client типа iOS с bundle id `ge.kirillsaint.countrycounter`; client id и
+   создать OAuth client типа iOS с bundle id `ge.kirillsaint.stamps`; client id и
    reversed client id — в `Config.xcconfig`, client id — ещё и в `GOOGLE_CLIENT_IDS` на сервере.
    Пока не сделано — кнопка Google неактивна, Apple работает.
 
@@ -283,7 +283,7 @@ GeoJSON `ne_50m_admin_0_countries` → код `ISO_A2_EH`, координаты 
   виджета (можно поставить несколько). Small, circular, rectangular, inline.
 
 Данные: приложение после каждого обновления статистики пишет `widget-snapshot.json` в контейнер
-App Group `group.ge.kirillsaint.countrycounter` и дёргает `WidgetCenter.reloadAllTimelines()`.
+App Group `group.ge.kirillsaint.stamps.shared` и дёргает `WidgetCenter.reloadAllTimelines()`.
 Виджет читает снимок и сам добавляет прошедшие сутки к «дней подряд / в этом году»; правила не
 экстраполирует (неизвестно, в стране ли человек) — их обновит приложение, когда проснётся в фоне.
 App Group прописан в обоих вариантах entitlements приложения и у виджета.
@@ -302,7 +302,7 @@ App Group прописан в обоих вариантах entitlements при�
 - Раздел «Последние события» в настройках показывает, что приходило от Core Location.
 - BGAppRefreshTask в симуляторе не срабатывает по расписанию. На устройстве под отладчиком
   можно дёрнуть вручную: пауза в lldb и
-  `e -l objc -- (void)[[BGTaskScheduler sharedScheduler] _simulateLaunchForTaskWithIdentifier:@"ge.kirillsaint.countrycounter.refresh"]`
+  `e -l objc -- (void)[[BGTaskScheduler sharedScheduler] _simulateLaunchForTaskWithIdentifier:@"ge.kirillsaint.stamps.refresh"]`
 - Симулятор: Features → Location → City Run / Freeway Drive генерируют significant changes.
 
 ## Что дальше

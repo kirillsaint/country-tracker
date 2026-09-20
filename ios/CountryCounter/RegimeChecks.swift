@@ -6,7 +6,7 @@ import os
 // готов, показывает уведомление "Готово: Турция — проверить". Опрос — при каждом обновлении данных
 // (в том числе фоновом) и в самом экране режима, пока он открыт.
 enum RegimeChecks {
-    private static let log = Logger(subsystem: "ge.kirillsaint.countrycounter", category: "regime-check")
+    private static let log = Logger(subsystem: "ge.kirillsaint.stamps", category: "regime-check")
     private static let pendingKey = "pendingRegimeChecks"
 
     struct Pending: Codable, Equatable {

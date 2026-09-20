@@ -14,7 +14,7 @@ struct AuthView: View {
 
             VStack(spacing: 8) {
                 Text(verbatim: "🌍").font(.system(size: 72))
-                Text(verbatim: "Country Counter").font(.largeTitle.bold())
+                Text(verbatim: "Stamps").font(.largeTitle.bold())
                 Text("Counts which countries and cities you spend your time in.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)

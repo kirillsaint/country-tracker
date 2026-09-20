@@ -6,7 +6,7 @@ import os
 // Проверка запускается после каждого обновления статистики — и из приложения, и из фона
 // после отправки точек. Чтобы не спамить, помним, о каком значении уже сообщали.
 enum RuleNotifier {
-    private static let log = Logger(subsystem: "ge.kirillsaint.countrycounter", category: "notify")
+    private static let log = Logger(subsystem: "ge.kirillsaint.stamps", category: "notify")
     private static let stateKey = "ruleNotifierState"
 
     static func requestPermission() async -> Bool {

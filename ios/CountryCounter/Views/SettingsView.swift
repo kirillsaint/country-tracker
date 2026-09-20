@@ -105,7 +105,7 @@ struct SettingsView: View {
                     if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
                 }
             } footer: {
-                Text("The app follows the iPhone language (English or Russian). You can pick a different one for this app in iOS Settings → Country Counter → Language.")
+                Text("The app follows the iPhone language (English or Russian). You can pick a different one for this app in iOS Settings → Stamps → Language.")
             }
 
             Section {

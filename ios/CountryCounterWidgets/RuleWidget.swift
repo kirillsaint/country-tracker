@@ -68,7 +68,7 @@ struct RuleProvider: AppIntentTimelineProvider {
 
 struct RuleWidget: Widget {
     var body: some WidgetConfiguration {
-        AppIntentConfiguration(kind: "ge.kirillsaint.countrycounter.rule", intent: SelectRuleIntent.self, provider: RuleProvider()) { entry in
+        AppIntentConfiguration(kind: "ge.kirillsaint.stamps.rule", intent: SelectRuleIntent.self, provider: RuleProvider()) { entry in
             RuleWidgetView(entry: entry)
                 .containerBackground(.background, for: .widget)
         }

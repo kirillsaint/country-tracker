@@ -24,7 +24,7 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
 
     private let manager = CLLocationManager()
     private let geocoder = CLGeocoder()
-    private let log = Logger(subsystem: "ge.kirillsaint.countrycounter", category: "location")
+    private let log = Logger(subsystem: "ge.kirillsaint.stamps", category: "location")
 
     private var oneShot: (source: PendingPoint.Source, continuation: CheckedContinuation<Bool, Never>)?
     private var lastSignificantAt: Date?

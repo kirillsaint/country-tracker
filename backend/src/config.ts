@@ -10,7 +10,7 @@ export const config = {
   mongoUrl: process.env.MONGO_URL ?? "mongodb://localhost:27017/country_counter",
 
   // Sign in with Apple: aud в identity token = bundle id приложения
-  appleBundleId: process.env.APPLE_BUNDLE_ID ?? "ge.kirillsaint.countrycounter",
+  appleBundleId: process.env.APPLE_BUNDLE_ID ?? "ge.kirillsaint.stamps",
   // Google: aud = OAuth client id (iOS-клиент). Можно несколько через запятую.
   googleClientIds: list("GOOGLE_CLIENT_IDS"),
   // Откуда брать публичные ключи для проверки identity token'ов. Менять только для тестов.
