@@ -465,8 +465,9 @@ export function cityStats(days: DailyPresence, from: string, to: string): CitySt
   for (const d of datesInRange(days, from, to)) {
     const seen = new Set<string>();
     for (const p of days.get(d)!) {
-      const city = p.city ?? "—";
-      const key = `${p.countryCode}|${city}`;
+      const city = p.city?.trim() || "—";
+      // регистр и пробелы не делают город другим; показываем написание, встреченное первым
+      const key = `${p.countryCode}|${city.toLowerCase()}`;
       if (seen.has(key)) continue;
       seen.add(key);
       const s = acc.get(key);

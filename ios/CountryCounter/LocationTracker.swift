@@ -209,7 +209,8 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
         let geocoder = CLGeocoder()
         return await withTaskGroup(of: CLPlacemark?.self) { group in
             group.addTask {
-                try? await geocoder.reverseGeocodeLocation(location).first
+                // Всегда по-английски: иначе после смены языка телефона «Dubai» и «Дубай» становятся разными городами
+                try? await geocoder.reverseGeocodeLocation(location, preferredLocale: Locale(identifier: "en_US")).first
             }
             group.addTask {
                 try? await Task.sleep(for: .seconds(8))

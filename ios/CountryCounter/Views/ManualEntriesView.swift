@@ -91,6 +91,24 @@ struct ManualEntryEditView: View {
 
     private var country: String? { countries.first }
 
+    /// Города этой страны из истории: за всё время, за этот год и из ручных записей, по убыванию дней
+    private func knownCities(for country: String) -> [String] {
+        var days: [String: Int] = [:]
+        var display: [String: String] = [:]
+        func add(_ name: String?, _ n: Int) {
+            guard let name = name?.trimmingCharacters(in: .whitespaces), !name.isEmpty, name != "—" else { return }
+            let key = name.lowercased()
+            days[key, default: 0] += n
+            if display[key] == nil { display[key] = name }
+        }
+        for c in model.allTimeCities where c.countryCode == country { add(c.city, c.days) }
+        if model.allTimeCities.isEmpty {
+            for c in model.cities where c.countryCode == country { add(c.city, c.days) }
+        }
+        for r in model.manualRanges where r.countryCode == country { add(r.city, r.days) }
+        return days.keys.sorted { (days[$0]!, display[$0]!) > (days[$1]!, display[$1]!) }.compactMap { display[$0] }
+    }
+
     var body: some View {
         Form {
             Section {
@@ -109,6 +127,28 @@ struct ManualEntryEditView: View {
                     }
                 }
                 TextField("City (optional)", text: $city)
+            }
+
+            if let country, !knownCities(for: country).isEmpty {
+                Section {
+                    ForEach(knownCities(for: country), id: \.self) { name in
+                        Button {
+                            city = city == name ? "" : name
+                        } label: {
+                            HStack {
+                                Text(name).foregroundStyle(.primary)
+                                Spacer()
+                                if city.trimmingCharacters(in: .whitespaces).caseInsensitiveCompare(name) == .orderedSame {
+                                    Image(systemName: "checkmark").foregroundStyle(.tint)
+                                }
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Known cities")
+                } footer: {
+                    Text("Cities from your history for this country. You can also type any name above.")
+                }
             }
 
             Section {
@@ -153,6 +193,7 @@ struct ManualEntryEditView: View {
             }
         }
         .onChange(of: from) { _, newFrom in if to < newFrom { to = newFrom } }
+        .task { await model.loadAllTimeIfNeeded() }
     }
 
     private func save() {
