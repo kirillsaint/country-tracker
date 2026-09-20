@@ -202,6 +202,14 @@ struct APIClient {
         return (r.document, r.rules)
     }
 
+    /// Продление визы / ВНЖ: тот же документ, новые даты, старые уходят в history
+    func renewDocument(id: String, validFrom: String?, validTo: String) async throws -> (TravelDocument, [Rule]) {
+        struct Body: Encodable { let validFrom: String?; let validTo: String; let lang: String }
+        struct R: Decodable { let document: TravelDocument; let rules: [Rule] }
+        let r: R = try await send("POST", "/api/documents/\(id)/renew", body: Body(validFrom: validFrom, validTo: validTo, lang: DocumentInput.currentLang))
+        return (r.document, r.rules)
+    }
+
     func deleteDocument(id: String) async throws {
         struct R: Decodable { let deleted: Bool }
         let _: R = try await send("DELETE", "/api/documents/\(id)")
@@ -213,10 +221,10 @@ struct APIClient {
         return r.entries
     }
 
-    func setEntry(countryCode: String, date: String, basis: EntryBasis, documentId: String?, note: String?) async throws -> Entry {
-        struct Body: Encodable { let basis: EntryBasis; let documentId: String?; let note: String? }
+    func setEntry(countryCode: String, date: String, basis: EntryBasis, documentId: String?, note: String?, kind: EntryKind = .arrival) async throws -> Entry {
+        struct Body: Encodable { let kind: EntryKind; let basis: EntryBasis; let documentId: String?; let note: String? }
         struct R: Decodable { let entry: Entry }
-        let r: R = try await send("PUT", "/api/entries/\(countryCode)/\(date)", body: Body(basis: basis, documentId: documentId, note: note))
+        let r: R = try await send("PUT", "/api/entries/\(countryCode)/\(date)", body: Body(kind: kind, basis: basis, documentId: documentId, note: note))
         return r.entry
     }
 

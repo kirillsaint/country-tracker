@@ -25,6 +25,18 @@ struct DocumentEditView: View {
     @State private var saving = false
     @State private var error: String?
     @State private var confirmDelete = false
+    @State private var showRenew = false
+    @State private var switchOffer: SwitchOffer?
+
+    /// Предложение перевести текущее пребывание на только что сохранённый ВНЖ
+    struct SwitchOffer: Identifiable {
+        let document: TravelDocument
+        let country: String
+        let date: String
+        /// ВНЖ действовал уже на день въезда — меняем основание въезда, а не отмечаем смену
+        let asArrival: Bool
+        var id: String { document.id }
+    }
 
     init(document: TravelDocument?, kind: DocumentKind = .passport) {
         self.document = document
@@ -165,6 +177,26 @@ struct DocumentEditView: View {
                 TextField("Note (optional)", text: Binding(get: { draft.note ?? "" }, set: { draft.note = $0.isEmpty ? nil : $0 }), axis: .vertical)
             }
 
+            if let document, kind != .passport {
+                Section {
+                    Button {
+                        showRenew = true
+                    } label: {
+                        Label("Renew…", systemImage: "arrow.clockwise")
+                    }
+                    ForEach(document.history ?? []) { p in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(verbatim: "\(p.validFrom.map(prettyFullDate) ?? "…") – \(p.validTo.map(prettyFullDate) ?? "…")")
+                            Text("Previous period").font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
+                } header: {
+                    Text("Renewal")
+                } footer: {
+                    Text("Extends this same document: its rules, entry bases and history stay linked. Previous dates are kept below.")
+                }
+            }
+
             if let document {
                 let generated = model.rules.filter { $0.documentId == document.id }
                 if !generated.isEmpty {
@@ -209,6 +241,26 @@ struct DocumentEditView: View {
                 .disabled(saving || country == nil)
             }
         }
+        .sheet(isPresented: $showRenew) {
+            if let document { NavigationStack { RenewDocumentView(document: document) } }
+        }
+        .alert(
+            Text("Use this permit for your current stay in \(switchOffer.map { $0.country.countryDisplayName(fallback: nil) } ?? "")?"),
+            isPresented: Binding(get: { switchOffer != nil }, set: { if !$0 { switchOffer = nil } }),
+            presenting: switchOffer
+        ) { offer in
+            Button(String(localized: "Switch from \(prettyDate(offer.date))")) {
+                Task {
+                    try? await model.setEntry(countryCode: offer.country, date: offer.date, basis: .residence, documentId: offer.document.id,
+                                              note: nil, kind: offer.asArrival ? .arrival : .statusChange)
+                    await model.refresh()
+                    dismiss()
+                }
+            }
+            Button("Not now", role: .cancel) { dismiss() }
+        } message: { offer in
+            Text("From \(prettyFullDate(offer.date)) days count under the residence permit and no longer toward visa-free or visa limits.")
+        }
         .confirmationDialog("Delete this document?", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
                 guard let document else { return }
@@ -238,6 +290,19 @@ struct DocumentEditView: View {
         case .visa: return String(localized: "Visa \(country)")
         case .residence: return String(localized: "Residence permit \(country)")
         }
+    }
+
+    /// ВНЖ на страну, где человек сейчас находится не по ВНЖ, — предложить перейти без "выезда"
+    private func switchOffer(for doc: TravelDocument) -> SwitchOffer? {
+        guard doc.kind == .residence, let cur = model.current, doc.covers(cur.countryCode) else { return nil }
+        if let now = cur.basisNow, now.basis == .residence, now.documentId == doc.id { return nil }
+        let today = DocumentInput.todayString()
+        var date = doc.validFrom ?? today
+        // ВНЖ ещё не вступил в силу — предлагать нечего
+        if date > today { return nil }
+        let asArrival = date <= cur.since
+        if asArrival { date = cur.since }
+        return SwitchOffer(document: doc, country: cur.countryCode, date: date, asArrival: asArrival)
     }
 
     /// Использование, найденное по данным (без учёта ручного флага) — подсказка рядом с переключателем
@@ -273,8 +338,12 @@ struct DocumentEditView: View {
         error = nil
         Task {
             do {
-                try await model.saveDocument(input, id: document?.id)
-                dismiss()
+                let saved = try await model.saveDocument(input, id: document?.id)
+                if let offer = switchOffer(for: saved) {
+                    switchOffer = offer
+                } else {
+                    dismiss()
+                }
             } catch {
                 self.error = error.localizedDescription
             }

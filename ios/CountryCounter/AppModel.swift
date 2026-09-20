@@ -125,7 +125,8 @@ final class AppModel {
 
     var usedVisaIds: Set<String> { Set(documents.filter { visaUsage($0) != nil }.map(\.id)) }
 
-    func saveDocument(_ input: DocumentInput, id: String?) async throws {
+    @discardableResult
+    func saveDocument(_ input: DocumentInput, id: String?) async throws -> TravelDocument {
         let client = try APIClient.fromSettings()
         let (doc, generated): (TravelDocument, [Rule])
         if let id {
@@ -138,6 +139,7 @@ final class AppModel {
         // правила документа пересобраны на сервере — заменяем их в локальном списке
         rules.removeAll { $0.documentId == doc.id }
         rules.append(contentsOf: generated)
+        return doc
         await refreshRuleResults()
     }
 
@@ -203,11 +205,25 @@ final class AppModel {
     }
 
     func entry(for segment: Segment) -> Entry? {
-        entries.first { $0.countryCode == segment.countryCode && $0.date == segment.from }
+        entries.first { $0.countryCode == segment.countryCode && $0.date == segment.from && !$0.isSwitch }
     }
 
-    func setEntry(countryCode: String, date: String, basis: EntryBasis, documentId: String?, note: String?) async throws {
-        let e = try await APIClient.fromSettings().setEntry(countryCode: countryCode, date: date, basis: basis, documentId: documentId, note: note)
+    /// Смены статуса внутри отрезка (после дня въезда), по дате
+    func switches(for segment: Segment) -> [Entry] {
+        entries
+            .filter { $0.countryCode == segment.countryCode && $0.isSwitch && $0.date > segment.from && $0.date <= segment.to }
+            .sorted { $0.date < $1.date }
+    }
+
+    func renewDocument(_ document: TravelDocument, validFrom: String?, validTo: String) async throws {
+        let (doc, generated) = try await APIClient.fromSettings().renewDocument(id: document.id, validFrom: validFrom, validTo: validTo)
+        if let i = documents.firstIndex(where: { $0.id == doc.id }) { documents[i] = doc } else { documents.append(doc) }
+        rules.removeAll { $0.documentId == doc.id }
+        rules.append(contentsOf: generated)
+    }
+
+    func setEntry(countryCode: String, date: String, basis: EntryBasis, documentId: String?, note: String?, kind: EntryKind = .arrival) async throws {
+        let e = try await APIClient.fromSettings().setEntry(countryCode: countryCode, date: date, basis: basis, documentId: documentId, note: note, kind: kind)
         entries.removeAll { $0.countryCode == countryCode && $0.date == date }
         entries.insert(e, at: 0)
     }

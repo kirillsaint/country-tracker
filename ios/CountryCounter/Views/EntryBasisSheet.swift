@@ -98,6 +98,38 @@ struct EntryBasisSheet: View {
                 Label("Entry rules for this country", systemImage: "list.bullet.rectangle")
             }
 
+            // Смена статуса без пересечения границы: получил ВНЖ / визу, будучи в стране
+            Section {
+                ForEach(model.switches(for: segment)) { e in
+                    HStack(spacing: 12) {
+                        Image(systemName: e.basis.homeSystemImage).foregroundStyle(e.basis.tint).frame(width: 24)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(e.basis.title)
+                            Text(String(localized: "from \(prettyFullDate(e.date))")).font(.caption).foregroundStyle(.secondary)
+                            if let d = model.document(id: e.documentId) {
+                                Text(verbatim: "\(d.countryCode.flagEmoji) \(d.name)").font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                        Spacer()
+                    }
+                    .swipeActions {
+                        Button("Delete", role: .destructive) {
+                            Task { try? await model.deleteEntry(countryCode: segment.countryCode, date: e.date) }
+                        }
+                    }
+                }
+                NavigationLink {
+                    BasisSwitchView(segment: segment)
+                } label: {
+                    Label("Status changed during this stay…", systemImage: "arrow.triangle.2.circlepath")
+                }
+                .disabled(segment.from == segment.to)
+            } header: {
+                Text("Changes during the stay")
+            } footer: {
+                Text("For a residence permit or visa obtained without leaving the country. From that date, days no longer count toward the visa-free or previous visa limits.")
+            }
+
             Section {
                 TextField("Note (optional)", text: $note, axis: .vertical)
             }

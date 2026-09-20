@@ -70,6 +70,8 @@ enum RuleNotifier {
         for d in docs {
             guard let left = d.daysUntilExpiry else { continue }
             let stage = left <= 0 ? 3 : left <= 7 ? 2 : left <= 30 ? 1 : 0
+            // срок продлили — ступени откатываются, чтобы напомнить снова перед новым истечением
+            if stage < (state[d.id] ?? 0) { state[d.id] = stage == 0 ? nil : stage }
             guard stage > 0, (state[d.id] ?? 0) < stage else { continue }
             state[d.id] = stage
             let addedAfterExpiry = d.validTo.map { String(d.createdAt.prefix(10)) > $0 } ?? false
@@ -96,7 +98,7 @@ enum RuleNotifier {
         center.removePendingNotificationRequests(withIdentifiers: pendingConditionIds)
         var ids: [String] = []
         defer { UserDefaults.standard.set(ids, forKey: conditionIdsKey) }
-        guard AppSettings.notificationsEnabled, let current, let entry = current.entry, entry.basis == .visa_free,
+        guard AppSettings.notificationsEnabled, let current, let entry = current.basisNow, entry.basis == .visa_free,
               let pid = entry.documentId, let regime = regimes.first(where: { $0.passportId == pid && $0.countryCode == current.countryCode }),
               let version = regime.active else { return }
         let f = DateFormatter()

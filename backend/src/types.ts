@@ -199,9 +199,13 @@ export type TravelDocument = {
   minDaysPerYear: number | null;
   maxAbsenceDays: number | null;
   note: string | null;
+  // предыдущие сроки действия — заполняется при продлении (POST /documents/:id/renew)
+  history?: DocumentPeriod[];
   createdAt: string;
   updatedAt: string;
 };
+
+export type DocumentPeriod = { validFrom: string | null; validTo: string | null; renewedAt: string };
 
 // Основание въезда: привязано к отрезку пребывания (страна + дата въезда)
 export type EntryBasis = "citizen" | "visa_free" | "visa" | "residence" | "transit" | "other";
@@ -212,6 +216,9 @@ export type Entry = {
   countryCode: string;
   // дата въезда = первый день отрезка, YYYY-MM-DD
   date: string;
+  // arrival — основание с момента въезда; switch — смена статуса внутри того же пребывания
+  // без пересечения границы (получил ВНЖ, будучи в стране по безвизу). Нет поля = arrival.
+  kind?: "arrival" | "switch";
   basis: EntryBasis;
   documentId: string | null;
   note: string | null;

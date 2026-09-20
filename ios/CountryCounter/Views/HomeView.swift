@@ -114,8 +114,21 @@ struct HomeView: View {
 
     /// Правила, касающиеся текущей страны; правило без стран («любая») касается всех
     private var relevantResults: [RuleResult] {
-        guard let code = model.current?.countryCode else { return model.ruleResults }
-        return model.ruleResults.filter { $0.countries.isEmpty || $0.countries.contains(code) }
+        guard let cur = model.current else { return model.ruleResults }
+        return model.ruleResults.filter { r in
+            (r.countries.isEmpty || r.countries.contains(cur.countryCode)) && applies(r, to: cur.basisNow)
+        }
+    }
+
+    /// Правило безвиза не про пребывание по ВНЖ/визе/гражданству, правило визы — не про безвиз и не про другую визу
+    private func applies(_ r: RuleResult, to basis: CurrentStatus.EntryRef?) -> Bool {
+        guard let basis else { return true }
+        if r.regimeId != nil { return ![.citizen, .residence, .visa].contains(basis.basis) }
+        if let docId = r.documentId, model.document(id: docId)?.kind == .visa {
+            if basis.basis == .visa { return basis.documentId == nil || basis.documentId == docId }
+            return basis.basis == .transit || basis.basis == .other
+        }
+        return true
     }
 
     // MARK: - Блоки
@@ -159,10 +172,24 @@ struct HomeView: View {
                 stat(value: pluralDays(c.daysThisYear), caption: String(localized: "this year"))
             }
             HStack(spacing: 12) {
-                if let e = c.entry {
-                    Label(e.basis.title, systemImage: e.basis.systemImage).font(.caption).foregroundStyle(.secondary)
+                if let e = c.basisNow {
+                    // нажатие открывает основание пребывания: поменять или отметить смену статуса
+                    Button {
+                        basisSegment = model.currentSegment
+                    } label: {
+                        Label {
+                            Text(e.isSwitch ? String(localized: "\(e.basis.title) · since \(prettyDate(e.date))") : e.basis.title)
+                                .foregroundStyle(.secondary)
+                        } icon: {
+                            Image(systemName: e.basis.homeSystemImage).foregroundStyle(e.basis.tint)
+                        }
+                        .font(.caption)
+                    }
+                    .buttonStyle(.borderless)
+                    .tint(.secondary)
+                    // основание не выбрано — ссылка на условия въезда прижимается к левому краю
+                    Spacer()
                 }
-                Spacer()
                 NavigationLink {
                     RegimeView(countryCode: c.countryCode, initialPassportId: c.regime?.passportId)
                 } label: {
@@ -285,6 +312,32 @@ struct RuleCard: View {
             case (false, true): return String(localized: "Since \(prettyDate(result.periodStart)).")
             case (false, false): return String(localized: "From \(prettyDate(result.periodStart)) until \(prettyDate(result.periodEnd)).")
             }
+        }
+    }
+}
+
+extension EntryBasis {
+    /// Цвет значка основания на главной: безвиз — зелёный, виза — синий и т.д.
+    var tint: Color {
+        switch self {
+        case .citizen: return .teal
+        case .visa_free: return .green
+        case .visa: return .blue
+        case .residence: return .indigo
+        case .transit: return .orange
+        case .other: return .secondary
+        }
+    }
+
+    /// Залитый вариант значка для цветного отображения
+    var homeSystemImage: String {
+        switch self {
+        case .citizen: return "person.crop.circle.fill"
+        case .visa_free: return "checkmark.seal.fill"
+        case .visa: return "doc.text.fill"
+        case .residence: return "house.fill"
+        case .transit: return "airplane"
+        case .other: return "questionmark.circle.fill"
         }
     }
 }

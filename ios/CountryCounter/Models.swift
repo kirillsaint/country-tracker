@@ -38,6 +38,9 @@ struct CurrentStatus: Codable, Equatable {
         let basis: EntryBasis
         let documentId: String?
         let date: String
+        // arrival — с момента въезда, statusChange — смена статуса внутри пребывания
+        var kind: EntryKind?
+        var isSwitch: Bool { kind == .statusChange }
     }
 
     let countryCode: String
@@ -56,8 +59,13 @@ struct CurrentStatus: Codable, Equatable {
 
     // основание текущего пребывания; nil + entryPending — пора спросить "как въехали?"
     let entry: EntryRef?
+    // смена статуса внутри пребывания без пересечения границы (получил ВНЖ по безвизу)
+    var switched: EntryRef?
     let previousEntry: EntryRef?
     let entryPending: Bool?
+
+    /// Действующее сейчас основание: смена статуса, если была, иначе основание въезда
+    var basisNow: EntryRef? { switched ?? entry }
     // режим безвиза для этой страны: есть ли и не пора ли перепроверить
     let regime: RegimeRef?
 
@@ -214,6 +222,8 @@ struct TravelDocument: Codable, Identifiable, Equatable {
     var minDaysPerYear: Int?
     var maxAbsenceDays: Int?
     var note: String?
+    // прежние сроки действия — появляются после продления
+    var history: [DocumentPeriod]?
     let createdAt: String
     let updatedAt: String
 
@@ -264,6 +274,13 @@ struct TravelDocument: Codable, Identifiable, Equatable {
     }
 }
 
+struct DocumentPeriod: Codable, Equatable, Identifiable {
+    var id: String { renewedAt }
+    let validFrom: String?
+    let validTo: String?
+    let renewedAt: String
+}
+
 /// Чем подтверждено, что однократная виза потрачена
 struct VisaUsage: Equatable {
     enum Source { case flag, entry, manualRange }
@@ -309,10 +326,17 @@ enum EntryBasis: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+enum EntryKind: String, Codable {
+    case arrival
+    case statusChange = "switch"
+}
+
 struct Entry: Codable, Identifiable, Equatable {
     let id: String
     let countryCode: String
     let date: String
+    var kind: EntryKind?
+    var isSwitch: Bool { kind == .statusChange }
     var basis: EntryBasis
     var documentId: String?
     var note: String?

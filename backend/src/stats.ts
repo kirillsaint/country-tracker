@@ -1,4 +1,4 @@
-import type { DayOverride, Point, Rule } from "./types.js";
+import type { DayOverride, Entry, EntryBasis, Point, Rule } from "./types.js";
 
 export type Presence = {
   countryCode: string;
@@ -241,29 +241,87 @@ export type RuleResult = {
   status: "ok" | "warning" | "exceeded" | "reached";
 };
 
-function dayMatches(list: Presence[] | undefined, rule: Rule): boolean {
+// MARK: основание по дням
+
+export type DayBasis = { basis: EntryBasis; documentId: string | null };
+// страна -> дата -> основание пребывания в этот день
+export type BasisIndex = Map<string, Map<string, DayBasis>>;
+
+/**
+ * Раскладывает основания въезда по дням. Для каждой страны берём непрерывные пребывания и внутри
+ * каждого действует последняя запись (въезд или смена статуса) с датой не позже дня. Дни до первой
+ * записи пребывания остаются без основания — такие дни считаются во всех правилах.
+ */
+export function buildBasisIndex(days: DailyPresence, list: Entry[]): BasisIndex {
+  const index: BasisIndex = new Map();
+  const byCountry = new Map<string, Entry[]>();
+  for (const e of list) {
+    const arr = byCountry.get(e.countryCode) ?? [];
+    arr.push(e);
+    byCountry.set(e.countryCode, arr);
+  }
+  const dates = [...days.keys()].sort();
+  for (const [cc, entriesOfCountry] of byCountry) {
+    const sorted = entriesOfCountry.slice().sort((a, b) => a.date.localeCompare(b.date));
+    const perDay = new Map<string, DayBasis>();
+    let current: Entry | null = null;
+    let prevDate: string | null = null;
+    let stayStart: string | null = null;
+    for (const d of dates) {
+      if (!days.get(d)!.some((p) => p.countryCode === cc)) continue;
+      // разрыв в присутствии — новое пребывание, записи прежних пребываний не переносятся
+      if (!prevDate || daysBetween(prevDate, d) !== 1) {
+        current = null;
+        stayStart = d;
+      }
+      prevDate = d;
+      for (const e of sorted) if (e.date >= stayStart! && e.date <= d && (!current || e.date >= current.date)) current = e;
+      if (current) perDay.set(d, { basis: current.basis, documentId: current.documentId });
+    }
+    index.set(cc, perDay);
+  }
+  return index;
+}
+
+/**
+ * Считается ли день с таким основанием в правиле. Правило безвиза не считает дни под ВНЖ, визой
+ * или гражданством; правило визы — дни под другой визой, ВНЖ, безвизом или гражданством.
+ * День без основания считается везде.
+ */
+function basisAllowed(rule: Rule, b: DayBasis | undefined): boolean {
+  if (!b) return true;
+  if (rule.regimeId) return b.basis !== "citizen" && b.basis !== "residence" && b.basis !== "visa";
+  if (rule.documentId && (rule.documentRole === "stay" || rule.documentRole === "window")) {
+    if (b.basis === "visa") return b.documentId == null || b.documentId === rule.documentId;
+    return b.basis === "transit" || b.basis === "other";
+  }
+  return true;
+}
+
+function dayMatches(list: Presence[] | undefined, rule: Rule, date: string, basis?: BasisIndex): boolean {
   if (!list || list.length === 0) return false;
   if (rule.countries.length === 0) return true;
-  if (rule.countMode === "primary") return rule.countries.includes(primaryOf(list)!.countryCode);
-  return list.some((p) => rule.countries.includes(p.countryCode));
+  const ok = (p: Presence) => rule.countries.includes(p.countryCode) && basisAllowed(rule, basis?.get(p.countryCode)?.get(date));
+  if (rule.countMode === "primary") return ok(primaryOf(list)!);
+  return list.some(ok);
 }
 
 /**
  * Последнее непрерывное пребывание в странах правила: берём последний подходящий день
  * не позже сегодня и идём назад, пока дни идут подряд. Нет ни одного — null.
  */
-function lastStayOf(days: DailyPresence, rule: Rule, today: string): { from: string; to: string; days: number } | null {
+function lastStayOf(days: DailyPresence, rule: Rule, today: string, basis?: BasisIndex): { from: string; to: string; days: number } | null {
   const dates = [...days.keys()].filter((d) => d <= today).sort();
   let to: string | null = null;
   for (let i = dates.length - 1; i >= 0; i--) {
-    if (dayMatches(days.get(dates[i]), rule)) {
+    if (dayMatches(days.get(dates[i]), rule, dates[i], basis)) {
       to = dates[i];
       break;
     }
   }
   if (!to) return null;
   let from = to;
-  for (let d = addDays(to, -1); dayMatches(days.get(d), rule); d = addDays(d, -1)) from = d;
+  for (let d = addDays(to, -1); dayMatches(days.get(d), rule, d, basis); d = addDays(d, -1)) from = d;
   return { from, to, days: daysBetween(from, to) + 1 };
 }
 
@@ -275,12 +333,12 @@ type Period = {
   lastStay: RuleResult["lastStay"];
 };
 
-function periodOf(days: DailyPresence, rule: Rule, today: string): Period {
+function periodOf(days: DailyPresence, rule: Rule, today: string, basis?: BasisIndex): Period {
   const none = { entryDate: null, inCountry: null, lastStay: null };
   switch (rule.type) {
     case "absence": {
       // Считаем дни подряд ВНЕ стран правила, заканчивая сегодня. Период — текущее отсутствие.
-      const stay = lastStayOf(days, rule, today);
+      const stay = lastStayOf(days, rule, today, basis);
       const inCountry = !!stay && (stay.to === today || (stay.to === addDays(today, -1) && !days.has(today)));
       if (!stay || inCountry) {
         return { start: today, end: addDays(today, rule.limitDays - 1), entryDate: null, inCountry: !!stay, lastStay: stay };
@@ -298,7 +356,7 @@ function periodOf(days: DailyPresence, rule: Rule, today: string): Period {
         const start = rule.startDate ?? today;
         return { start, end: endFrom(start), ...none };
       }
-      const stay = lastStayOf(days, rule, today);
+      const stay = lastStayOf(days, rule, today, basis);
       // "Сейчас в стране" = последний подходящий день — сегодня (или вчера, если за сегодня данных ещё нет)
       const inCountry = !!stay && (stay.to === today || (stay.to === addDays(today, -1) && !days.has(today)));
       if (inCountry) {
@@ -311,13 +369,14 @@ function periodOf(days: DailyPresence, rule: Rule, today: string): Period {
   }
 }
 
-export function evaluateRule(days: DailyPresence, rule: Rule, today: string): RuleResult {
+export function evaluateRule(days: DailyPresence, rule: Rule, today: string, basis?: BasisIndex): RuleResult {
   // validFrom/validUntil правила — только запись о том, какая версия условий когда действовала.
   // Считаются все фактические дни: смена условий не обнуляет уже проведённое время в окне.
-  const { start, end, entryDate, inCountry, lastStay } = periodOf(days, rule, today);
+  // basis — основания по дням: дни под другим статусом (ВНЖ вместо безвиза) в правило не идут.
+  const { start, end, entryDate, inCountry, lastStay } = periodOf(days, rule, today, basis);
   const matched = new Set<string>();
   for (const d of datesInRange(days, start, end < today ? end : today)) {
-    if (dayMatches(days.get(d), rule)) matched.add(d);
+    if (dayMatches(days.get(d), rule, d, basis)) matched.add(d);
   }
   // absence: использовано = дней подряд вне страны (сегодня включительно); в стране — 0
   // absence: использовано = дней подряд вне страны (сегодня включительно);

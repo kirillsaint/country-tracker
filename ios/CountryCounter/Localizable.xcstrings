@@ -743,6 +743,17 @@
         }
       }
     },
+    "Already used": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Уже использована"
+          }
+        }
+      }
+    },
     "Also valid in": {
       "localizations": {
         "ru": {
@@ -1562,6 +1573,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Каждый лимит становится правилом подсчёта: «за въезд» начинается заново при каждом въезде, окно считает дни в любые N подряд (Шенген 90/180). Срок визы закрывает оба."
+          }
+        }
+      }
+    },
+    "Each limit becomes a counting rule: “per entry” restarts every time you enter, the window rule counts days in any N consecutive days (Schengen 90/180). The visa expiry closes both. A single-entry visa is spent after one trip: the app notices a stay entered with this visa or a manual trip inside its validity; switch “Already used” on if it doesn’t. A used visa sends no expiry reminders and its rules close.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Каждый лимит становится правилом подсчёта: «за въезд» начинается заново при каждом въезде, окно считает дни в любые N подряд (Шенген 90/180). Срок визы закрывает оба. Однократная виза тратится за одну поездку: приложение само замечает пребывание, оформленное по этой визе, или ручную запись о поездке внутри её срока; если не заметило — включите «Уже использована». Использованная виза не присылает напоминаний об истечении, а её правила закрываются."
           }
         }
       }
@@ -4427,6 +4448,50 @@
         }
       }
     },
+    "Used": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Использована"
+          }
+        }
+      }
+    },
+    "Used · %@ – %@": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Использована · %1$@ – %2$@"
+          }
+        }
+      }
+    },
+    "Used · entered %@": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Использована · въезд %@"
+          }
+        }
+      }
+    },
+    "Used · since %@": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Использована · с %@"
+          }
+        }
+      }
+    },
     "Usually 20–60 seconds. You can leave — a notification will arrive when it’s done.": {
       "localizations": {
         "ru": {
@@ -4815,62 +4880,212 @@
         }
       }
     },
-    "Used": {
+    "%@ · since %@": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Использована"
+            "value": "%1$@ · с %2$@"
           }
         }
       }
     },
-    "Used · %@ – %@": {
+    "Changes during the stay": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Использована · %1$@ – %2$@"
+            "value": "Изменения во время пребывания"
           }
         }
       }
     },
-    "Used · entered %@": {
+    "Status changed during this stay…": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Использована · въезд %@"
+            "value": "Сменился статус во время пребывания…"
           }
         }
       }
     },
-    "Used · since %@": {
+    "For a residence permit or visa obtained without leaving the country. From that date, days no longer count toward the visa-free or previous visa limits.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Использована · с %@"
+            "value": "Для ВНЖ или визы, полученных без выезда из страны. С этой даты дни больше не идут в лимит безвиза или прежней визы."
           }
         }
       }
     },
-    "Already used": {
+    "Status change": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Уже использована"
+            "value": "Смена статуса"
           }
         }
       }
     },
-    "Each limit becomes a counting rule: “per entry” restarts every time you enter, the window rule counts days in any N consecutive days (Schengen 90/180). The visa expiry closes both. A single-entry visa is spent after one trip: the app notices a stay entered with this visa or a manual trip inside its validity; switch “Already used” on if it doesn’t. A used visa sends no expiry reminders and its rules close.": {
+    "Since": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Каждый лимит становится правилом подсчёта: «за въезд» начинается заново при каждом въезде, окно считает дни в любые N подряд (Шенген 90/180). Срок визы закрывает оба. Однократная виза тратится за одну поездку: приложение само замечает пребывание, оформленное по этой визе, или ручную запись о поездке внутри её срока; если не заметило — включите «Уже использована». Использованная виза не присылает напоминаний об истечении, а её правила закрываются."
+            "value": "С какого дня"
+          }
+        }
+      }
+    },
+    "New status": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новый статус"
+          }
+        }
+      }
+    },
+    "Not possible for a one-day stay.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для однодневного пребывания недоступно."
+          }
+        }
+      }
+    },
+    "The day the new status took effect — usually the issue date of the permit. It must be after the arrival day.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "День, с которого действует новый статус, обычно дата выдачи документа. Должен быть позже дня въезда."
+          }
+        }
+      }
+    },
+    "Renew…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Продлить…"
+          }
+        }
+      }
+    },
+    "Renewal": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Продление"
+          }
+        }
+      }
+    },
+    "Previous period": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Прошлый срок"
+          }
+        }
+      }
+    },
+    "Extends this same document: its rules, entry bases and history stay linked. Previous dates are kept below.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Продлевает этот же документ: правила, основания въезда и история остаются привязанными. Прежние сроки сохраняются ниже."
+          }
+        }
+      }
+    },
+    "Current period": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Текущий срок"
+          }
+        }
+      }
+    },
+    "New start date": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новая дата начала"
+          }
+        }
+      }
+    },
+    "The document keeps its rules and history; the old dates are saved as a previous period.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Документ сохраняет правила и историю; старые даты остаются как прошлый срок."
+          }
+        }
+      }
+    },
+    "Renew": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Продлить"
+          }
+        }
+      }
+    },
+    "Use this permit for your current stay in %@?": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перейти на этот ВНЖ в текущем пребывании в %@?"
+          }
+        }
+      }
+    },
+    "Switch from %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перейти с %@"
+          }
+        }
+      }
+    },
+    "Not now": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не сейчас"
+          }
+        }
+      }
+    },
+    "From %@ days count under the residence permit and no longer toward visa-free or visa limits.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "С %@ дни считаются по ВНЖ и больше не идут в лимит безвиза или визы."
           }
         }
       }

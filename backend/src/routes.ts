@@ -20,8 +20,7 @@ import {
   daysBetween,
   evaluateRule,
   primaryOf,
-  timeline,
-} from "./stats.js";
+  timeline, buildBasisIndex } from "./stats.js";
 import { type Entry, type Point, type Regime, type RegimeCheck, type Rule, type TravelDocument, publicProjection } from "./types.js";
 
 export const api = new Hono<AuthEnv>();
@@ -182,8 +181,10 @@ api.get("/stats/current", zValidator("query", z.object(tzQuery)), async (c) => {
     }
   }
   // "Как в прошлый раз": последнее основание для этой же страны до текущего въезда
-  const previous = await entries.find({ userId, countryCode: current.countryCode, date: { $lt: current.since } }).sort({ date: -1 }).limit(1).toArray();
-  const strip = (e: Entry | null) => (e ? { basis: e.basis, documentId: e.documentId, date: e.date } : null);
+  const previous = await entries.find({ userId, countryCode: current.countryCode, date: { $lt: current.since }, kind: { $ne: "switch" } }).sort({ date: -1 }).limit(1).toArray();
+  // Смена статуса внутри текущего пребывания (например, получил ВНЖ): действует последняя
+  const switched = await entries.find({ userId, countryCode: current.countryCode, kind: "switch", date: { $gt: current.since, $lte: today } }).sort({ date: -1 }).limit(1).toArray();
+  const strip = (e: Entry | null) => (e ? { basis: e.basis, documentId: e.documentId, date: e.date, kind: e.kind ?? "arrival" } : null);
   // Режим безвиза для этой страны по паспорту въезда (или первому паспорту): есть ли и не устарел ли
   const passportId = entry?.basis === "visa_free" && entry.documentId
     ? entry.documentId
@@ -194,6 +195,7 @@ api.get("/stats/current", zValidator("query", z.object(tzQuery)), async (c) => {
     current: {
       ...current,
       entry: strip(entry),
+      switched: strip(switched[0] ?? null),
       previousEntry: strip(previous[0] ?? null),
       entryPending: !entry,
       regime: passportId ? { passportId, regimeId: regime?.id ?? null, lastCheckedAt: regime?.lastCheckedAt ?? null, stale: isStale(regime) } : null,
@@ -446,12 +448,14 @@ api.delete("/rules/:id", zValidator("param", z.object({ id: z.string().uuid() })
 api.get("/stats/rules", zValidator("query", z.object(tzQuery)), async (c) => {
   const userId = c.get("userId");
   await ensureDefaultRules(userId);
-  const [{ days, today }, list] = await Promise.all([
+  const [{ days, today }, list, entryList] = await Promise.all([
     loadPresence(userId, c.req.valid("query").tz),
     rules.find({ userId, enabled: true }).sort({ sortOrder: 1, createdAt: 1 }).toArray(),
+    entries.find({ userId }).toArray(),
   ]);
   const active = list.filter((r) => !r.validUntil || r.validUntil >= today);
-  return c.json({ today, results: active.map((r) => evaluateRule(days, r, today)) });
+  const basis = buildBasisIndex(days, entryList);
+  return c.json({ today, results: active.map((r) => evaluateRule(days, r, today, basis)) });
 });
 
 // MARK: документы (паспорта, визы, ВНЖ)
@@ -487,7 +491,7 @@ const documentBody = z
 
 function publicDocument({ userId: _u, _id: _i, ...d }: TravelDocument & { _id?: unknown }) {
   // документы, созданные до появления флага
-  return { ...d, used: d.used ?? false, usedAt: d.usedAt ?? null };
+  return { ...d, used: d.used ?? false, usedAt: d.usedAt ?? null, history: d.history ?? [] };
 }
 
 function documentFromBody(userId: Point["userId"], id: string, body: z.infer<typeof documentBody>, prev: TravelDocument | null): TravelDocument {
@@ -496,7 +500,7 @@ function documentFromBody(userId: Point["userId"], id: string, body: z.infer<typ
   const used = rest.kind === "visa" && rest.entries === "single" && rest.used;
   // дата, с которой виза считается потраченной: фиксируем при первом включении, чтобы правила закрылись один раз
   const usedAt = used ? (rest.usedAt ?? prev?.usedAt ?? new Date().toISOString().slice(0, 10)) : null;
-  return { userId, id, ...rest, used, usedAt, countries, createdAt: prev?.createdAt ?? new Date().toISOString(), updatedAt: new Date().toISOString() };
+  return { userId, id, ...rest, used, usedAt, countries, history: prev?.history ?? [], createdAt: prev?.createdAt ?? new Date().toISOString(), updatedAt: new Date().toISOString() };
 }
 
 api.get("/documents", async (c) => {
@@ -525,6 +529,41 @@ api.put("/documents/:id", zValidator("param", z.object({ id: z.string().uuid() }
   return c.json({ document: publicDocument(doc), rules: generated.map(publicRule) });
 });
 
+// Продление визы / ВНЖ одной кнопкой: прежний срок уходит в history, правила пересобираются
+// под новые даты (тот же документ — основания въезда и пользовательские правки правил сохраняются)
+const renewBody = z
+  .object({
+    validFrom: isoDate.nullable().default(null),
+    validTo: isoDate,
+    lang: z.enum(["ru", "en"]).default("en"),
+  })
+  .superRefine((d, ctx) => {
+    if (d.validFrom && d.validFrom > d.validTo) ctx.addIssue({ code: "custom", path: ["validTo"], message: "validTo must be >= validFrom" });
+  });
+
+api.post("/documents/:id/renew", zValidator("param", z.object({ id: z.string().uuid() })), zValidator("json", renewBody), async (c) => {
+  const userId = c.get("userId");
+  const { id } = c.req.valid("param");
+  const body = c.req.valid("json");
+  const prev = await documents.findOne({ userId, id });
+  if (!prev) throw new HTTPException(404, { message: "document not found" });
+  if (prev.kind === "passport") throw new HTTPException(400, { message: "only visas and residence permits can be renewed" });
+  const now = new Date().toISOString();
+  const doc: TravelDocument = {
+    ...prev,
+    validFrom: body.validFrom ?? prev.validFrom,
+    validTo: body.validTo,
+    // продлённая виза снова годна к использованию
+    used: false,
+    usedAt: null,
+    history: [...(prev.history ?? []), { validFrom: prev.validFrom, validTo: prev.validTo, renewedAt: now }],
+    updatedAt: now,
+  };
+  await documents.replaceOne({ userId, id }, doc);
+  const generated = await syncRulesForDocument(userId, doc, body.lang);
+  return c.json({ document: publicDocument(doc), rules: generated.map(publicRule) });
+});
+
 api.delete("/documents/:id", zValidator("param", z.object({ id: z.string().uuid() })), async (c) => {
   const userId = c.get("userId");
   const { id } = c.req.valid("param");
@@ -539,6 +578,8 @@ api.delete("/documents/:id", zValidator("param", z.object({ id: z.string().uuid(
 // MARK: основания въезда
 
 const entryBody = z.object({
+  // switch — смена статуса внутри пребывания без пересечения границы; дата = день смены
+  kind: z.enum(["arrival", "switch"]).default("arrival"),
   basis: z.enum(["citizen", "visa_free", "visa", "residence", "transit", "other"]),
   documentId: z.string().uuid().nullable().default(null),
   note: z.string().trim().max(500).nullable().default(null),
@@ -569,6 +610,7 @@ api.put(
       id: prev?.id ?? randomUUID(),
       countryCode: cc,
       date,
+      kind: body.kind,
       basis: body.basis,
       documentId: body.documentId,
       note: body.note,
