@@ -82,16 +82,16 @@ export function buildDailyPresence(
     }
   }
 
-  for (const o of overrides) {
-    days.set(o.localDate, [
-      {
-        countryCode: o.countryCode,
-        countryName: o.countryName,
-        city: o.city,
-        inferred: false,
-        overridden: true,
-      },
-    ]);
+  // Ручные правки перекрывают точки за свой день. Если правок на день две (день перелёта),
+  // основная страна — из диапазона, начавшегося позже; при равенстве — созданная позже.
+  const byDay = new Map<string, DayOverride[]>();
+  for (const o of overrides) byDay.set(o.localDate, [...(byDay.get(o.localDate) ?? []), o]);
+  for (const [date, list] of byDay) {
+    list.sort((a, b) => (a.rangeFrom ?? a.localDate).localeCompare(b.rangeFrom ?? b.localDate) || a.createdAt.localeCompare(b.createdAt));
+    days.set(
+      date,
+      list.map((o) => ({ countryCode: o.countryCode, countryName: o.countryName, city: o.city, inferred: false, overridden: true })),
+    );
   }
 
   return days;

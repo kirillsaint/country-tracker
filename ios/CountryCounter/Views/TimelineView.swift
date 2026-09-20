@@ -6,6 +6,7 @@ struct TimelineView: View {
     /// nil — все годы
     @State private var year: Int? = nil
     @State private var basisFor: Segment?
+    @State private var showMap = false
 
     // Хронология по годам: отрезки, пересекающие Новый год, режем на части
     private var sectionsByYear: [(year: Int, segments: [Segment], days: Int)] {
@@ -30,15 +31,16 @@ struct TimelineView: View {
                 Picker("", selection: $segment) {
                     Text("Timeline").tag(0)
                     Text("Cities").tag(1)
+                    Text("Statistics").tag(2)
                 }
                 .pickerStyle(.segmented)
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets())
 
-                if segment == 0 {
-                    timelineSections
-                } else {
-                    citySection
+                switch segment {
+                case 0: timelineSections
+                case 1: citySection
+                default: StatsSections(year: year)
                 }
             }
             .navigationTitle("History")
@@ -56,7 +58,8 @@ struct TimelineView: View {
                         Label(year.map { String($0) } ?? String(localized: "All years"), systemImage: "calendar")
                     }
                 }
-                ToolbarItem(placement: .primaryAction) {
+                ToolbarItemGroup(placement: .primaryAction) {
+                    Button("Map", systemImage: "map") { showMap = true }
                     NavigationLink {
                         ManualEntriesView()
                     } label: {
@@ -64,10 +67,12 @@ struct TimelineView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showMap) { MapScreen() }
             .task(id: year) {
-                if let year { await model.loadYearStats(for: year) }
-                else { await model.loadAllTimeIfNeeded() }
+                await model.loadYearStats(for: year)
+                if year == nil { await model.loadAllTimeIfNeeded() }
             }
+            .onChange(of: model.lastRefresh) { _, _ in Task { await model.loadYearStats(for: year) } }
             .sheet(item: $basisFor) { seg in
                 NavigationStack { EntryBasisSheet(segment: seg, existing: model.entry(for: seg)) }
             }

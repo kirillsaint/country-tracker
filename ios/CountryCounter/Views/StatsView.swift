@@ -1,63 +1,27 @@
 import SwiftUI
 
 // Статистика за год (или за всё время): итоги, рейтинг стран и городов, рекорды.
-struct StatsView: View {
+struct StatsSections: View {
     @Environment(AppModel.self) private var model
-    @State private var year: Int? = Calendar.current.component(.year, from: Date())
-    @State private var showMap = false
+    /// nil — за всё время (тот же фильтр, что у хронологии)
+    let year: Int?
 
     private var stats: YearStats? { model.yearStats(for: year) }
 
     var body: some View {
-        NavigationStack {
-            List {
-                yearPicker
-                if let stats {
-                    if stats.totalDays == 0 {
-                        ContentUnavailableView("No data for this period", systemImage: "chart.bar")
-                    } else {
-                        summary(stats)
-                        countriesSection(stats)
-                        citiesSection(stats)
-                        highlights(stats)
-                    }
-                } else {
-                    HStack { Spacer(); ProgressView(); Spacer() }
-                        .listRowBackground(Color.clear)
-                }
-            }
-            .navigationTitle("Statistics")
-            .toolbar {
-                Button("Map", systemImage: "map") { showMap = true }
-            }
-            .sheet(isPresented: $showMap) { MapScreen() }
-            .refreshable {
-                await model.refresh()
-                await model.loadYearStats(for: year)
-            }
-            .task(id: year) { await model.loadYearStats(for: year) }
-            .onChange(of: model.lastRefresh) { _, _ in Task { await model.loadYearStats(for: year) } }
-        }
-    }
-
-    // Пока лет мало — сегменты, когда не влезают — меню
-    @ViewBuilder
-    private var yearPicker: some View {
-        let picker = Picker("Year", selection: $year) {
-            ForEach(model.availableYears, id: \.self) { y in
-                Text(verbatim: String(y)).tag(Int?.some(y))
-            }
-            Text("All time").tag(Int?.none)
-        }
-        Group {
-            if model.availableYears.count > 3 {
-                picker.pickerStyle(.menu)
+        if let stats {
+            if stats.totalDays == 0 {
+                ContentUnavailableView("No data for this period", systemImage: "chart.bar")
             } else {
-                picker.pickerStyle(.segmented)
+                summary(stats)
+                countriesSection(stats)
+                citiesSection(stats)
+                highlights(stats)
             }
+        } else {
+            HStack { Spacer(); ProgressView(); Spacer() }
+                .listRowBackground(Color.clear)
         }
-        .listRowBackground(Color.clear)
-        .listRowInsets(EdgeInsets())
     }
 
     private func summary(_ s: YearStats) -> some View {

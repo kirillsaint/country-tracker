@@ -46,7 +46,9 @@ export async function connectDb() {
     points.createIndex({ userId: 1, clientId: 1 }, { unique: true }),
     points.createIndex({ userId: 1, recordedAt: 1 }),
     points.createIndex({ userId: 1, localDate: 1 }),
-    dayOverrides.createIndex({ userId: 1, localDate: 1 }, { unique: true }),
+    // раньше день был уникален сам по себе; теперь две страны могут делить день перелёта
+    dayOverrides.dropIndex("userId_1_localDate_1").catch(() => {}),
+    dayOverrides.createIndex({ userId: 1, localDate: 1, countryCode: 1 }, { unique: true }),
   ]);
 
   console.log(`Mongo connected: ${db.databaseName}`);

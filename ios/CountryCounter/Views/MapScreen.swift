@@ -19,6 +19,9 @@ struct MapScreen: View {
     @State private var offset: CGSize = .zero
     @State private var lastOffset: CGSize = .zero
     @State private var canvasSize: CGSize = .zero
+    // Готовый PNG для шаринга: рендерится заранее, чтобы панель «Поделиться» получала обычный файл
+    @State private var exportURL: URL?
+    @State private var exportTask: Task<Void, Never>?
 
     private var fitKey: String { "\(period)|\(mode)|\(countries.count)|\(cities.count)" }
 
@@ -70,8 +73,8 @@ struct MapScreen: View {
                 .aspectRatio(1.15, contentMode: .fit)
                 .padding(.horizontal)
                 // при первом показе данных и при смене периода/режима — подогнать под посещённое
-                .onChange(of: fitKey, initial: true) { _, _ in fitToVisited(in: canvasSize) }
-                .onChange(of: store.countries.isEmpty) { _, _ in fitToVisited(in: canvasSize) }
+                .onChange(of: fitKey, initial: true) { _, _ in fitToVisited(in: canvasSize); scheduleExport() }
+                .onChange(of: store.countries.isEmpty) { _, _ in fitToVisited(in: canvasSize); scheduleExport() }
 
                 summary
                     .padding(.horizontal)
@@ -92,13 +95,12 @@ struct MapScreen: View {
                     Button("Done") { dismiss() }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    if !store.countries.isEmpty {
-                        ShareLink(
-                            item: MapPNG(countries: store.countries, data: data, mode: mode, caption: summaryText),
-                            preview: SharePreview("Country Counter map", image: Image(systemName: "map"))
-                        ) {
+                    if let exportURL {
+                        ShareLink(item: exportURL, preview: SharePreview("Country Counter map", image: Image(systemName: "map"))) {
                             Label("Export PNG", systemImage: "square.and.arrow.up")
                         }
+                    } else if !store.countries.isEmpty {
+                        ProgressView().controlSize(.small)
                     }
                 }
             }
@@ -166,6 +168,25 @@ struct MapScreen: View {
         }
         lastScale = 1
         lastOffset = .zero
+    }
+
+    /// Отрендерить PNG во временный файл (с задержкой, чтобы не рендерить на каждое переключение)
+    private func scheduleExport() {
+        exportTask?.cancel()
+        exportURL = nil
+        guard !store.countries.isEmpty else { return }
+        let png = MapPNG(countries: store.countries, data: data, mode: mode, caption: summaryText)
+        exportTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(700))
+            guard !Task.isCancelled else { return }
+            guard let bytes = try? png.renderData() else { return }
+            let dir = FileManager.default.temporaryDirectory.appendingPathComponent("map-export", isDirectory: true)
+            try? FileManager.default.removeItem(at: dir)
+            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            let url = dir.appendingPathComponent("country-counter-map.png")
+            guard (try? bytes.write(to: url, options: .atomic)) != nil, !Task.isCancelled else { return }
+            exportURL = url
+        }
     }
 
     /// Приблизить так, чтобы все посещённые страны и города поместились с отступом.
@@ -346,6 +367,9 @@ struct MapPNG: Transferable {
     @MainActor
     func debugRender() throws -> Data { try render() }
     #endif
+
+    @MainActor
+    func renderData() throws -> Data { try render() }
 
     @MainActor
     private func render() throws -> Data {

@@ -479,7 +479,8 @@ struct ManualRange: Identifiable, Equatable {
     var days: Int { (daysBetween(from, to) ?? 0) + 1 }
 
     static func group(_ overrides: [DayOverride]) -> [ManualRange] {
-        let sorted = overrides.sorted { $0.localDate < $1.localDate }
+        // сначала по стране, потом по дате — иначе две страны в один день перемешают группы
+        let sorted = overrides.sorted { ($0.countryCode, $0.localDate) < ($1.countryCode, $1.localDate) }
         var out: [ManualRange] = []
         for o in sorted {
             if let last = out.last,
@@ -490,7 +491,7 @@ struct ManualRange: Identifiable, Equatable {
                 out.append(ManualRange(from: o.localDate, to: o.localDate, countryCode: o.countryCode, countryName: o.countryName, city: o.city, note: o.note))
             }
         }
-        return out.reversed()
+        return out.sorted { $0.from > $1.from }
     }
 }
 

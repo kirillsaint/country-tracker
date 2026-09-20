@@ -24,15 +24,12 @@ struct RootView: View {
                 TimelineView()
                     .tabItem { Label("History", systemImage: "calendar") }
                     .tag(1)
-                StatsView()
-                    .tabItem { Label("Statistics", systemImage: "chart.bar") }
-                    .tag(2)
                 DocumentsView()
                     .tabItem { Label("Documents", systemImage: "person.text.rectangle") }
-                    .tag(3)
+                    .tag(2)
                 NavigationStack { SettingsView() }
                     .tabItem { Label("Settings", systemImage: "gearshape") }
-                    .tag(4)
+                    .tag(3)
             }
             .task(id: auth.token) {
                 await auth.restore()

@@ -302,9 +302,17 @@ final class AppModel {
         await refresh()
     }
 
+    /// Изменить запись: старый диапазон удаляется (только его страна), новый записывается
+    func updateRange(_ old: ManualRange, from: String, to: String, countryCode: String, city: String?, note: String?) async throws {
+        let client = try APIClient.fromSettings()
+        try await client.deleteRange(from: old.from, to: old.to, countryCode: old.countryCode)
+        try await client.setRange(from: from, to: to, countryCode: countryCode, city: city, note: note)
+        await refresh()
+    }
+
     func delete(_ range: ManualRange) async {
         do {
-            try await APIClient.fromSettings().deleteRange(from: range.from, to: range.to)
+            try await APIClient.fromSettings().deleteRange(from: range.from, to: range.to, countryCode: range.countryCode)
             await refresh()
         } catch {
             errorMessage = error.localizedDescription

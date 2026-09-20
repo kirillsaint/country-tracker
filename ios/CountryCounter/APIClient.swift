@@ -145,9 +145,9 @@ struct APIClient {
         let _: R = try await send("PUT", "/api/overrides/range", body: Body(from: from, to: to, countryCode: countryCode, city: city, note: note))
     }
 
-    func deleteRange(from: String, to: String) async throws {
+    func deleteRange(from: String, to: String, countryCode: String) async throws {
         struct R: Decodable { let deleted: Int }
-        let _: R = try await send("DELETE", "/api/overrides/range", query: ["from": from, "to": to])
+        let _: R = try await send("DELETE", "/api/overrides/range", query: ["from": from, "to": to, "countryCode": countryCode])
     }
 
     // MARK: - Правила

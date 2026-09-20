@@ -243,9 +243,11 @@ api.put(
       countryName: countryName(body.countryCode),
       city: body.city ?? null,
       note: body.note ?? null,
+      rangeFrom: date,
       createdAt: new Date().toISOString(),
     };
-    await dayOverrides.replaceOne({ userId, localDate: date }, doc, { upsert: true });
+    await dayOverrides.deleteMany({ userId, localDate: date });
+    await dayOverrides.insertOne(doc);
     const { userId: _, ...override } = doc;
     return c.json({ override });
   },
@@ -286,7 +288,7 @@ api.put("/overrides/range", zValidator("json", rangeBody), async (c) => {
   for (let d = body.from; d <= body.to; d = addDays(d, 1)) {
     ops.push({
       replaceOne: {
-        filter: { userId, localDate: d },
+        filter: { userId, localDate: d, countryCode: body.countryCode },
         replacement: {
           userId,
           localDate: d,
@@ -294,6 +296,7 @@ api.put("/overrides/range", zValidator("json", rangeBody), async (c) => {
           countryName: name,
           city: body.city || null,
           note: body.note || null,
+          rangeFrom: body.from,
           createdAt: now,
         },
         upsert: true,
@@ -304,9 +307,9 @@ api.put("/overrides/range", zValidator("json", rangeBody), async (c) => {
   return c.json({ days: ops.length, inserted: res.upsertedCount, replaced: res.modifiedCount });
 });
 
-api.delete("/overrides/range", zValidator("query", z.object({ from: isoDate, to: isoDate })), async (c) => {
-  const { from, to } = c.req.valid("query");
-  const res = await dayOverrides.deleteMany({ userId: c.get("userId"), localDate: { $gte: from, $lte: to } });
+api.delete("/overrides/range", zValidator("query", z.object({ from: isoDate, to: isoDate, countryCode: countryCode.optional() })), async (c) => {
+  const { from, to, countryCode: cc } = c.req.valid("query");
+  const res = await dayOverrides.deleteMany({ userId: c.get("userId"), localDate: { $gte: from, $lte: to }, ...(cc && { countryCode: cc }) });
   return c.json({ deleted: res.deletedCount });
 });
 

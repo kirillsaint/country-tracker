@@ -263,6 +263,9 @@ export type DayOverride = {
   countryName: string | null;
   city: string | null;
   note: string | null;
+  // первый день диапазона, которым создана правка: в день с двумя странами основной считается та,
+  // чей диапазон начался позже (день перелёта — обеим, прилетели — во вторую)
+  rangeFrom: string;
   createdAt: string;
 };
 
