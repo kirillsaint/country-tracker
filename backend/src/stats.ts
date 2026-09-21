@@ -176,6 +176,16 @@ export function timeline(days: DailyPresence, from: string, to: string): Segment
     }
     prevDate = d;
   }
+  // День перелёта принадлежит обеим странам: у той, откуда уехали, он не основной и в отрезок не попал.
+  // Дотягиваем конец отрезка на такие дни, чтобы «Турция 21–31 мая» и «Грузия с 31 мая» показывались честно.
+  for (const seg of out) {
+    for (let next = addDays(seg.to, 1); next <= to; next = addDays(next, 1)) {
+      const list = days.get(next);
+      if (!list || primaryOf(list)!.countryCode === seg.countryCode || !list.some((p) => p.countryCode === seg.countryCode)) break;
+      seg.to = next;
+      seg.days++;
+    }
+  }
   return out.reverse();
 }
 

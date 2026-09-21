@@ -16,7 +16,13 @@ struct TimelineView: View {
             .filter { year == nil || $0 == year }
             .map { y in
                 let segs = grouped[y]!.sorted { $0.from > $1.from }
-                return (y, segs, segs.reduce(0) { $0 + $1.days })
+                // день перелёта входит в оба отрезка — в сумме года считаем его один раз
+                var total = segs.reduce(0) { $0 + $1.days }
+                let byStart = segs.sorted { $0.from < $1.from }
+                for (a, b) in zip(byStart, byStart.dropFirst()) where a.to >= b.from {
+                    total -= (daysBetween(b.from, a.to) ?? 0) + 1
+                }
+                return (y, segs, total)
             }
     }
 
