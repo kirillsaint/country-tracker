@@ -271,7 +271,10 @@ Apple «Скрыть e-mail» даёт relay-адрес, он не совпад�
    JavaScript origins добавьте `https://<домен API>` (и `http://localhost:5173` для разработки). Redirect URI
    не нужны. Client ID → `ADMIN_GOOGLE_CLIENT_ID`.
 2. `ADMIN_EMAILS=you@gmail.com` — через запятую, если админов несколько.
-3. `docker compose up -d --build`.
+3. Карта точек: по умолчанию OpenStreetMap. Для Google Maps создайте в том же проекте ключ с включённым
+   **Maps JavaScript API**, ограничьте его по HTTP referrer `https://<домен API>/*` и положите в
+   `ADMIN_GOOGLE_MAPS_KEY`. Ключ серверного Places API для этого не подходит: он уйдёт в браузер.
+4. `docker compose up -d --build`.
 
 Разработка: `pnpm --dir backend/admin dev` поднимает Vite на :5173 и проксирует `/admin/api` на локальный
 бэкенд; сам бэкенд должен быть запущен с теми же двумя переменными.

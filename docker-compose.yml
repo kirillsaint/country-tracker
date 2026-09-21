@@ -19,6 +19,7 @@ services:
       SELF_STORE_APP_ID: ${SELF_STORE_APP_ID:-}
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
       ADMIN_GOOGLE_CLIENT_ID: ${ADMIN_GOOGLE_CLIENT_ID:-}
+      ADMIN_GOOGLE_MAPS_KEY: ${ADMIN_GOOGLE_MAPS_KEY:-}
     depends_on:
       mongo:
         condition: service_healthy

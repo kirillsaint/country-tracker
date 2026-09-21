@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { api, post } from "../api";
+import { api, post, type AdminConfig } from "../api";
 
 declare global {
   interface Window { google?: { accounts: { id: { initialize: (o: unknown) => void; renderButton: (el: HTMLElement, o: unknown) => void } } } }
@@ -8,7 +8,7 @@ declare global {
 
 /** Вход только через Google Identity Services: кнопка Google отдаёт id_token, сервер проверяет его и email */
 export default function Login({ onSignedIn }: { onSignedIn: () => void }) {
-  const cfg = useQuery({ queryKey: ["config"], queryFn: () => api<{ enabled: boolean; googleClientId: string }>("/config") });
+  const cfg = useQuery({ queryKey: ["config"], queryFn: () => api<AdminConfig>("/config") });
   const slot = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
 

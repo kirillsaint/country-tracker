@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import { CircleMarker, MapContainer, Polyline, Popup, TileLayer, useMap } from "react-leaflet";
 import type { Point } from "../api";
 
-const COLORS: Record<string, string> = { visit: "#2563eb", significant: "#16a34a", hourly: "#f59e0b", foreground: "#9333ea", manual: "#dc2626" };
+export const SOURCE_COLORS: Record<string, string> = { visit: "#2563eb", significant: "#16a34a", hourly: "#f59e0b", foreground: "#9333ea", manual: "#dc2626" };
 
 function FitBounds({ pts }: { pts: Point[] }) {
   const map = useMap();
@@ -15,7 +15,7 @@ function FitBounds({ pts }: { pts: Point[] }) {
   return null;
 }
 
-/** Точки пользователя на OpenStreetMap: цвет — источник, линия — порядок по времени */
+/** Точки пользователя на OpenStreetMap (запасной вариант без ключа Google Maps): цвет — источник, линия — порядок по времени */
 export function PointsMap({ points }: { points: Point[] }) {
   // с сервера приходят новые первыми — для линии нужен хронологический порядок
   const ordered = useMemo(() => points.slice().sort((a, b) => a.recordedAt.localeCompare(b.recordedAt)), [points]);
@@ -26,7 +26,7 @@ export function PointsMap({ points }: { points: Point[] }) {
         <FitBounds pts={ordered} />
         {ordered.length > 1 && <Polyline positions={ordered.map((p) => [p.lat, p.lon])} pathOptions={{ color: "#64748b", weight: 1.5, opacity: 0.6 }} />}
         {ordered.map((p) => (
-          <CircleMarker key={p.clientId} center={[p.lat, p.lon]} radius={5} pathOptions={{ color: COLORS[p.source] ?? "#334155", fillOpacity: 0.8, weight: 1 }}>
+          <CircleMarker key={p.clientId} center={[p.lat, p.lon]} radius={5} pathOptions={{ color: SOURCE_COLORS[p.source] ?? "#334155", fillOpacity: 0.8, weight: 1 }}>
             <Popup>
               <div className="text-xs">
                 <div><b>{p.city ?? "—"}</b> {p.countryCode ?? ""}</div>
@@ -39,7 +39,7 @@ export function PointsMap({ points }: { points: Point[] }) {
         ))}
       </MapContainer>
       <div className="flex flex-wrap gap-3 px-3 py-2 text-xs muted">
-        {Object.entries(COLORS).map(([k, c]) => <span key={k}><span className="inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: c }} /> {k}</span>)}
+        {Object.entries(SOURCE_COLORS).map(([k, c]) => <span key={k}><span className="inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: c }} /> {k}</span>)}
       </div>
     </div>
   );

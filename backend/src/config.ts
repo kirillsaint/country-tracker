@@ -40,6 +40,8 @@ export const config = {
   // Пусто — админка выключена.
   adminEmails: new Set(list("ADMIN_EMAILS").map((e) => e.toLowerCase())),
   adminGoogleClientId: process.env.ADMIN_GOOGLE_CLIENT_ID ?? "",
+  // ключ Maps JavaScript API для карты точек в админке (браузерный, ограничить по referrer). Пусто — OpenStreetMap
+  adminGoogleMapsKey: process.env.ADMIN_GOOGLE_MAPS_KEY ?? "",
   // куда собран React админки (в докере — /app/admin, при разработке — admin/dist)
   adminDistDir: process.env.ADMIN_DIST ?? "admin/dist",
 };

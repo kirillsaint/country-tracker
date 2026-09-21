@@ -42,7 +42,7 @@ const requireAdmin: MiddlewareHandler<AdminEnv> = async (c, next) => {
 
 // MARK: вход
 
-admin.get("/api/config", (c) => c.json({ enabled: isAdminEnabled(), googleClientId: config.adminGoogleClientId }));
+admin.get("/api/config", (c) => c.json({ enabled: isAdminEnabled(), googleClientId: config.adminGoogleClientId, googleMapsKey: config.adminGoogleMapsKey }));
 
 admin.post("/api/login", zValidator("json", z.object({ credential: z.string().min(10) })), async (c) => {
   if (!isAdminEnabled()) throw new HTTPException(503, { message: "admin is not configured (ADMIN_EMAILS, ADMIN_GOOGLE_CLIENT_ID)" });

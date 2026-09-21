@@ -1,7 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
-import { api, del, type Point, type UserDetail } from "../api";
+import { api, del, type AdminConfig, type Point, type UserDetail } from "../api";
+import { GooglePointsMap } from "../components/GoogleMap";
 import { PointsMap } from "../components/PointsMap";
 import { AutoTable, DangerButton, DataTable, Empty, ErrorBox, Flag, Json, Loading, Stat, Time } from "../components/ui";
 
@@ -112,6 +113,8 @@ function Points({ id }: { id: string }) {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [view, setView] = useState<"map" | "table">("map");
+  // ключ Google Maps приходит с сервера; без него карта на OpenStreetMap
+  const cfg = useQuery({ queryKey: ["config"], queryFn: () => api<AdminConfig>("/config"), staleTime: Infinity });
   const q = useQuery({
     queryKey: ["points", id, from, to],
     queryFn: () => api<{ total: number; points: Point[] }>(`/users/${id}/points?${new URLSearchParams({ ...(from ? { from } : {}), ...(to ? { to } : {}) })}`),
@@ -134,7 +137,7 @@ function Points({ id }: { id: string }) {
       {q.data && (
         <>
           <div className="text-sm muted">Показано {q.data.points.length} из {q.data.total}{q.data.total > q.data.points.length ? " (сузьте даты, чтобы увидеть остальные)" : ""}</div>
-          {q.data.points.length === 0 ? <Empty /> : view === "map" ? <PointsMap points={q.data.points} /> : (
+          {q.data.points.length === 0 ? <Empty /> : view === "map" ? (cfg.data?.googleMapsKey ? <GooglePointsMap points={q.data.points} apiKey={cfg.data.googleMapsKey} /> : <PointsMap points={q.data.points} />) : (
             <DataTable
               rows={q.data.points}
               rowKey={(p) => p.clientId}

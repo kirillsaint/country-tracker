@@ -41,3 +41,5 @@ export type UserDetail = {
   taste: { preferences: Record<string, unknown> | null; profile: { text: string; ratingsCount: number; lang: string; updatedAt: string } | null };
 };
 export type CollectionInfo = { name: string; count: number; size: number | null; storageSize: number | null; indexSize: number | null; perUser: boolean };
+export type AdminConfig = { enabled: boolean; googleClientId: string; googleMapsKey: string };
+
