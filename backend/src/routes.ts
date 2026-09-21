@@ -13,6 +13,7 @@ import { countryAt, countryName, localDateOf } from "./geo.js";
 import { cityCoords, localizedCityName, searchCities } from "./cities.js";
 import { CATEGORY_TYPES, isPlacesEnabled, photoUrl, placeDetails, resolvePhoto, verifyPhoto } from "./places.js";
 import { discover, itinerary, userState, type PlaceRating, type PlaceSave } from "./discover.js";
+import { getJob, startJob } from "./jobs.js";
 import { placeDismissals, placeRatings, placeSaves, tastePreferences } from "./db.js";
 import { SCHENGEN } from "./presets.js";
 import {
@@ -550,12 +551,23 @@ const discoverBody = z.object({
   lang: z.enum(["ru", "en"]).default("en"),
   // локальное время пользователя «Sat 19:30» — для «сейчас вечер, лучше бар, чем музей»
   localTime: z.string().max(40).nullable().default(null),
+  // sync — дождаться результата в этом же запросе (для отладки); по умолчанию — задача + опрос
+  sync: z.boolean().default(false),
 });
 api.post("/discover", zValidator("json", discoverBody), async (c) => {
   if (!isPlacesEnabled()) throw new HTTPException(503, { message: "places are not configured" });
   const b = c.req.valid("json");
-  const result = await discover(c.get("userId"), { baseUrl: baseUrl(c), lat: b.lat, lon: b.lon, query: b.query || null, category: (b.category as keyof typeof CATEGORY_TYPES) ?? null, radiusM: Math.round(b.radiusKm * 1000), openNow: b.openNow, lang: b.lang, localTime: b.localTime });
-  return c.json({ ...result, enabled: true });
+  const userId = c.get("userId");
+  const run = () => discover(userId, { baseUrl: baseUrl(c), lat: b.lat, lon: b.lon, query: b.query || null, category: (b.category as keyof typeof CATEGORY_TYPES) ?? null, radiusM: Math.round(b.radiusKm * 1000), openNow: b.openNow, lang: b.lang, localTime: b.localTime });
+  if (b.sync) return c.json({ ...(await run()), enabled: true });
+  return c.json({ jobId: await startJob(userId, "discover", run) }, 202);
+});
+
+// Статус задачи: queued / running / done (+ result) / failed (+ error)
+api.get("/jobs/:id", zValidator("param", z.object({ id: z.string().uuid() })), async (c) => {
+  const job = await getJob(c.get("userId"), c.req.valid("param").id);
+  if (!job) throw new HTTPException(404, { message: "job not found" });
+  return c.json({ id: job.id, kind: job.kind, status: job.status, result: job.result, error: job.error });
 });
 
 api.get("/discover/status", (c) => c.json({ enabled: isPlacesEnabled() }));
@@ -599,15 +611,21 @@ const itineraryBody = z.object({
   note: z.string().trim().max(300).nullable().default(null),
   // дата плана; null — сегодня
   date: isoDate.nullable().default(null),
+  sync: z.boolean().default(false),
 });
 api.post("/itinerary", zValidator("json", itineraryBody), async (c) => {
   if (!isPlacesEnabled()) throw new HTTPException(503, { message: "places are not configured" });
   const b = c.req.valid("json");
-  try {
-    return c.json(await itinerary(c.get("userId"), { baseUrl: baseUrl(c), lat: b.lat, lon: b.lon, query: null, category: null, radiusM: Math.round(b.radiusKm * 1000), openNow: false, lang: b.lang, localTime: b.localTime, hours: b.hours, startTime: b.startTime, note: b.note || null, date: b.date }));
-  } catch (e) {
-    throw new HTTPException(502, { message: e instanceof Error ? e.message : "itinerary failed" });
+  const userId = c.get("userId");
+  const run = () => itinerary(userId, { baseUrl: baseUrl(c), lat: b.lat, lon: b.lon, query: null, category: null, radiusM: Math.round(b.radiusKm * 1000), openNow: false, lang: b.lang, localTime: b.localTime, hours: b.hours, startTime: b.startTime, note: b.note || null, date: b.date });
+  if (b.sync) {
+    try {
+      return c.json(await run());
+    } catch (e) {
+      throw new HTTPException(502, { message: e instanceof Error ? e.message : "itinerary failed" });
+    }
   }
+  return c.json({ jobId: await startJob(userId, "itinerary", run) }, 202);
 });
 
 /** Адрес для ссылок наружу: PUBLIC_BASE_URL на проде, иначе origin запроса (dev: http://localhost:3000) */

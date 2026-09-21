@@ -243,9 +243,41 @@ struct APIClient {
         return r.enabled
     }
 
-    func discover(lat: Double, lon: Double, query: String?, category: DiscoverCategory?, radiusKm: Double, openNow: Bool, localTime: String) async throws -> DiscoverResult {
+    /// Долгие запросы к нейросети идут задачей: сервер сразу отдаёт id, дальше опрос раз в 2 секунды
+    struct JobStarted: Decodable { let jobId: String }
+    struct JobStatus<T: Decodable>: Decodable { let status: String; let result: T?; let error: String? }
+
+    func job<T: Decodable>(id: String) async throws -> JobStatus<T> {
+        try await send("GET", "/api/jobs/\(id)")
+    }
+
+    /// Ждать результат задачи: опрос каждые 2 с, не дольше timeout; отмена задачи SwiftUI прерывает ожидание
+    func awaitJob<T: Decodable>(id: String, timeout: TimeInterval = 240) async throws -> T {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            let s: JobStatus<T> = try await job(id: id)
+            switch s.status {
+            case "done":
+                if let r = s.result { return r }
+                throw APIError.http(500, "empty result")
+            case "failed":
+                throw APIError.http(502, s.error ?? "failed")
+            default:
+                try await Task.sleep(for: .seconds(2))
+            }
+        }
+        throw URLError(.timedOut)
+    }
+
+    func startDiscover(lat: Double, lon: Double, query: String?, category: DiscoverCategory?, radiusKm: Double, openNow: Bool, localTime: String) async throws -> String {
         struct Body: Encodable { let lat: Double; let lon: Double; let query: String?; let category: String?; let radiusKm: Double; let openNow: Bool; let lang: String; let localTime: String }
-        return try await send("POST", "/api/discover", body: Body(lat: lat, lon: lon, query: query, category: category?.rawValue, radiusKm: radiusKm, openNow: openNow, lang: DocumentInput.currentLang, localTime: localTime))
+        let r: JobStarted = try await send("POST", "/api/discover", body: Body(lat: lat, lon: lon, query: query, category: category?.rawValue, radiusKm: radiusKm, openNow: openNow, lang: DocumentInput.currentLang, localTime: localTime))
+        return r.jobId
+    }
+
+    func discover(lat: Double, lon: Double, query: String?, category: DiscoverCategory?, radiusKm: Double, openNow: Bool, localTime: String) async throws -> DiscoverResult {
+        let id = try await startDiscover(lat: lat, lon: lon, query: query, category: category, radiusKm: radiusKm, openNow: openNow, localTime: localTime)
+        return try await awaitJob(id: id)
     }
 
     func taste() async throws -> TastePreferences? {
@@ -262,7 +294,8 @@ struct APIClient {
 
     func itinerary(lat: Double, lon: Double, hours: Int, startTime: String, date: String?, radiusKm: Double, localTime: String, note: String?) async throws -> Itinerary {
         struct Body: Encodable { let lat: Double; let lon: Double; let hours: Int; let startTime: String; let date: String?; let radiusKm: Double; let lang: String; let localTime: String; let note: String? }
-        return try await send("POST", "/api/itinerary", body: Body(lat: lat, lon: lon, hours: hours, startTime: startTime, date: date, radiusKm: radiusKm, lang: DocumentInput.currentLang, localTime: localTime, note: note))
+        let r: JobStarted = try await send("POST", "/api/itinerary", body: Body(lat: lat, lon: lon, hours: hours, startTime: startTime, date: date, radiusKm: radiusKm, lang: DocumentInput.currentLang, localTime: localTime, note: note))
+        return try await awaitJob(id: r.jobId)
     }
 
     func place(id: String) async throws -> Recommendation {
