@@ -17,6 +17,8 @@ services:
       OPENROUTER_FAST_MODEL: ${OPENROUTER_FAST_MODEL:-openai/gpt-5.6-luna}
       SELF_STORE_URL: ${SELF_STORE_URL:-}
       SELF_STORE_APP_ID: ${SELF_STORE_APP_ID:-}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      ADMIN_GOOGLE_CLIENT_ID: ${ADMIN_GOOGLE_CLIENT_ID:-}
     depends_on:
       mongo:
         condition: service_healthy

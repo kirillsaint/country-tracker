@@ -9,6 +9,7 @@ import { auth } from "./authRoutes.js";
 import { resumeChecks } from "./regimes.js";
 import { ensureCities } from "./cities.js";
 import { failOrphans } from "./jobs.js";
+import { admin, isAdminEnabled } from "./admin.js";
 
 const app = new Hono();
 
@@ -18,6 +19,9 @@ app.route("/auth", auth);
 // фото мест — без сессии, по подписанной ссылке
 app.route("/", photos);
 app.route("/api", api);
+// админка в браузере: React + JSON API, вход через Google по списку ADMIN_EMAILS
+app.route("/admin", admin);
+if (!isAdminEnabled()) console.warn("admin UI is disabled: set ADMIN_EMAILS and ADMIN_GOOGLE_CLIENT_ID");
 
 app.onError((err, c) => {
   if (err instanceof HTTPException) {

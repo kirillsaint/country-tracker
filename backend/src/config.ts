@@ -36,6 +36,12 @@ export const config = {
   // Пусто — проверка обновлений выключена.
   selfStoreUrl: (process.env.SELF_STORE_URL ?? "").replace(/\/$/, ""),
   selfStoreAppId: process.env.SELF_STORE_APP_ID ?? "",
+  // Админка в браузере (/admin): кто может войти (email из Google) и web-клиент Google OAuth для кнопки входа.
+  // Пусто — админка выключена.
+  adminEmails: new Set(list("ADMIN_EMAILS").map((e) => e.toLowerCase())),
+  adminGoogleClientId: process.env.ADMIN_GOOGLE_CLIENT_ID ?? "",
+  // куда собран React админки (в докере — /app/admin, при разработке — admin/dist)
+  adminDistDir: process.env.ADMIN_DIST ?? "admin/dist",
 };
 
 if (config.googleClientIds.length === 0) {

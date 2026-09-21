@@ -7,6 +7,9 @@ import type { Job } from "./jobs.js";
 
 const client = new MongoClient(config.mongoUrl);
 
+/** Доступ к базе целиком — для админки, которая показывает любую коллекцию как есть */
+export const rawDb = () => client.db();
+
 export let users: Collection<User>;
 export let sessions: Collection<Session>;
 export let points: Collection<Point>;
@@ -29,6 +32,9 @@ export let discoverLog: Collection<DiscoverLog>;
 // готовые подборки нейросети: то же место, запрос и пользователь в ближайшие часы — без повторного вызова модели
 export let discoverAiCache: Collection<{ key: string; result: unknown; expiresAt: Date }>;
 export let jobs: Collection<Job>;
+// сессии админки в браузере: хеш cookie-токена, email; TTL — неделя
+export let adminSessions: Collection<AdminSession>;
+export type AdminSession = { tokenHash: string; email: string; name: string | null; createdAt: string; expiresAt: Date };
 export let citiesMeta: Collection<{ _id: string; source: string; importedAt: string; count: number; i18n?: string[]; i18nAt?: string }>;
 
 export async function connectDb() {
@@ -54,6 +60,7 @@ export async function connectDb() {
   discoverLog = db.collection<DiscoverLog>("discover_log");
   discoverAiCache = db.collection("discover_ai_cache");
   jobs = db.collection<Job>("jobs");
+  adminSessions = db.collection<AdminSession>("admin_sessions");
 
   await Promise.all([
     rules.createIndex({ userId: 1, id: 1 }, { unique: true }),
@@ -91,6 +98,8 @@ export async function connectDb() {
     discoverAiCache.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
     jobs.createIndex({ id: 1 }, { unique: true }),
     jobs.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+    adminSessions.createIndex({ tokenHash: 1 }, { unique: true }),
+    adminSessions.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
   ]);
 
   console.log(`Mongo connected: ${db.databaseName}`);
