@@ -14,6 +14,9 @@ struct DiscoverView: View {
     @State private var useCity = false
     @State private var city: CityOption?
     @State private var cityCountry: [String] = []
+    /// Погода для карточки места: для «рядом» — в текущей точке, для «другого города» — в выбранном городе.
+    /// Отдельно от model.weather, который приходит с последним поиском и может быть про другой город.
+    @State private var headerWeather: Weather?
     @State private var loading = false
     @State private var error: String?
     @FocusState private var queryFocused: Bool
@@ -65,7 +68,7 @@ struct DiscoverView: View {
                 } else if let p = tracker.lastPoint {
                     LabeledContent("Location", value: p.city ?? String(format: "%.3f, %.3f", p.lat, p.lon))
                 }
-                if let w = model.weather {
+                if let w = headerWeather {
                     Label {
                         Text(verbatim: "\(w.tempC)°, \(w.localizedSummary)")
                         if w.isRainy || w.isHot || w.isCold {
@@ -232,6 +235,7 @@ struct DiscoverView: View {
         }
         .navigationTitle("What to do?")
         .navigationBarTitleDisplayMode(.inline)
+        .task(id: weatherKey) { await loadHeaderWeather() }
         .sheet(isPresented: $showItinerary) {
             NavigationStack { ItineraryView(lat: useCity ? city?.lat : tracker.lastPoint?.lat, lon: useCity ? city?.lon : tracker.lastPoint?.lon, radiusKm: min(radiusKm, 10)) }
         }
@@ -265,6 +269,28 @@ struct DiscoverView: View {
         }
         .sheet(isPresented: $showTaste) { NavigationStack { TasteQuizView(existing: model.taste) } }
         }
+    }
+
+    /// Меняется, когда меняется место, для которого нужна погода
+    private var weatherKey: String {
+        if useCity { return "city|\(city?.id ?? 0)" }
+        guard let p = tracker.lastPoint else { return "near|none" }
+        return String(format: "near|%.2f|%.2f", p.lat, p.lon)
+    }
+
+    private func loadHeaderWeather() async {
+        let lat: Double, lon: Double
+        if useCity {
+            guard let c = city else { headerWeather = nil; return }
+            (lat, lon) = (c.lat, c.lon)
+            headerWeather = nil
+        } else {
+            guard let p = tracker.lastPoint else { headerWeather = nil; return }
+            (lat, lon) = (p.lat, p.lon)
+            // пока грузится свежая — показываем ту, что пришла с последней подборкой рядом
+            if headerWeather == nil { headerWeather = model.weather }
+        }
+        if let w = try? await APIClient.fromSettings().weather(lat: lat, lon: lon), !Task.isCancelled { headerWeather = w }
     }
 
     private func search() async {

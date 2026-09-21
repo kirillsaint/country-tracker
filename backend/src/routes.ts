@@ -14,6 +14,7 @@ import { cityCoords, localizedCityName, searchCities } from "./cities.js";
 import { CATEGORY_TYPES, isPlacesEnabled, photoUrl, placeDetails, resolvePhoto, verifyPhoto } from "./places.js";
 import { discover, itinerary, userState, type PlaceRating, type PlaceSave } from "./discover.js";
 import { getJob, startJob } from "./jobs.js";
+import { weatherNow } from "./weather.js";
 import { placeDismissals, placeRatings, placeSaves, tastePreferences } from "./db.js";
 import { SCHENGEN } from "./presets.js";
 import {
@@ -575,6 +576,12 @@ api.get("/jobs/:id", zValidator("param", z.object({ id: z.string().uuid() })), a
 });
 
 api.get("/discover/status", (c) => c.json({ enabled: isPlacesEnabled() }));
+
+// Погода в точке — для карточки «другой город» до того, как сделан поиск
+api.get("/weather", zValidator("query", z.object({ lat: z.coerce.number().min(-90).max(90), lon: z.coerce.number().min(-180).max(180) })), async (c) => {
+  const q = c.req.valid("query");
+  return c.json({ weather: await weatherNow(q.lat, q.lon) });
+});
 
 // MARK: обновления приложения через Self Store
 

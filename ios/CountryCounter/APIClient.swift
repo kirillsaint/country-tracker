@@ -286,6 +286,12 @@ struct APIClient {
         return r.available ? r.latest : nil
     }
 
+    func weather(lat: Double, lon: Double) async throws -> Weather? {
+        struct R: Decodable { let weather: Weather? }
+        let r: R = try await send("GET", "/api/weather", query: ["lat": String(lat), "lon": String(lon)])
+        return r.weather
+    }
+
     func taste() async throws -> TastePreferences? {
         struct R: Decodable { let preferences: TastePreferences? }
         let r: R = try await send("GET", "/api/taste")
