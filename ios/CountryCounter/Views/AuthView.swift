@@ -28,15 +28,15 @@ struct AuthView: View {
                     Task { await auth.handleApple(result, mode: .signIn) }
                 }
                 .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
+                // системная кнопка не меняет цвет при смене темы на лету — пересоздаём её
+                .id(colorScheme)
                 .frame(height: 50)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .disabled(auth.isBusy)
 
-                GoogleSignInButton(scheme: colorScheme == .dark ? .dark : .light, style: .wide) {
-                    Task { await auth.signInWithGoogle(mode: .signIn) }
-                }
-                .frame(height: 50)
-                .disabled(auth.isBusy || !AuthManager.isGoogleConfigured)
-                .opacity(AuthManager.isGoogleConfigured ? 1 : 0.5)
+                GoogleButton { Task { await auth.signInWithGoogle(mode: .signIn) } }
+                    .disabled(auth.isBusy || !AuthManager.isGoogleConfigured)
+                    .opacity(AuthManager.isGoogleConfigured ? 1 : 0.5)
 
                 if !AuthManager.isGoogleConfigured {
                     Text("Google appears once GOOGLE_CLIENT_ID is set in Config.xcconfig.")
@@ -77,3 +77,37 @@ struct AuthView: View {
         }
     }
 }
+
+/// Кнопка Google той же формы, что и «Вход с Apple»: во всю ширину, 50 pt, те же скругления и шрифт.
+/// Цвета — по рекомендациям Google: светлая с тонкой рамкой днём, тёмно-серая ночью. Логотип «G» берётся
+/// из бандла GoogleSignIn, чтобы не хранить свою копию.
+struct GoogleButton: View {
+    @Environment(\.colorScheme) private var colorScheme
+    let action: () -> Void
+
+    private static let logo: UIImage? = {
+        guard let url = Bundle.main.url(forResource: "GoogleSignIn_GoogleSignIn", withExtension: "bundle"),
+              let bundle = Bundle(url: url) else { return nil }
+        return UIImage(named: "google", in: bundle, with: nil)
+    }()
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                if let logo = Self.logo {
+                    Image(uiImage: logo).resizable().scaledToFit().frame(width: 20, height: 20)
+                }
+                Text("Sign in with Google")
+                    .font(.system(size: 19, weight: .medium))
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .foregroundStyle(colorScheme == .dark ? Color(white: 0.9) : Color(white: 0.12))
+            .background(colorScheme == .dark ? Color(red: 0.075, green: 0.075, blue: 0.078) : .white)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(colorScheme == .dark ? Color(white: 0.45) : Color(white: 0.75), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+    }
+}
+

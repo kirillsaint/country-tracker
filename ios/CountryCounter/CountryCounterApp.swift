@@ -30,6 +30,7 @@ struct CountryCounterApp: App {
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
             BackgroundScheduler.schedule()
+            Task { await model.checkForUpdate() }
             Task {
                 // сначала показываем то, что уже есть, затем свежая точка — и данные перечитываются с ней
                 await model.refresh()

@@ -3,6 +3,7 @@ import SwiftUI
 struct RootView: View {
     @Environment(AppModel.self) private var model
     @Environment(AuthManager.self) private var auth
+    @Environment(\.openURL) private var openURL
     @State private var tab = Self.initialTab
     @State private var router = Router.shared
 
@@ -42,6 +43,17 @@ struct RootView: View {
                 await model.refresh()
                 // Точки, накопленные до входа, уезжают сразу после входа
                 await Uploader.flush()
+                await model.checkForUpdate(force: true)
+            }
+            .alert("Update available", isPresented: Binding(get: { model.availableUpdate != nil }, set: { if !$0 { model.availableUpdate = nil } }), presenting: model.availableUpdate) { update in
+                Button("Update") { openURL(update.url) }
+                Button("Later", role: .cancel) {}
+            } message: { update in
+                if let notes = update.notes, !notes.isEmpty {
+                    Text("Version \(update.version) (\(update.buildNumber)) is in the store.\n\(notes)")
+                } else {
+                    Text("Version \(update.version) (\(update.buildNumber)) is in the store.")
+                }
             }
             .sheet(item: $router.pending) { link in
                 NavigationStack {

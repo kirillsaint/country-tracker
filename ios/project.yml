@@ -96,5 +96,8 @@ targets:
         CFBundleDisplayName: Stamps
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, ru]
+        # версия расширения обязана совпадать с версией приложения
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
