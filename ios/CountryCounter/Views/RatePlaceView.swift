@@ -79,6 +79,7 @@ struct RatePlaceView: View {
                         } label: {
                             Text(ratingTagTitle(t))
                                 .font(.caption)
+                                .multilineTextAlignment(.center)
                                 .padding(.horizontal, 10).padding(.vertical, 6)
                                 .frame(maxWidth: .infinity)
                                 .background(Capsule().fill(tags.contains(t) ? Color.accentColor : Color.secondary.opacity(0.12)))

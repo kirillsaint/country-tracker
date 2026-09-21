@@ -2,6 +2,16 @@
   "sourceLanguage": "en",
   "strings": {
     "—": {},
+    "— picks lean indoors": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "— подборка ближе к помещениям"
+          }
+        }
+      }
+    },
     "· yours falls short": {
       "extractionState": "stale",
       "localizations": {
@@ -108,6 +118,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ в любые %lld дней"
+          }
+        }
+      }
+    },
+    "%@ is nearby": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Рядом %@"
           }
         }
       }
@@ -457,6 +478,17 @@
         }
       }
     },
+    "%lld h": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ч"
+          }
+        }
+      }
+    },
     "%lld km": {
       "extractionState": "stale",
       "localizations": {
@@ -609,6 +641,16 @@
         }
       }
     },
+    "3–4 places in a sensible order with times, e.g. coffee → walk → dinner.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3–4 места по порядку со временем, например кофе → прогулка → ужин."
+          }
+        }
+      }
+    },
     "183 days per calendar year": {
       "extractionState": "stale",
       "localizations": {
@@ -659,6 +701,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Фиксированный период с выбранной даты — например, срок визы."
+          }
+        }
+      }
+    },
+    "A one-minute quiz — better picks from the first search.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Тест на минуту, и подборки точнее с первого поиска."
           }
         }
       }
@@ -895,6 +947,17 @@
         }
       }
     },
+    "Amusement": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Аттракционы"
+          }
+        }
+      }
+    },
     "And %@ more": {},
     "And %lld more": {
       "extractionState": "stale",
@@ -949,6 +1012,17 @@
         }
       }
     },
+    "Anything else? e.g. love terraces with a view, hate malls": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Что ещё? Например: люблю террасы с видом, не люблю моллы"
+          }
+        }
+      }
+    },
     "App Group unavailable": {
       "extractionState": "stale",
       "localizations": {
@@ -978,6 +1052,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "Apple не вернул identity token."
+          }
+        }
+      }
+    },
+    "Apple Maps takes one destination at a time; Google Maps shows all stops.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Карты Apple ведут к одной точке, Google Maps показывает все остановки."
+          }
+        }
+      }
+    },
+    "Architecture": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Архитектура"
+          }
+        }
+      }
+    },
+    "As a couple": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вдвоём"
+          }
+        }
+      }
+    },
+    "Asian": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Азиатская"
           }
         }
       }
@@ -1069,6 +1185,28 @@
         }
       }
     },
+    "Bakery": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пекарня"
+          }
+        }
+      }
+    },
+    "Beach": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пляж"
+          }
+        }
+      }
+    },
     "Been there — rate it": {
       "extractionState": "stale",
       "localizations": {
@@ -1076,6 +1214,72 @@
           "stringUnit": {
             "state": "translated",
             "value": "Был здесь, оценить"
+          }
+        }
+      }
+    },
+    "Books": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Книги"
+          }
+        }
+      }
+    },
+    "Bowling": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Боулинг"
+          }
+        }
+      }
+    },
+    "Breakfast": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завтраки"
+          }
+        }
+      }
+    },
+    "Budget": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Бюджет"
+          }
+        }
+      }
+    },
+    "Build a route": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Составить маршрут"
+          }
+        }
+      }
+    },
+    "Build another one": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Составить другой"
           }
         }
       }
@@ -1113,6 +1317,17 @@
         }
       }
     },
+    "Chains": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сетевые заведения"
+          }
+        }
+      }
+    },
     "Change the numbers in the entry rules to keep everything consistent, or edit here — your version will be kept.": {
       "extractionState": "stale",
       "localizations": {
@@ -1130,6 +1345,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Изменения во время пребывания"
+          }
+        }
+      }
+    },
+    "Cheap": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дёшево"
           }
         }
       }
@@ -1232,6 +1457,17 @@
         }
       }
     },
+    "Cinema": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кино"
+          }
+        }
+      }
+    },
     "cities": {
       "extractionState": "stale",
       "localizations": {
@@ -1317,6 +1553,17 @@
         }
       }
     },
+    "clear": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ясно"
+          }
+        }
+      }
+    },
     "Clear — any country": {
       "extractionState": "stale",
       "localizations": {
@@ -1355,6 +1602,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Сейчас закрыто"
+          }
+        }
+      }
+    },
+    "Club": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Клуб"
+          }
+        }
+      }
+    },
+    "Cocktails": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Коктейли"
           }
         }
       }
@@ -1584,6 +1853,17 @@
         }
       }
     },
+    "Crowds": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Толпы"
+          }
+        }
+      }
+    },
     "Culture": {
       "extractionState": "stale",
       "localizations": {
@@ -1771,6 +2051,17 @@
         }
       }
     },
+    "Desserts": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Десерты"
+          }
+        }
+      }
+    },
     "Details": {
       "extractionState": "stale",
       "localizations": {
@@ -1799,6 +2090,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Дата въезда — автоматически"
+          }
+        }
+      }
+    },
+    "Dietary": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ограничения в еде"
           }
         }
       }
@@ -1846,6 +2148,16 @@
         }
       }
     },
+    "Doesn’t matter": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Неважно"
+          }
+        }
+      }
+    },
     "Done": {
       "extractionState": "stale",
       "localizations": {
@@ -1853,6 +2165,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Готово"
+          }
+        }
+      }
+    },
+    "drizzle": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "морось"
           }
         }
       }
@@ -1960,6 +2283,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Изменить условия въезда"
+          }
+        }
+      }
+    },
+    "Electronics": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Электроника"
           }
         }
       }
@@ -2103,6 +2437,17 @@
         }
       }
     },
+    "Escape room": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Квест"
+          }
+        }
+      }
+    },
     "Expired %@": {
       "extractionState": "stale",
       "localizations": {
@@ -2190,6 +2535,49 @@
         }
       }
     },
+    "Famous": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Известные"
+          }
+        }
+      }
+    },
+    "Famous or hidden?": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Известное или скрытое?"
+          }
+        }
+      }
+    },
+    "Famous spots": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Известные места"
+          }
+        }
+      }
+    },
+    "Fashion": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Одежда"
+          }
+        }
+      }
+    },
     "Fill in automatically": {
       "extractionState": "stale",
       "localizations": {
@@ -2213,12 +2601,44 @@
       }
     },
     "Find something to do": {
-      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Найти чем заняться"
+          }
+        }
+      }
+    },
+    "Fine dining": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Высокая кухня"
+          }
+        }
+      }
+    },
+    "First stop in Apple Maps": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Первая остановка в Картах Apple"
+          }
+        }
+      }
+    },
+    "fog": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "туман"
           }
         }
       }
@@ -2285,6 +2705,17 @@
         }
       }
     },
+    "For working": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поработать"
+          }
+        }
+      }
+    },
     "Found": {
       "extractionState": "stale",
       "localizations": {
@@ -2303,6 +2734,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Найдено: %@. Проверьте и подтвердите."
+          }
+        }
+      }
+    },
+    "Free-form wishes go straight to the assistant.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пожелания своими словами уходят помощнику как есть."
           }
         }
       }
@@ -2394,6 +2835,17 @@
         }
       }
     },
+    "Gallery": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Галерея"
+          }
+        }
+      }
+    },
     "Georgia visa-free": {
       "extractionState": "stale",
       "localizations": {
@@ -2412,6 +2864,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Грузия безвиз 365"
+          }
+        }
+      }
+    },
+    "Georgian": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Грузинская"
+          }
+        }
+      }
+    },
+    "Gluten-free": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Без глютена"
           }
         }
       }
@@ -2569,6 +3043,38 @@
         }
       }
     },
+    "Halal": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Халяль"
+          }
+        }
+      }
+    },
+    "Half-day route": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Маршрут на полдня"
+          }
+        }
+      }
+    },
+    "Hidden": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скрытые"
+          }
+        }
+      }
+    },
     "Hidden from future picks. Data: Google Maps.": {
       "localizations": {
         "ru": {
@@ -2586,6 +3092,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "скрытая жемчужина"
+          }
+        }
+      }
+    },
+    "Hidden gems": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скрытые жемчужины"
           }
         }
       }
@@ -2608,6 +3125,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Итоги"
+          }
+        }
+      }
+    },
+    "Hike": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поход"
           }
         }
       }
@@ -2783,6 +3311,28 @@
         }
       }
     },
+    "Indian": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Индийская"
+          }
+        }
+      }
+    },
+    "Indoor play": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Игровая в помещении"
+          }
+        }
+      }
+    },
     "Insurance": {
       "extractionState": "stale",
       "localizations": {
@@ -2816,12 +3366,34 @@
         }
       }
     },
+    "Italian": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Итальянская"
+          }
+        }
+      }
+    },
     "Its rules are deleted too. Visas issued on a deleted passport stay, but lose the link.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Его правила тоже удалятся. Визы, выданные по удалённому паспорту, останутся, но потеряют привязку."
+          }
+        }
+      }
+    },
+    "Japanese": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Японская"
           }
         }
       }
@@ -2978,6 +3550,27 @@
         }
       }
     },
+    "Live music": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Живая музыка"
+          }
+        }
+      }
+    },
+    "Lively": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оживлённо"
+          }
+        }
+      }
+    },
     "Loading map…": {
       "extractionState": "stale",
       "localizations": {
@@ -2999,6 +3592,17 @@
         }
       }
     },
+    "Local cuisine": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Местная кухня"
+          }
+        }
+      }
+    },
     "Location": {
       "extractionState": "stale",
       "localizations": {
@@ -3006,6 +3610,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Местоположение"
+          }
+        }
+      }
+    },
+    "Long queues": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очереди"
           }
         }
       }
@@ -3031,6 +3646,17 @@
         }
       }
     },
+    "Loud music": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Громкая музыка"
+          }
+        }
+      }
+    },
     "low confidence": {
       "extractionState": "stale",
       "localizations": {
@@ -3049,6 +3675,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Основная страна дня"
+          }
+        }
+      }
+    },
+    "Mall": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Молл"
           }
         }
       }
@@ -3082,6 +3719,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Отметить проверенным"
+          }
+        }
+      }
+    },
+    "Market": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Рынок"
           }
         }
       }
@@ -3141,6 +3789,27 @@
         }
       }
     },
+    "Mid": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Средне"
+          }
+        }
+      }
+    },
+    "Middle Eastern": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Арабская"
+          }
+        }
+      }
+    },
     "Minimum days per year": {
       "extractionState": "stale",
       "localizations": {
@@ -3148,6 +3817,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Минимум дней в году"
+          }
+        }
+      }
+    },
+    "Mix": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "И то и другое"
           }
         }
       }
@@ -3203,6 +3882,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Многократная"
+          }
+        }
+      }
+    },
+    "Museum": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Музей"
           }
         }
       }
@@ -3313,6 +4003,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Название, напр. Шенген C"
+          }
+        }
+      }
+    },
+    "Nature": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Природа"
           }
         }
       }
@@ -3432,6 +4133,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Нет активной версии"
+          }
+        }
+      }
+    },
+    "No alcohol": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Без алкоголя"
           }
         }
       }
@@ -3943,6 +4655,17 @@
         }
       }
     },
+    "Old town": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Старый город"
+          }
+        }
+      }
+    },
     "Only this country": {
       "localizations": {
         "ru": {
@@ -4037,6 +4760,17 @@
         }
       }
     },
+    "overcast": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "пасмурно"
+          }
+        }
+      }
+    },
     "overpriced": {
       "extractionState": "stale",
       "localizations": {
@@ -4055,6 +4789,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Переопределить адрес (debug)"
+          }
+        }
+      }
+    },
+    "Park": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Парк"
+          }
+        }
+      }
+    },
+    "partly cloudy": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "переменная облачность"
           }
         }
       }
@@ -4256,6 +5012,17 @@
         }
       }
     },
+    "Photo spots": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фото-места"
+          }
+        }
+      }
+    },
     "Photo: %@": {
       "extractionState": "stale",
       "localizations": {
@@ -4294,6 +5061,27 @@
           "stringUnit": {
             "state": "translated",
             "value": "Подборка для вас"
+          }
+        }
+      }
+    },
+    "Plan a half-day route": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Составить маршрут на полдня"
+          }
+        }
+      }
+    },
+    "Playground": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Площадка"
           }
         }
       }
@@ -4375,8 +5163,18 @@
         }
       }
     },
-    "Quiet": {
+    "Pub": {
       "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Паб"
+          }
+        }
+      }
+    },
+    "Quiet": {
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -4393,6 +5191,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Радиус"
+          }
+        }
+      }
+    },
+    "rain": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "дождь"
           }
         }
       }
@@ -4712,6 +5521,17 @@
         }
       }
     },
+    "Rooftop": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Руфтоп"
+          }
+        }
+      }
+    },
     "Rule": {
       "extractionState": "stale",
       "localizations": {
@@ -4893,6 +5713,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Шенген 90/180"
+          }
+        }
+      }
+    },
+    "Science": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Наука"
+          }
+        }
+      }
+    },
+    "Seafood": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Рыба"
           }
         }
       }
@@ -5159,6 +6001,38 @@
         }
       }
     },
+    "Smoking": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Курящие места"
+          }
+        }
+      }
+    },
+    "snow": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "снег"
+          }
+        }
+      }
+    },
+    "Solo": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Один"
+          }
+        }
+      }
+    },
     "Sources": {
       "extractionState": "stale",
       "localizations": {
@@ -5166,6 +6040,39 @@
           "stringUnit": {
             "state": "translated",
             "value": "Источники"
+          }
+        }
+      }
+    },
+    "Souvenirs": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сувениры"
+          }
+        }
+      }
+    },
+    "Spa": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Спа"
+          }
+        }
+      }
+    },
+    "Specialty": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Спешелти"
           }
         }
       }
@@ -5199,6 +6106,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Начиная с"
+          }
+        }
+      }
+    },
+    "Starts in about 15 minutes from where you are. Name a place you definitely want to visit and the route is built around it; saved places are considered too.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Старт примерно через 15 минут оттуда, где вы есть. Назовите место, куда точно хотите, и маршрут построится вокруг него; сохранённые места тоже учитываются."
           }
         }
       }
@@ -5241,6 +6158,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Лимиты пребывания"
+          }
+        }
+      }
+    },
+    "Steak": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Стейки"
+          }
+        }
+      }
+    },
+    "Street food": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Стритфуд"
+          }
+        }
+      }
+    },
+    "Style": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Стиль"
           }
         }
       }
@@ -5299,6 +6248,38 @@
         }
       }
     },
+    "Tea": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Чай"
+          }
+        }
+      }
+    },
+    "Tell the assistant your taste": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Расскажите помощнику о своём вкусе"
+          }
+        }
+      }
+    },
+    "Temples": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Храмы"
+          }
+        }
+      }
+    },
     "Temporary (residence permit)": {
       "extractionState": "stale",
       "localizations": {
@@ -5306,6 +6287,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "ВНЖ (временный)"
+          }
+        }
+      }
+    },
+    "Terrace": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Терраса"
           }
         }
       }
@@ -5444,6 +6436,17 @@
         }
       }
     },
+    "Theatre": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Театр"
+          }
+        }
+      }
+    },
     "this year": {
       "extractionState": "stale",
       "localizations": {
@@ -5465,6 +6468,17 @@
         }
       }
     },
+    "thunderstorm": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "гроза"
+          }
+        }
+      }
+    },
     "Timeline": {
       "localizations": {
         "ru": {
@@ -5482,6 +6496,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "По"
+          }
+        }
+      }
+    },
+    "Tourist traps": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Туристические ловушки"
           }
         }
       }
@@ -5650,6 +6675,16 @@
         }
       }
     },
+    "Upscale": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дорого"
+          }
+        }
+      }
+    },
     "Use this permit for your current stay in %@?": {
       "localizations": {
         "ru": {
@@ -5710,6 +6745,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Обычно 20–60 секунд. Можно уйти — по готовности придёт уведомление."
+          }
+        }
+      }
+    },
+    "Usually travelling": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обычно путешествую"
           }
         }
       }
@@ -5776,6 +6822,39 @@
           "stringUnit": {
             "state": "translated",
             "value": "Цена/качество"
+          }
+        }
+      }
+    },
+    "Vegan": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Веганская"
+          }
+        }
+      }
+    },
+    "Vegetarian": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вегетарианское"
+          }
+        }
+      }
+    },
+    "Viewpoint": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Смотровая"
           }
         }
       }
@@ -5922,6 +7001,28 @@
         }
       }
     },
+    "Water park": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Аквапарк"
+          }
+        }
+      }
+    },
+    "Waterfront": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Набережная"
+          }
+        }
+      }
+    },
     "Website": {
       "extractionState": "stale",
       "localizations": {
@@ -5940,6 +7041,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Чего хочется? Например: тихая кофейня с розетками"
+          }
+        }
+      }
+    },
+    "What do you like to eat?": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Что любите есть?"
+          }
+        }
+      }
+    },
+    "What matters most on a trip?": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Что важнее всего в поездке?"
+          }
+        }
+      }
+    },
+    "What to avoid": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Чего избегать"
           }
         }
       }
@@ -5987,6 +7120,17 @@
         }
       }
     },
+    "Whole route in Google Maps": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Весь маршрут в Google Maps"
+          }
+        }
+      }
+    },
     "Widget data": {
       "extractionState": "stale",
       "localizations": {
@@ -6019,12 +7163,54 @@
         }
       }
     },
+    "Wine": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вино"
+          }
+        }
+      }
+    },
+    "Wishes: e.g. must visit Roasters, dinner by the water": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пожелания: например, обязательно зайти в Roasters, ужин у воды"
+          }
+        }
+      }
+    },
     "With a visa required, add the visa itself in Documents — its limits become rules there.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Если нужна виза, добавьте саму визу в «Документах» — её лимиты станут правилами там."
+          }
+        }
+      }
+    },
+    "With family": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "С семьёй"
+          }
+        }
+      }
+    },
+    "With friends": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "С друзьями"
           }
         }
       }
@@ -6179,6 +7365,17 @@
         }
       }
     },
+    "You saved it for later — it’s about 300 m away.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вы сохраняли это место на потом, до него около 300 м."
+          }
+        }
+      }
+    },
     "You’re in %@": {
       "extractionState": "stale",
       "localizations": {
@@ -6233,1067 +7430,8 @@
         }
       }
     },
-    "Italian": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Итальянская"
-          }
-        }
-      }
-    },
-    "Japanese": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Японская"
-          }
-        }
-      }
-    },
-    "Georgian": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Грузинская"
-          }
-        }
-      }
-    },
-    "Middle Eastern": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Арабская"
-          }
-        }
-      }
-    },
-    "Indian": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Индийская"
-          }
-        }
-      }
-    },
-    "Asian": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Азиатская"
-          }
-        }
-      }
-    },
-    "Seafood": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Рыба"
-          }
-        }
-      }
-    },
-    "Steak": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Стейки"
-          }
-        }
-      }
-    },
-    "Vegan": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Веганская"
-          }
-        }
-      }
-    },
-    "Breakfast": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Завтраки"
-          }
-        }
-      }
-    },
-    "Street food": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Стритфуд"
-          }
-        }
-      }
-    },
-    "Fine dining": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Высокая кухня"
-          }
-        }
-      }
-    },
-    "Specialty": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Спешелти"
-          }
-        }
-      }
-    },
-    "Desserts": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Десерты"
-          }
-        }
-      }
-    },
-    "For working": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Поработать"
-          }
-        }
-      }
-    },
-    "Terrace": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Терраса"
-          }
-        }
-      }
-    },
-    "Tea": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Чай"
-          }
-        }
-      }
-    },
-    "Bakery": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Пекарня"
-          }
-        }
-      }
-    },
-    "Park": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Парк"
-          }
-        }
-      }
-    },
-    "Waterfront": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Набережная"
-          }
-        }
-      }
-    },
-    "Viewpoint": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Смотровая"
-          }
-        }
-      }
-    },
-    "Beach": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Пляж"
-          }
-        }
-      }
-    },
-    "Old town": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Старый город"
-          }
-        }
-      }
-    },
-    "Hike": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Поход"
-          }
-        }
-      }
-    },
-    "Museum": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Музей"
-          }
-        }
-      }
-    },
-    "Gallery": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Галерея"
-          }
-        }
-      }
-    },
-    "Theatre": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Театр"
-          }
-        }
-      }
-    },
-    "Architecture": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Архитектура"
-          }
-        }
-      }
-    },
-    "Temples": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Храмы"
-          }
-        }
-      }
-    },
-    "Rooftop": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Руфтоп"
-          }
-        }
-      }
-    },
-    "Cocktails": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Коктейли"
-          }
-        }
-      }
-    },
-    "Live music": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Живая музыка"
-          }
-        }
-      }
-    },
-    "Club": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Клуб"
-          }
-        }
-      }
-    },
-    "Wine": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Вино"
-          }
-        }
-      }
-    },
-    "Pub": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Паб"
-          }
-        }
-      }
-    },
-    "Playground": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Площадка"
-          }
-        }
-      }
-    },
-    "Zoo & aquarium": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Зоопарк и океанариум"
-          }
-        }
-      }
-    },
-    "Amusement": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Аттракционы"
-          }
-        }
-      }
-    },
-    "Water park": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Аквапарк"
-          }
-        }
-      }
-    },
-    "Science": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Наука"
-          }
-        }
-      }
-    },
-    "Indoor play": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Игровая в помещении"
-          }
-        }
-      }
-    },
-    "Mall": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Молл"
-          }
-        }
-      }
-    },
-    "Market": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Рынок"
-          }
-        }
-      }
-    },
-    "Souvenirs": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Сувениры"
-          }
-        }
-      }
-    },
-    "Books": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Книги"
-          }
-        }
-      }
-    },
-    "Fashion": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Одежда"
-          }
-        }
-      }
-    },
-    "Electronics": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Электроника"
-          }
-        }
-      }
-    },
-    "Spa": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Спа"
-          }
-        }
-      }
-    },
-    "Cinema": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Кино"
-          }
-        }
-      }
-    },
-    "Bowling": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Боулинг"
-          }
-        }
-      }
-    },
-    "Escape room": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Квест"
-          }
-        }
-      }
-    },
-    "clear": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ясно"
-          }
-        }
-      }
-    },
-    "partly cloudy": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "переменная облачность"
-          }
-        }
-      }
-    },
-    "overcast": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "пасмурно"
-          }
-        }
-      }
-    },
-    "fog": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "туман"
-          }
-        }
-      }
-    },
-    "drizzle": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "морось"
-          }
-        }
-      }
-    },
-    "rain": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "дождь"
-          }
-        }
-      }
-    },
-    "snow": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "снег"
-          }
-        }
-      }
-    },
-    "thunderstorm": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "гроза"
-          }
-        }
-      }
-    },
-    "— picks lean indoors": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "— подборка ближе к помещениям"
-          }
-        }
-      }
-    },
-    "Plan a half-day route": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Составить маршрут на полдня"
-          }
-        }
-      }
-    },
-    "3–4 places in a sensible order with times, e.g. coffee → walk → dinner.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "3–4 места по порядку со временем, например кофе → прогулка → ужин."
-          }
-        }
-      }
-    },
-    "%lld h": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld ч"
-          }
-        }
-      }
-    },
-    "Build a route": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Составить маршрут"
-          }
-        }
-      }
-    },
-    "Build another one": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Составить другой"
-          }
-        }
-      }
-    },
-    "Whole route in Google Maps": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Весь маршрут в Google Maps"
-          }
-        }
-      }
-    },
-    "First stop in Apple Maps": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Первая остановка в Картах Apple"
-          }
-        }
-      }
-    },
-    "Apple Maps takes one destination at a time; Google Maps shows all stops.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Карты Apple ведут к одной точке, Google Maps показывает все остановки."
-          }
-        }
-      }
-    },
-    "Half-day route": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Маршрут на полдня"
-          }
-        }
-      }
-    },
-    "%@ is nearby": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Рядом %@"
-          }
-        }
-      }
-    },
-    "You saved it for later — it’s about 300 m away.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Вы сохраняли это место на потом, до него около 300 м."
-          }
-        }
-      }
-    },
-    "Local cuisine": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Местная кухня"
-          }
-        }
-      }
-    },
-    "Nature": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Природа"
-          }
-        }
-      }
-    },
-    "Photo spots": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Фото-места"
-          }
-        }
-      }
-    },
-    "Vegetarian": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Вегетарианское"
-          }
-        }
-      }
-    },
-    "Halal": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Халяль"
-          }
-        }
-      }
-    },
-    "No alcohol": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Без алкоголя"
-          }
-        }
-      }
-    },
-    "Gluten-free": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Без глютена"
-          }
-        }
-      }
-    },
-    "Crowds": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Толпы"
-          }
-        }
-      }
-    },
-    "Tourist traps": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Туристические ловушки"
-          }
-        }
-      }
-    },
-    "Loud music": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Громкая музыка"
-          }
-        }
-      }
-    },
-    "Smoking": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Курящие места"
-          }
-        }
-      }
-    },
-    "Long queues": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Очереди"
-          }
-        }
-      }
-    },
-    "Chains": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Сетевые заведения"
-          }
-        }
-      }
-    },
-    "What do you like to eat?": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Что любите есть?"
-          }
-        }
-      }
-    },
-    "What matters most on a trip?": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Что важнее всего в поездке?"
-          }
-        }
-      }
-    },
-    "Doesn’t matter": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Неважно"
-          }
-        }
-      }
-    },
-    "Lively": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Оживлённо"
-          }
-        }
-      }
-    },
-    "Budget": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Бюджет"
-          }
-        }
-      }
-    },
-    "Cheap": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Дёшево"
-          }
-        }
-      }
-    },
-    "Mid": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Средне"
-          }
-        }
-      }
-    },
-    "Upscale": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Дорого"
-          }
-        }
-      }
-    },
-    "Usually travelling": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Обычно путешествую"
-          }
-        }
-      }
-    },
-    "Solo": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Один"
-          }
-        }
-      }
-    },
-    "As a couple": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Вдвоём"
-          }
-        }
-      }
-    },
-    "With friends": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "С друзьями"
-          }
-        }
-      }
-    },
-    "With family": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "С семьёй"
-          }
-        }
-      }
-    },
-    "Famous or hidden?": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Известное или скрытое?"
-          }
-        }
-      }
-    },
-    "Famous spots": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Известные места"
-          }
-        }
-      }
-    },
-    "Mix": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "И то и другое"
-          }
-        }
-      }
-    },
-    "Hidden gems": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Скрытые жемчужины"
-          }
-        }
-      }
-    },
-    "Style": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Стиль"
-          }
-        }
-      }
-    },
-    "Dietary": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ограничения в еде"
-          }
-        }
-      }
-    },
-    "What to avoid": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Чего избегать"
-          }
-        }
-      }
-    },
-    "Anything else? e.g. love terraces with a view, hate malls": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Что ещё? Например: люблю террасы с видом, не люблю моллы"
-          }
-        }
-      }
-    },
-    "Free-form wishes go straight to the assistant.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Пожелания своими словами уходят помощнику как есть."
-          }
-        }
-      }
-    },
     "Your taste": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -7303,62 +7441,43 @@
         }
       }
     },
-    "Tell the assistant your taste": {
+    "Zoo & aquarium": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Расскажите помощнику о своём вкусе"
+            "value": "Зоопарк и океанариум"
           }
         }
       }
     },
-    "A one-minute quiz — better picks from the first search.": {
+    "Start": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Тест на минуту, и подборки точнее с первого поиска."
+            "value": "Старт"
           }
         }
       }
     },
-    "Famous": {
+    "Pick date and time": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Известные"
+            "value": "Выбрать дату и время"
           }
         }
       }
     },
-    "Hidden": {
+    "For another day the plan relies on the weekly opening hours; the weather is not taken into account.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Скрытые"
-          }
-        }
-      }
-    },
-    "Wishes: e.g. must visit Roasters, dinner by the water": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Пожелания: например, обязательно зайти в Roasters, ужин у воды"
-          }
-        }
-      }
-    },
-    "Starts in about 15 minutes from where you are. Name a place you definitely want to visit and the route is built around it; saved places are considered too.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Старт примерно через 15 минут оттуда, где вы есть. Назовите место, куда точно хотите, и маршрут построится вокруг него; сохранённые места тоже учитываются."
+            "value": "Для другого дня план опирается на недельное расписание заведений, погода не учитывается."
           }
         }
       }

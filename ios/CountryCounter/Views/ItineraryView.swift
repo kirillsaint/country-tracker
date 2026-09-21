@@ -11,6 +11,8 @@ struct ItineraryView: View {
 
     @State private var hours = 4
     @State private var note = ""
+    @State private var customStart = false
+    @State private var start = Date().addingTimeInterval(30 * 60)
     @State private var loading = false
     @State private var error: String?
     @FocusState private var noteFocused: Bool
@@ -24,6 +26,14 @@ struct ItineraryView: View {
                     Text(String(localized: "\(6) h")).tag(6)
                 }
                 .pickerStyle(.segmented)
+                Picker("Start", selection: $customStart) {
+                    Text("Now").tag(false)
+                    Text("Pick date and time").tag(true)
+                }
+                .pickerStyle(.segmented)
+                if customStart {
+                    DatePicker("Start", selection: $start, in: Date()..., displayedComponents: [.date, .hourAndMinute])
+                }
                 TextField("Wishes: e.g. must visit Roasters, dinner by the water", text: $note, axis: .vertical)
                     .focused($noteFocused)
                     .lineLimit(1...3)
@@ -42,7 +52,9 @@ struct ItineraryView: View {
                 .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))
                 if let error { Text(error).font(.footnote).foregroundStyle(.red) }
             } footer: {
-                Text("Starts in about 15 minutes from where you are. Name a place you definitely want to visit and the route is built around it; saved places are considered too.")
+                Text(customStart
+                     ? "For another day the plan relies on the weekly opening hours; the weather is not taken into account."
+                     : "Starts in about 15 minutes from where you are. Name a place you definitely want to visit and the route is built around it; saved places are considered too.")
             }
 
             if loading {
@@ -69,7 +81,7 @@ struct ItineraryView: View {
                         }
                     }
                 } header: {
-                    Text(it.title)
+                    Text(customStart ? "\(it.title) · \(prettyFullDate(isoDay(start)))" : it.title)
                 } footer: {
                     Text(it.summary)
                 }
@@ -102,6 +114,12 @@ struct ItineraryView: View {
         }
     }
 
+    private func isoDay(_ d: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        return f.string(from: d)
+    }
+
     private func build() async {
         noteFocused = false
         loading = true
@@ -119,7 +137,7 @@ struct ItineraryView: View {
         }
         do {
             let trimmed = note.trimmingCharacters(in: .whitespaces)
-            try await model.buildItinerary(lat: lat, lon: lon, hours: hours, radiusKm: radiusKm, note: trimmed.isEmpty ? nil : trimmed)
+            try await model.buildItinerary(lat: lat, lon: lon, hours: hours, radiusKm: radiusKm, note: trimmed.isEmpty ? nil : trimmed, start: customStart ? start : nil)
         } catch {
             if !error.isCancellation { self.error = error.localizedDescription }
         }

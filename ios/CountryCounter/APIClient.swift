@@ -260,9 +260,9 @@ struct APIClient {
         return r.preferences
     }
 
-    func itinerary(lat: Double, lon: Double, hours: Int, startTime: String, radiusKm: Double, localTime: String, note: String?) async throws -> Itinerary {
-        struct Body: Encodable { let lat: Double; let lon: Double; let hours: Int; let startTime: String; let radiusKm: Double; let lang: String; let localTime: String; let note: String? }
-        return try await send("POST", "/api/itinerary", body: Body(lat: lat, lon: lon, hours: hours, startTime: startTime, radiusKm: radiusKm, lang: DocumentInput.currentLang, localTime: localTime, note: note))
+    func itinerary(lat: Double, lon: Double, hours: Int, startTime: String, date: String?, radiusKm: Double, localTime: String, note: String?) async throws -> Itinerary {
+        struct Body: Encodable { let lat: Double; let lon: Double; let hours: Int; let startTime: String; let date: String?; let radiusKm: Double; let lang: String; let localTime: String; let note: String? }
+        return try await send("POST", "/api/itinerary", body: Body(lat: lat, lon: lon, hours: hours, startTime: startTime, date: date, radiusKm: radiusKm, lang: DocumentInput.currentLang, localTime: localTime, note: note))
     }
 
     func place(id: String) async throws -> Recommendation {

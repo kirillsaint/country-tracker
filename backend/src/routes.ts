@@ -597,12 +597,14 @@ const itineraryBody = z.object({
   localTime: z.string().max(40).nullable().default(null),
   // пожелания: «обязательно зайти в X», «ужин у воды»
   note: z.string().trim().max(300).nullable().default(null),
+  // дата плана; null — сегодня
+  date: isoDate.nullable().default(null),
 });
 api.post("/itinerary", zValidator("json", itineraryBody), async (c) => {
   if (!isPlacesEnabled()) throw new HTTPException(503, { message: "places are not configured" });
   const b = c.req.valid("json");
   try {
-    return c.json(await itinerary(c.get("userId"), { baseUrl: baseUrl(c), lat: b.lat, lon: b.lon, query: null, category: null, radiusM: Math.round(b.radiusKm * 1000), openNow: false, lang: b.lang, localTime: b.localTime, hours: b.hours, startTime: b.startTime, note: b.note || null }));
+    return c.json(await itinerary(c.get("userId"), { baseUrl: baseUrl(c), lat: b.lat, lon: b.lon, query: null, category: null, radiusM: Math.round(b.radiusKm * 1000), openNow: false, lang: b.lang, localTime: b.localTime, hours: b.hours, startTime: b.startTime, note: b.note || null, date: b.date }));
   } catch (e) {
     throw new HTTPException(502, { message: e instanceof Error ? e.message : "itinerary failed" });
   }

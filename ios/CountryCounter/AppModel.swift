@@ -416,18 +416,22 @@ final class AppModel {
         }
     }
 
-    func buildItinerary(lat: Double, lon: Double, hours: Int, radiusKm: Double, note: String? = nil) async throws {
+    /// start — nil: через 15 минут; иначе выбранные дата и время (сервер получает дату, если она не сегодня)
+    func buildItinerary(lat: Double, lon: Double, hours: Int, radiusKm: Double, note: String? = nil, start: Date? = nil) async throws {
         let f = DateFormatter()
         f.locale = Locale(identifier: "en_US_POSIX")
         f.dateFormat = "EEE HH:mm"
-        let start = DateFormatter()
-        start.locale = Locale(identifier: "en_US_POSIX")
-        start.dateFormat = "HH:mm"
-        // старт через 15 минут, округлённый до четверти часа
-        let startDate = Date().addingTimeInterval(15 * 60)
+        let hhmm = DateFormatter()
+        hhmm.locale = Locale(identifier: "en_US_POSIX")
+        hhmm.dateFormat = "HH:mm"
+        let day = DateFormatter()
+        day.dateFormat = "yyyy-MM-dd"
+        // без явного времени — старт через 15 минут, округлённый до четверти часа
+        let startDate = start ?? Date().addingTimeInterval(15 * 60)
         let comps = Calendar.current.dateComponents([.hour, .minute], from: startDate)
         let rounded = Calendar.current.date(bySettingHour: comps.hour ?? 12, minute: ((comps.minute ?? 0) / 15) * 15, second: 0, of: startDate) ?? startDate
-        let result = try await APIClient.fromSettings().itinerary(lat: lat, lon: lon, hours: hours, startTime: start.string(from: rounded), radiusKm: radiusKm, localTime: f.string(from: Date()), note: note)
+        let dateParam = Calendar.current.isDateInToday(rounded) ? nil : day.string(from: rounded)
+        let result = try await APIClient.fromSettings().itinerary(lat: lat, lon: lon, hours: hours, startTime: hhmm.string(from: rounded), date: dateParam, radiusKm: radiusKm, localTime: f.string(from: rounded), note: note)
         itinerary = result
         if let w = result.weather { weather = w }
         PlaceVisits.remember(result.stops.map { PlaceVisits.Known(id: $0.place.id, name: $0.place.name, lat: $0.place.lat, lon: $0.place.lon) })

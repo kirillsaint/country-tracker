@@ -102,6 +102,7 @@ struct TasteQuizView: View {
                 } label: {
                     Text(o.title)
                         .font(.caption)
+                        .multilineTextAlignment(.center)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                         .padding(.horizontal, 10).padding(.vertical, 7)
