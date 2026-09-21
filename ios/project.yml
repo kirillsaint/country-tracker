@@ -54,8 +54,8 @@ targets:
         # Языки приложения — по ним iOS показывает выбор языка в Настройках -> Stamps
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, ru]
-        CFBundleShortVersionString: "0.1.1"
-        CFBundleVersion: "2"
+        CFBundleShortVersionString: "0.1.2"
+        CFBundleVersion: "3"
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false
