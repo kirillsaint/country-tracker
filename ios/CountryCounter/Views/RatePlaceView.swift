@@ -156,14 +156,19 @@ struct PlacesListView: View {
 
     var body: some View {
         List {
-            Picker("", selection: $segment) {
-                Text("Saved").tag(0)
-                Text("Rated").tag(1)
+            // переключатель — отдельной секцией без фона, иначе он оказывается первой строкой карточки
+            // и верхние углы списка не скругляются
+            Section {
+                Picker("", selection: $segment) {
+                    Text("Saved").tag(0)
+                    Text("Rated").tag(1)
+                }
+                .pickerStyle(.segmented)
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
             }
-            .pickerStyle(.segmented)
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets())
 
+            Section {
             if segment == 0 {
                 if model.savedPlaces.isEmpty {
                     ContentUnavailableView("Nothing saved yet", systemImage: "bookmark", description: Text("Swipe a pick to the right or tap “Save for later” on a place."))
@@ -196,6 +201,7 @@ struct PlacesListView: View {
                         }
                     }
                 }
+            }
             }
         }
         .navigationTitle("Saved and rated")
