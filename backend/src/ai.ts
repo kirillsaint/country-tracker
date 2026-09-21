@@ -27,6 +27,7 @@ const draftSchema = z.object({
         kind: z.enum(["registration", "passportValidity", "insurance", "funds", "ticket", "other"]),
         text: z.string().min(1).max(300),
         withinDays: z.number().int().min(1).max(365).nullable(),
+        months: z.number().int().min(1).max(24).nullable(),
       }),
     )
     .max(10),
@@ -72,11 +73,12 @@ const jsonSchema = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["kind", "text", "withinDays"],
+        required: ["kind", "text", "withinDays", "months"],
         properties: {
           kind: { type: "string", enum: ["registration", "passportValidity", "insurance", "funds", "ticket", "other"] },
           text: { type: "string" },
           withinDays: { type: ["integer", "null"] },
+          months: { type: ["integer", "null"] },
         },
       },
     },
@@ -116,7 +118,7 @@ Rules for your answer:
   - "fromDate": at most limitDays counted from a fixed date. windowDays = length of the period. Rare; use only when the rule is tied to a specific date.
   A country can have SEVERAL constraints at once (e.g. Turkey for Russians: 60 days per entry AND 90 days in any 180). List all that apply.
 - If entry is visa_required or no visa-free option exists, return requirement accordingly with an empty constraints list.
-- conditions = requirements that are not day counts: registration within N days (kind "registration", withinDays N), passport validity (kind "passportValidity"), mandatory insurance, proof of funds, return ticket. Keep each short.
+- conditions = requirements that are not day counts: registration within N days (kind "registration", withinDays N), passport validity (kind "passportValidity", months = how many months the passport must remain valid on entry, e.g. 6; null if the rule only says "valid for the stay"), mandatory insurance, proof of funds, return ticket. Keep each short. withinDays and months are null when not applicable.
 - summary: 2-4 sentences in ${language} for a traveller. Mention if rules changed recently (recentChange) and the date the information is valid for (asOf, ISO date or null).
 - confidence: high only when an official source explicitly states the numbers.
 - Never invent URLs. Only include sources you actually found.
@@ -165,6 +167,69 @@ export async function researchRegime(passportCode: string, countryCode: string, 
     conditions: parsed.conditions.map((c) => ({ id: randomUUID(), done: false, ...c })),
   };
   return { draft, raw, model: json.model ?? config.openRouterModel };
+}
+
+// MARK: документ по распознанному тексту
+
+const documentDraftSchema = z.object({
+  kind: z.enum(["passport", "visa", "residence", "unknown"]),
+  countryCode: z.string().regex(/^[A-Z]{2}$/).nullable(),
+  validFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+  validTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+  entries: z.enum(["single", "multiple"]).nullable(),
+  maxStayDays: z.number().int().min(1).max(3660).nullable(),
+  note: z.string().max(300).nullable(),
+});
+export type DocumentDraft = z.infer<typeof documentDraftSchema>;
+
+const documentJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["kind", "countryCode", "validFrom", "validTo", "entries", "maxStayDays", "note"],
+  properties: {
+    kind: { type: "string", enum: ["passport", "visa", "residence", "unknown"] },
+    countryCode: { type: ["string", "null"] },
+    validFrom: { type: ["string", "null"] },
+    validTo: { type: ["string", "null"] },
+    entries: { type: ["string", "null"], enum: ["single", "multiple", null] },
+    maxStayDays: { type: ["integer", "null"] },
+    note: { type: ["string", "null"] },
+  },
+};
+
+/** Поля документа из текста, распознанного камерой (без веб-поиска). Номера документов не возвращаются. */
+export async function parseDocumentText(text: string, lang: string): Promise<DocumentDraft> {
+  if (!isAiEnabled()) throw new Error("OPENROUTER_API_KEY is not set");
+  const language = lang === "ru" ? "Russian" : "English";
+  const system = `You extract structured fields from OCR text of a travel document (passport, visa sticker, residence permit card, entry stamp). The text is noisy: broken lines, misread characters, mixed languages.
+Return: kind (passport / visa / residence / unknown); countryCode — ISO 3166-1 alpha-2 of the country the document belongs to (for a visa or residence permit: the country that issued it and where it is valid; for a passport: the nationality); validFrom and validTo as YYYY-MM-DD (dates may appear as DD.MM.YYYY, DD-MM-YY, DD MMM YYYY — interpret carefully; a two-digit year is 20xx); entries for visas ("MULT" = multiple, "1"/"01"/"SINGLE" = single); maxStayDays for visas if a "duration of stay" is printed; note — one short sentence in ${language} about anything uncertain, or null.
+Never output document numbers, names or personal data. Unknown fields are null. Return ONLY the JSON object.`;
+  const body = {
+    model: config.openRouterModel,
+    temperature: 0,
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: text },
+    ],
+    response_format: { type: "json_schema", json_schema: { name: "travel_document", strict: true, schema: documentJsonSchema } },
+  };
+  const res = await fetch(`${config.openRouterBaseUrl}/chat/completions`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${config.openRouterApiKey}`,
+      "content-type": "application/json",
+      "HTTP-Referer": "https://country-tracker.kirillsaint.ge",
+      "X-Title": "Country Counter",
+    },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(60_000),
+  });
+  const raw = await res.text();
+  if (!res.ok) throw new Error(`openrouter ${res.status}: ${raw.slice(0, 300)}`);
+  const json = JSON.parse(raw) as { choices?: { message?: { content?: string | { text?: string }[] } }[] };
+  const content = json.choices?.[0]?.message?.content;
+  const answer = typeof content === "string" ? content : Array.isArray(content) ? content.map((c) => c.text ?? "").join("") : "";
+  return documentDraftSchema.parse(extractJson(answer));
 }
 
 // Модель иногда оборачивает JSON в ```json … ``` или добавляет текст — вырезаем первый объект

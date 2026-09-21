@@ -44,6 +44,8 @@
 	<string>$(GOOGLE_CLIENT_ID)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>Чтобы отсканировать паспорт или визу. Фото не сохраняется и никуда не отправляется.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Чтобы считать дни по странам, приложению нужна геолокация и в фоне — иначе оно узнает о переезде только когда вы его откроете.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

@@ -38,9 +38,10 @@ struct DocumentEditView: View {
         var id: String { document.id }
     }
 
-    init(document: TravelDocument?, kind: DocumentKind = .passport) {
+    /// prefill — поля, распознанные сканером; редактор открывается уже заполненным
+    init(document: TravelDocument?, kind: DocumentKind = .passport, prefill: DocumentInput? = nil) {
         self.document = document
-        let input = document?.input ?? DocumentInput(kind: kind, name: "", countryCode: "")
+        let input = document?.input ?? prefill ?? DocumentInput(kind: kind, name: "", countryCode: "")
         _draft = State(initialValue: input)
         _countrySelection = State(initialValue: input.countryCode.isEmpty ? [] : [input.countryCode])
         _zone = State(initialValue: input.countries.count > 1 ? input.countries : [])

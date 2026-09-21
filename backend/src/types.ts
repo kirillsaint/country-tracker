@@ -97,6 +97,8 @@ export type RegimeCondition = {
   text: string;
   // для registration: напомнить через N дней после въезда
   withinDays: number | null;
+  // для passportValidity: сколько месяцев паспорт должен действовать на момент въезда (null — не уточнено)
+  months?: number | null;
   done: boolean;
 };
 

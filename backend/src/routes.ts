@@ -7,7 +7,7 @@ import { type AuthEnv, requireSession } from "./auth.js";
 import { dayOverrides, documents, entries, points, regimeChecks, regimes, rules, users } from "./db.js";
 import { deleteRulesForDocument, resetRuleFromDocument, syncRulesForDocument } from "./documents.js";
 import { config } from "./config.js";
-import { isAiEnabled } from "./ai.js";
+import { isAiEnabled, parseDocumentText } from "./ai.js";
 import { cachedCheck, confirmVersion, deleteRegime, diffVersions, isStale, startCheck } from "./regimes.js";
 import { countryAt, countryName, localDateOf } from "./geo.js";
 import { cityCoords, localizedCityName, searchCities } from "./cities.js";
@@ -606,6 +606,14 @@ api.put("/documents/:id", zValidator("param", z.object({ id: z.string().uuid() }
   return c.json({ document: publicDocument(doc), rules: generated.map(publicRule) });
 });
 
+// Распознанный с камеры текст документа без машиночитаемой зоны (ВНЖ-карты, штампы) → поля документа.
+// Модель получает только текст, не фото; пользователь подтверждает результат в редакторе.
+api.post("/documents/parse", zValidator("json", z.object({ text: z.string().trim().min(3).max(4000), lang: z.enum(["ru", "en"]).default("en") })), async (c) => {
+  if (!isAiEnabled()) throw new HTTPException(503, { message: "assistant is not configured" });
+  const { text, lang } = c.req.valid("json");
+  return c.json({ draft: await parseDocumentText(text, lang) });
+});
+
 // Продление визы / ВНЖ одной кнопкой: прежний срок уходит в history, правила пересобираются
 // под новые даты (тот же документ — основания въезда и пользовательские правки правил сохраняются)
 const renewBody = z
@@ -727,6 +735,7 @@ const conditionBody = z.object({
   kind: z.enum(["registration", "passportValidity", "insurance", "funds", "ticket", "other"]),
   text: z.string().trim().min(1).max(300),
   withinDays: z.number().int().min(1).max(365).nullable().default(null),
+  months: z.number().int().min(1).max(24).nullable().default(null),
   done: z.boolean().default(false),
 });
 const versionBody = z

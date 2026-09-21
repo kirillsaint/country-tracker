@@ -235,6 +235,24 @@ struct APIClient {
         return (r.document, r.rules)
     }
 
+    struct DocumentDraft: Decodable {
+        let kind: String
+        let countryCode: String?
+        let validFrom: String?
+        let validTo: String?
+        let entries: String?
+        let maxStayDays: Int?
+        let note: String?
+    }
+
+    /// Поля документа из текста, распознанного камерой (для документов без MRZ)
+    func parseDocument(text: String) async throws -> DocumentDraft {
+        struct Body: Encodable { let text: String; let lang: String }
+        struct R: Decodable { let draft: DocumentDraft }
+        let r: R = try await send("POST", "/api/documents/parse", body: Body(text: text, lang: DocumentInput.currentLang))
+        return r.draft
+    }
+
     /// Продление визы / ВНЖ: тот же документ, новые даты, старые уходят в history
     func renewDocument(id: String, validFrom: String?, validTo: String) async throws -> (TravelDocument, [Rule]) {
         struct Body: Encodable { let validFrom: String?; let validTo: String; let lang: String }

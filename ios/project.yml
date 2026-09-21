@@ -59,6 +59,7 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false
+        NSCameraUsageDescription: Чтобы отсканировать паспорт или визу. Фото не сохраняется и никуда не отправляется.
         NSLocationWhenInUseUsageDescription: Чтобы определять страну и город, где вы находитесь.
         NSLocationAlwaysAndWhenInUseUsageDescription: Чтобы считать дни по странам, приложению нужна геолокация и в фоне — иначе оно узнает о переезде только когда вы его откроете.
         UIBackgroundModes: [location, fetch, processing]

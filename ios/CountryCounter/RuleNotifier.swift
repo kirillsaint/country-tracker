@@ -69,7 +69,9 @@ enum RuleNotifier {
         state = state.filter { ids.contains($0.key) }
         for d in docs {
             guard let left = d.daysUntilExpiry else { continue }
-            let stage = left <= 0 ? 3 : left <= 7 ? 2 : left <= 30 ? 1 : 0
+            // паспорт: дополнительная ступень за полгода — порог, с которого многие страны не пускают
+            let thresholds = d.kind == .passport ? [182, 30, 7, 0] : [30, 7, 0]
+            let stage = thresholds.filter { left <= $0 }.count
             // срок продлили — ступени откатываются, чтобы напомнить снова перед новым истечением
             if stage < (state[d.id] ?? 0) { state[d.id] = stage == 0 ? nil : stage }
             guard stage > 0, (state[d.id] ?? 0) < stage else { continue }
@@ -81,7 +83,9 @@ enum RuleNotifier {
             content.sound = .default
             content.body = left <= 0
                 ? String(localized: "Expired on \(prettyFullDate(d.validTo ?? "")).")
-                : String(localized: "Expires in \(pluralDays(left)) — \(prettyFullDate(d.validTo ?? "")).")
+                : d.kind == .passport && left > 30
+                    ? String(localized: "Six months of validity left — \(prettyFullDate(d.validTo ?? "")). Many countries require at least six months on entry; time to renew.")
+                    : String(localized: "Expires in \(pluralDays(left)) — \(prettyFullDate(d.validTo ?? "")).")
             let request = UNNotificationRequest(identifier: "doc-\(d.id)-\(stage)", content: content, trigger: nil)
             UNUserNotificationCenter.current().add(request) { error in
                 if let error { log.error("document notification failed: \(error.localizedDescription)") }

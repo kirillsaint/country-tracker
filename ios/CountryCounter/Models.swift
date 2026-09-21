@@ -250,6 +250,24 @@ struct TravelDocument: Codable, Identifiable, Equatable {
 
     var isSingleEntryVisa: Bool { kind == .visa && entries == .single }
 
+    /// Хватает ли срока паспорта: на дату `on` он должен действовать ещё `months` месяцев. Бессрочный — да.
+    func validFor(months: Int, on date: String = DocumentInput.todayString()) -> Bool {
+        guard let validTo else { return true }
+        return Self.requiredUntil(months: months, from: date) <= validTo
+    }
+
+    /// Дата, до которой паспорт должен действовать при въезде `from` с требованием `months` месяцев
+    static func requiredUntil(months: Int, from date: String) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.timeZone = .current
+        guard let d = f.date(from: date), let r = Calendar.current.date(byAdding: .month, value: months, to: d) else { return date }
+        return f.string(from: r)
+    }
+
+    /// Порог, ниже которого паспорт становится «проблемным» для многих стран
+    static let commonPassportMonths = 6
+
     /// Потрачена ли однократная виза. Порядок проверки: флаг, поставленный руками; пребывание,
     /// оформленное по этой визе и уже закончившееся; ручная запись о поездке в её страну внутри срока действия.
     /// nil — не однократная виза или использование не обнаружено.
@@ -427,6 +445,8 @@ struct RegimeCondition: Codable, Identifiable, Equatable {
     var kind: ConditionKind
     var text: String
     var withinDays: Int?
+    /// для passportValidity: сколько месяцев паспорт должен действовать на момент въезда
+    var months: Int?
     var done: Bool = false
 }
 

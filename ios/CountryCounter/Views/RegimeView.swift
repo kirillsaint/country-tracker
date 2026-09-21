@@ -93,6 +93,30 @@ struct RegimeView: View {
                     }
                 }
             }
+            passportValidityRow
+        }
+    }
+
+    /// Хватает ли срока паспорта: по условию страны (N месяцев на въезде), а без него — по общему порогу в 6 месяцев
+    @ViewBuilder
+    private var passportValidityRow: some View {
+        if let passport, let to = passport.validTo, passport.countryCode != countryCode {
+            let required = active?.conditions.first { $0.kind == .passportValidity }?.months
+            if let m = required {
+                if passport.validFor(months: m) {
+                    Label(String(localized: "Passport valid until \(prettyFullDate(to)) — meets the \(m)-month requirement"), systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(.green).font(.footnote)
+                } else {
+                    Label(String(localized: "Passport must be valid \(m) months on entry, until \(prettyFullDate(TravelDocument.requiredUntil(months: m, from: DocumentInput.todayString()))) · yours until \(prettyFullDate(to))"), systemImage: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red).font(.footnote)
+                }
+            } else if !passport.validFor(months: TravelDocument.commonPassportMonths) {
+                Label(String(localized: "Passport valid until \(prettyFullDate(to)) — under 6 months. Many countries refuse entry; check this one’s rule."), systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange).font(.footnote)
+            } else {
+                Label(String(localized: "Passport valid until \(prettyFullDate(to))"), systemImage: "checkmark.circle")
+                    .foregroundStyle(.secondary).font(.footnote)
+            }
         }
     }
 
@@ -168,6 +192,13 @@ struct RegimeView: View {
                             HStack(spacing: 6) {
                                 Label(c.kind.title, systemImage: c.kind.systemImage)
                                 if let w = c.withinDays { Text(String(localized: "within \(pluralDays(w)) of entry")) }
+                                if c.kind == .passportValidity, let m = c.months {
+                                    Text(String(localized: "≥ \(m) months"))
+                                    if let passport, passport.validTo != nil {
+                                        Text(passport.validFor(months: m) ? String(localized: "· yours is fine") : String(localized: "· yours falls short"))
+                                            .foregroundStyle(passport.validFor(months: m) ? .green : .red)
+                                    }
+                                }
                             }
                             .font(.caption).foregroundStyle(.secondary)
                         }
@@ -458,6 +489,9 @@ struct RegimeEditorView: View {
                         TextField("Condition", text: $c.text, axis: .vertical)
                         if c.kind == .registration {
                             DaysField(title: "Within days of entry", value: Binding(get: { c.withinDays ?? 3 }, set: { c.withinDays = $0 }), range: 1...365)
+                        }
+                        if c.kind == .passportValidity {
+                            Stepper(String(localized: "Passport validity on entry: \(c.months ?? 6) months"), value: Binding(get: { c.months ?? 6 }, set: { c.months = $0 }), in: 1...24)
                         }
                     }
                 }

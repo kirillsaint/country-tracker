@@ -5,6 +5,13 @@ struct DocumentsView: View {
     @Environment(AppModel.self) private var model
     @State private var newKind: DocumentKind?
     @State private var showLookup = false
+    @State private var showScanner = false
+    @State private var scanned: ScannedDocument?
+
+    struct ScannedDocument: Identifiable {
+        let id = UUID()
+        let input: DocumentInput
+    }
 
     var body: some View {
         NavigationStack {
@@ -64,6 +71,8 @@ struct DocumentsView: View {
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
+                        Button("Scan with camera", systemImage: "camera.viewfinder") { showScanner = true }
+                        Divider()
                         ForEach(DocumentKind.allCases) { kind in
                             Button(kind.title, systemImage: kind.systemImage) { newKind = kind }
                         }
@@ -74,6 +83,14 @@ struct DocumentsView: View {
             }
             .sheet(item: $newKind) { kind in
                 NavigationStack { DocumentEditView(document: nil, kind: kind) }
+            }
+            .sheet(isPresented: $showScanner) {
+                NavigationStack {
+                    ScanDocumentView { input in scanned = ScannedDocument(input: input) }
+                }
+            }
+            .sheet(item: $scanned) { s in
+                NavigationStack { DocumentEditView(document: nil, kind: s.input.kind, prefill: s.input) }
             }
         }
     }
@@ -188,6 +205,10 @@ struct DocumentRow: View {
         guard let left = document.daysUntilExpiry, let to = document.validTo else { return nil }
         if left < 0 { return (String(localized: "Expired \(prettyFullDate(to))"), .red) }
         if left <= 30 { return (String(localized: "Expires in \(pluralDays(left))"), .orange) }
+        // паспорт: многие страны требуют запас в 6 месяцев на въезде
+        if document.kind == .passport, !document.validFor(months: TravelDocument.commonPassportMonths) {
+            return (String(localized: "Valid until \(prettyFullDate(to)) — under 6 months, many countries won’t admit you"), .orange)
+        }
         return (String(localized: "Valid until \(prettyFullDate(to))"), .secondary)
     }
 }
