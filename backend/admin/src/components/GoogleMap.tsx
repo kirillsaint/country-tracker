@@ -9,7 +9,7 @@ export function GooglePointsMap({ points, apiKey }: { points: Point[]; apiKey: s
   return (
     <div className="card overflow-hidden p-0">
       <APIProvider apiKey={apiKey}>
-        <Map className="h-[520px] w-full" defaultCenter={{ lat: 30, lng: 30 }} defaultZoom={2} gestureHandling="greedy" colorScheme={matchMedia("(prefers-color-scheme: dark)").matches ? "DARK" : "LIGHT"}>
+        <Map className="h-[520px] w-full" defaultCenter={{ lat: 30, lng: 30 }} defaultZoom={2} gestureHandling="greedy" clickableIcons={false} colorScheme={matchMedia("(prefers-color-scheme: dark)").matches ? "DARK" : "LIGHT"}>
           <Layers pts={ordered} />
         </Map>
       </APIProvider>
