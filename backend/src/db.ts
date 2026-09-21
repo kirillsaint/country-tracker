@@ -2,6 +2,7 @@ import { MongoClient, type Collection } from "mongodb";
 import { config } from "./config.js";
 import type { DayOverride, Entry, Point, Regime, RegimeCheck, Rule, Session, TravelDocument, User } from "./types.js";
 import type { City } from "./cities.js";
+import type { DiscoverLog, PlaceDismissal, PlaceRating, PlaceSave, TasteProfile } from "./discover.js";
 
 const client = new MongoClient(config.mongoUrl);
 
@@ -16,6 +17,13 @@ export let regimes: Collection<Regime>;
 export let regimeChecks: Collection<RegimeCheck>;
 // справочник городов GeoNames (общий для всех пользователей)
 export let cities: Collection<City>;
+// «Чем заняться»: кэш ответов Google (сутки), оценки, сохранённые, «не интересно», профиль вкусов
+export let placeCache: Collection<{ key: string; data: unknown; expiresAt: Date }>;
+export let placeRatings: Collection<PlaceRating>;
+export let placeSaves: Collection<PlaceSave>;
+export let placeDismissals: Collection<PlaceDismissal>;
+export let tasteProfiles: Collection<TasteProfile>;
+export let discoverLog: Collection<DiscoverLog>;
 export let citiesMeta: Collection<{ _id: string; source: string; importedAt: string; count: number; i18n?: string[]; i18nAt?: string }>;
 
 export async function connectDb() {
@@ -32,6 +40,12 @@ export async function connectDb() {
   regimeChecks = db.collection<RegimeCheck>("regime_checks");
   cities = db.collection<City>("cities");
   citiesMeta = db.collection("cities_meta");
+  placeCache = db.collection("place_cache");
+  placeRatings = db.collection<PlaceRating>("place_ratings");
+  placeSaves = db.collection<PlaceSave>("place_saves");
+  placeDismissals = db.collection<PlaceDismissal>("place_dismissals");
+  tasteProfiles = db.collection<TasteProfile>("taste_profiles");
+  discoverLog = db.collection<DiscoverLog>("discover_log");
 
   await Promise.all([
     rules.createIndex({ userId: 1, id: 1 }, { unique: true }),
@@ -57,6 +71,13 @@ export async function connectDb() {
     dayOverrides.createIndex({ userId: 1, localDate: 1, countryCode: 1 }, { unique: true }),
     cities.createIndex({ countryCode: 1, population: -1 }),
     cities.createIndex({ countryCode: 1, search: 1 }),
+    placeCache.createIndex({ key: 1 }, { unique: true }),
+    placeCache.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+    placeRatings.createIndex({ userId: 1, placeId: 1 }, { unique: true }),
+    placeSaves.createIndex({ userId: 1, placeId: 1 }, { unique: true }),
+    placeDismissals.createIndex({ userId: 1, placeId: 1 }, { unique: true }),
+    tasteProfiles.createIndex({ userId: 1 }, { unique: true }),
+    discoverLog.createIndex({ userId: 1, at: -1 }),
   ]);
 
   console.log(`Mongo connected: ${db.databaseName}`);

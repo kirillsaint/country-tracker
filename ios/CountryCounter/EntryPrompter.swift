@@ -170,6 +170,10 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
                 await MainActor.run { Router.shared.pending = .entryBasis(country: country) }
                 return
             }
+            if let placeId = info["ratePlace"] as? String {
+                await MainActor.run { Router.shared.pending = .ratePlace(id: placeId, name: info["placeName"] as? String ?? "") }
+                return
+            }
             return
         }
         await EntryPrompter.handle(response)

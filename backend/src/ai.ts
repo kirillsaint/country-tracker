@@ -169,6 +169,38 @@ export async function researchRegime(passportCode: string, countryCode: string, 
   return { draft, raw, model: json.model ?? config.openRouterModel };
 }
 
+/** Общий вызов модели со строгой JSON-схемой (без веб-поиска, если не просят). Возвращает распарсенный объект. */
+export async function completeJson(opts: { system: string; user: string; name: string; schema: unknown; web?: boolean; timeoutMs?: number; temperature?: number }): Promise<unknown> {
+  if (!isAiEnabled()) throw new Error("OPENROUTER_API_KEY is not set");
+  const body = {
+    model: config.openRouterModel,
+    ...(opts.web ? { plugins: [{ id: "web" }] } : {}),
+    temperature: opts.temperature ?? 0.2,
+    messages: [
+      { role: "system", content: opts.system },
+      { role: "user", content: opts.user },
+    ],
+    response_format: { type: "json_schema", json_schema: { name: opts.name, strict: true, schema: opts.schema } },
+  };
+  const res = await fetch(`${config.openRouterBaseUrl}/chat/completions`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${config.openRouterApiKey}`,
+      "content-type": "application/json",
+      "HTTP-Referer": "https://country-tracker.kirillsaint.ge",
+      "X-Title": "Country Counter",
+    },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(opts.timeoutMs ?? 60_000),
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`openrouter ${res.status}: ${text.slice(0, 300)}`);
+  const json = JSON.parse(text) as { choices?: { message?: { content?: string | { text?: string }[] } }[] };
+  const content = json.choices?.[0]?.message?.content;
+  const raw = typeof content === "string" ? content : Array.isArray(content) ? content.map((c) => c.text ?? "").join("") : "";
+  return extractJson(raw);
+}
+
 // Модель иногда оборачивает JSON в ```json … ``` или добавляет текст — вырезаем первый объект
 function extractJson(raw: string): unknown {
   try {

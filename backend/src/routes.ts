@@ -11,6 +11,9 @@ import { isAiEnabled } from "./ai.js";
 import { cachedCheck, confirmVersion, deleteRegime, diffVersions, isStale, startCheck } from "./regimes.js";
 import { countryAt, countryName, localDateOf } from "./geo.js";
 import { cityCoords, localizedCityName, searchCities } from "./cities.js";
+import { CATEGORY_TYPES, isPlacesEnabled, photoUrl, placeDetails, resolvePhoto, verifyPhoto } from "./places.js";
+import { discover, userState, type PlaceRating, type PlaceSave } from "./discover.js";
+import { placeDismissals, placeRatings, placeSaves } from "./db.js";
 import { SCHENGEN } from "./presets.js";
 import {
   addDays,
@@ -533,6 +536,130 @@ api.get("/stats/rules", zValidator("query", z.object(tzQuery)), async (c) => {
   const active = list.filter((r) => !r.validUntil || r.validUntil >= today);
   const basis = buildBasisIndex(days, entryList);
   return c.json({ today, results: active.map((r) => evaluateRule(days, r, today, basis)) });
+});
+
+// MARK: «Чем заняться» — рекомендации мест
+
+const discoverBody = z.object({
+  lat: z.number().min(-90).max(90),
+  lon: z.number().min(-180).max(180),
+  query: z.string().trim().max(200).nullable().default(null),
+  category: z.enum(Object.keys(CATEGORY_TYPES) as [string, ...string[]]).nullable().default(null),
+  radiusKm: z.number().min(0.3).max(50).default(3),
+  openNow: z.boolean().default(false),
+  lang: z.enum(["ru", "en"]).default("en"),
+  // локальное время пользователя «Sat 19:30» — для «сейчас вечер, лучше бар, чем музей»
+  localTime: z.string().max(40).nullable().default(null),
+});
+api.post("/discover", zValidator("json", discoverBody), async (c) => {
+  if (!isPlacesEnabled()) throw new HTTPException(503, { message: "places are not configured" });
+  const b = c.req.valid("json");
+  const result = await discover(c.get("userId"), { baseUrl: baseUrl(c), lat: b.lat, lon: b.lon, query: b.query || null, category: (b.category as keyof typeof CATEGORY_TYPES) ?? null, radiusM: Math.round(b.radiusKm * 1000), openNow: b.openNow, lang: b.lang, localTime: b.localTime });
+  return c.json({ ...result, enabled: true });
+});
+
+api.get("/discover/status", (c) => c.json({ enabled: isPlacesEnabled() }));
+
+/** Адрес для ссылок наружу: PUBLIC_BASE_URL на проде, иначе origin запроса (dev: http://localhost:3000) */
+function baseUrl(c: { req: { url: string; header: (n: string) => string | undefined } }): string {
+  if (config.publicBaseUrl) return config.publicBaseUrl;
+  const u = new URL(c.req.url);
+  const proto = c.req.header("x-forwarded-proto") ?? u.protocol.replace(":", "");
+  return `${proto}://${u.host}`;
+}
+
+const langQuery = z.object({ lang: z.enum(["ru", "en"]).default("en") });
+const placeParam = z.object({ id: z.string().min(1).max(300) });
+
+// Фото: подписанная ссылка без сессии (AsyncImage не умеет заголовки) → редирект на картинку Google.
+// Отдельный роутер, монтируется в index.ts до api — иначе его перехватит requireSession.
+export const photos = new Hono();
+photos.get("/api/places/photo", zValidator("query", z.object({ name: z.string().min(1).max(500), w: z.coerce.number().int().min(100).max(1600), exp: z.coerce.number().int(), sig: z.string().length(32) })), async (c) => {
+  const { name, w, exp, sig } = c.req.valid("query");
+  if (!verifyPhoto(name, w, exp, sig)) throw new HTTPException(403, { message: "bad signature" });
+  return c.redirect(await resolvePhoto(name, w), 302);
+});
+
+async function placeCard(userId: Point["userId"], id: string, lang: string, base: string) {
+  const p = await placeDetails(id, lang);
+  if (!p) throw new HTTPException(404, { message: "place not found" });
+  const state = await userState(userId);
+  return { ...p, photoUrls: p.photos.slice(0, 3).map((ph) => ({ url: photoUrl(base, ph.name, 800), author: ph.author })), user: { stars: state.ratings.get(id)?.stars ?? null, saved: state.saved.has(id) } };
+}
+
+api.get("/places/saved", zValidator("query", langQuery), async (c) => {
+  const userId = c.get("userId");
+  const list = await placeSaves.find({ userId }).sort({ savedAt: -1 }).toArray();
+  return c.json({ places: list.map(({ userId: _u, _id: _i, ...s }) => s) });
+});
+
+api.get("/places/rated", async (c) => {
+  const list = await placeRatings.find({ userId: c.get("userId") }).sort({ updatedAt: -1 }).toArray();
+  return c.json({ ratings: list.map(({ userId: _u, _id: _i, ...r }) => r) });
+});
+
+api.get("/places/:id", zValidator("param", placeParam), zValidator("query", langQuery), async (c) => {
+  return c.json({ place: await placeCard(c.get("userId"), c.req.valid("param").id, c.req.valid("query").lang, baseUrl(c)) });
+});
+
+const ratingBody = z.object({
+  name: z.string().trim().min(1).max(200),
+  countryCode: countryCode.nullable().default(null),
+  city: z.string().trim().max(200).nullable().default(null),
+  category: z.string().trim().max(40).nullable().default(null),
+  stars: z.number().int().min(1).max(5),
+  facets: z.record(z.string().max(30), z.number().int().min(1).max(5)).default({}),
+  tags: z.array(z.string().trim().min(1).max(30)).max(10).default([]),
+  note: z.string().trim().max(500).nullable().default(null),
+  wouldReturn: z.boolean().nullable().default(null),
+  visitedAt: isoDate.nullable().default(null),
+});
+api.put("/places/:id/rating", zValidator("param", placeParam), zValidator("json", ratingBody), async (c) => {
+  const userId = c.get("userId");
+  const { id } = c.req.valid("param");
+  const b = c.req.valid("json");
+  const now = new Date().toISOString();
+  const prev = await placeRatings.findOne({ userId, placeId: id });
+  const doc: PlaceRating = { userId, placeId: id, ...b, createdAt: prev?.createdAt ?? now, updatedAt: now };
+  await placeRatings.replaceOne({ userId, placeId: id }, doc, { upsert: true });
+  const { userId: _u, ...pub } = doc;
+  return c.json({ rating: pub });
+});
+api.delete("/places/:id/rating", zValidator("param", placeParam), async (c) => {
+  const res = await placeRatings.deleteOne({ userId: c.get("userId"), placeId: c.req.valid("param").id });
+  return c.json({ deleted: res.deletedCount === 1 });
+});
+
+const saveBody = z.object({
+  name: z.string().trim().min(1).max(200),
+  lat: z.number(),
+  lon: z.number(),
+  countryCode: countryCode.nullable().default(null),
+  city: z.string().trim().max(200).nullable().default(null),
+});
+api.put("/places/:id/save", zValidator("param", placeParam), zValidator("json", saveBody), async (c) => {
+  const userId = c.get("userId");
+  const { id } = c.req.valid("param");
+  const doc: PlaceSave = { userId, placeId: id, ...c.req.valid("json"), savedAt: new Date().toISOString() };
+  await placeSaves.replaceOne({ userId, placeId: id }, doc, { upsert: true });
+  await placeDismissals.deleteOne({ userId, placeId: id });
+  const { userId: _u, ...pub } = doc;
+  return c.json({ saved: pub });
+});
+api.delete("/places/:id/save", zValidator("param", placeParam), async (c) => {
+  const res = await placeSaves.deleteOne({ userId: c.get("userId"), placeId: c.req.valid("param").id });
+  return c.json({ deleted: res.deletedCount === 1 });
+});
+
+api.post("/places/:id/dismiss", zValidator("param", placeParam), async (c) => {
+  const userId = c.get("userId");
+  const { id } = c.req.valid("param");
+  await placeDismissals.updateOne({ userId, placeId: id }, { $set: { at: new Date().toISOString() } }, { upsert: true });
+  return c.json({ dismissed: true });
+});
+api.delete("/places/:id/dismiss", zValidator("param", placeParam), async (c) => {
+  await placeDismissals.deleteOne({ userId: c.get("userId"), placeId: c.req.valid("param").id });
+  return c.json({ dismissed: false });
 });
 
 // MARK: документы (паспорта, визы, ВНЖ)

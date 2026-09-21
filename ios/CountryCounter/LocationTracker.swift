@@ -135,6 +135,8 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
         )
         note(departure == nil ? String(localized: "Visit: arrived") : String(localized: "Visit: departed"))
         record(location, source: .visit, arrival: arrival, departure: departure)
+        // уехали из рекомендованного места — спросить, как оно
+        Task { @MainActor in PlaceVisits.check(coordinate: visit.coordinate, arrival: arrival, departure: departure) }
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {

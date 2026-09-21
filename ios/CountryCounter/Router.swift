@@ -8,11 +8,14 @@ enum DeepLink: Identifiable, Equatable {
     case regime(country: String, passportId: String?)
     /// "как въехали?" для текущего пребывания
     case entryBasis(country: String)
+    /// оценить место после визита
+    case ratePlace(id: String, name: String)
 
     var id: String {
         switch self {
         case .regime(let c, let p): return "regime|\(c)|\(p ?? "")"
         case .entryBasis(let c): return "entry|\(c)"
+        case .ratePlace(let id, _): return "rate|\(id)"
         }
     }
 }

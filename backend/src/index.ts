@@ -4,7 +4,7 @@ import { logger } from "hono/logger";
 import { HTTPException } from "hono/http-exception";
 import { config } from "./config.js";
 import { closeDb, connectDb } from "./db.js";
-import { api } from "./routes.js";
+import { api, photos } from "./routes.js";
 import { auth } from "./authRoutes.js";
 import { resumeChecks } from "./regimes.js";
 import { ensureCities } from "./cities.js";
@@ -14,6 +14,8 @@ const app = new Hono();
 app.use(logger());
 app.get("/health", (c) => c.json({ ok: true }));
 app.route("/auth", auth);
+// фото мест — без сессии, по подписанной ссылке
+app.route("/", photos);
 app.route("/api", api);
 
 app.onError((err, c) => {

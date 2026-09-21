@@ -13,6 +13,13 @@ final class AppModel {
     var rules: [Rule] = []
     var ruleResults: [RuleResult] = []
     var manualRanges: [ManualRange] = []
+
+    // «Чем заняться»
+    var discoverEnabled = false
+    var recommendations: [Recommendation] = []
+    var discoverSummary: String?
+    var savedPlaces: [PlaceSave] = []
+    var ratedPlaces: [PlaceRating] = []
     var documents: [TravelDocument] = []
     var entries: [Entry] = []
     var regimes: [Regime] = []
@@ -72,6 +79,9 @@ final class AppModel {
             async let documents = client.documents()
             async let entries = client.entries()
             async let regimes = client.regimes()
+            async let discoverEnabled = client.discoverEnabled()
+            async let savedPlaces = client.savedPlaces()
+            async let ratedPlaces = client.ratedPlaces()
             self.current = try await current
             self.countries = try await countries
             self.cities = try await cities
@@ -81,6 +91,10 @@ final class AppModel {
             self.manualRanges = try await manualRanges
             self.documents = try await documents
             self.entries = try await entries
+            self.discoverEnabled = (try? await discoverEnabled) ?? false
+            self.savedPlaces = (try? await savedPlaces) ?? []
+            self.ratedPlaces = (try? await ratedPlaces) ?? []
+            PlaceVisits.remember(self.savedPlaces.map { PlaceVisits.Known(id: $0.placeId, name: $0.name, lat: $0.lat, lon: $0.lon) })
             let reg = try await regimes
             self.regimes = reg.regimes
             self.aiEnabled = reg.aiEnabled
@@ -345,6 +359,53 @@ final class AppModel {
         } catch {
             report(error)
         }
+    }
+
+    // MARK: - Чем заняться
+
+    func discover(lat: Double, lon: Double, query: String?, category: DiscoverCategory?, radiusKm: Double, openNow: Bool) async throws {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "EEE HH:mm"
+        let result = try await APIClient.fromSettings().discover(lat: lat, lon: lon, query: query, category: category, radiusKm: radiusKm, openNow: openNow, localTime: f.string(from: Date()))
+        recommendations = result.recommendations
+        discoverSummary = result.summary
+        PlaceVisits.remember(result.recommendations.map { PlaceVisits.Known(id: $0.id, name: $0.name, lat: $0.lat, lon: $0.lon) })
+    }
+
+    func rating(for placeId: String) -> PlaceRating? { ratedPlaces.first { $0.placeId == placeId } }
+    func isSaved(_ placeId: String) -> Bool { savedPlaces.contains { $0.placeId == placeId } }
+
+    func rate(_ rating: PlaceRating) async throws {
+        let saved = try await APIClient.fromSettings().ratePlace(rating)
+        ratedPlaces.removeAll { $0.placeId == saved.placeId }
+        ratedPlaces.insert(saved, at: 0)
+        if let i = recommendations.firstIndex(where: { $0.id == saved.placeId }) { recommendations[i].user.stars = saved.stars }
+    }
+
+    func deleteRating(placeId: String) async throws {
+        try await APIClient.fromSettings().deleteRating(placeId: placeId)
+        ratedPlaces.removeAll { $0.placeId == placeId }
+        if let i = recommendations.firstIndex(where: { $0.id == placeId }) { recommendations[i].user.stars = nil }
+    }
+
+    func toggleSave(_ p: Recommendation) async throws {
+        let client = try APIClient.fromSettings()
+        if isSaved(p.id) {
+            try await client.unsavePlace(id: p.id)
+            savedPlaces.removeAll { $0.placeId == p.id }
+        } else {
+            let s = try await client.savePlace(p, countryCode: current?.countryCode, city: current?.city)
+            savedPlaces.insert(s, at: 0)
+            PlaceVisits.remember([PlaceVisits.Known(id: p.id, name: p.name, lat: p.lat, lon: p.lon)])
+        }
+        if let i = recommendations.firstIndex(where: { $0.id == p.id }) { recommendations[i].user.saved = isSaved(p.id) }
+    }
+
+    func dismiss(_ p: Recommendation) async throws {
+        try await APIClient.fromSettings().dismissPlace(id: p.id)
+        recommendations.removeAll { $0.id == p.id }
+        PlaceVisits.forget(p.id)
     }
 
     // MARK: - Ручные записи

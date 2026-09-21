@@ -3,7 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @Environment(AppModel.self) private var model
     @ObservedObject private var tracker = LocationTracker.shared
-    @AppStorage(AppSettings.showCountriesSectionKey) private var showCountries = true
+    @State private var showDiscover = false
     @State private var showMap = false
     @State private var basisSegment: Segment?
 
@@ -89,20 +89,34 @@ struct HomeView: View {
                     }
                 }
 
-                if showCountries {
-                    Section {
-                        if model.showSkeleton {
-                            ForEach(0..<2, id: \.self) { _ in SkeletonRow(flag: 36) }
+                Section {
+                    Button {
+                        showDiscover = true
+                    } label: {
+                        Label("Find something to do", systemImage: "sparkles")
+                            .font(.headline)
+                    }
+                    .disabled(!model.discoverEnabled && !model.showSkeleton)
+                    if !model.discoverEnabled, !model.showSkeleton {
+                        Text("Recommendations are off: the server has no Google Places key.").font(.footnote).foregroundStyle(.secondary)
+                    }
+                    ForEach(model.recommendations.prefix(3)) { r in
+                        NavigationLink {
+                            PlaceDetailView(place: r)
+                        } label: {
+                            PlaceRow(place: r)
                         }
-                        ForEach(model.countries) { c in
-                            countryRow(c)
-                        }
-                    } header: {
-                        Text("Countries this year")
-                    } footer: {
-                        if model.pendingCount > 0 {
-                            Text("\(pluralPoints(model.pendingCount)) waiting to be uploaded")
-                        }
+                    }
+                    if model.recommendations.count > 3 {
+                        Button("All \(model.recommendations.count) picks") { showDiscover = true }.font(.footnote)
+                    }
+                } header: {
+                    Text("What to do?")
+                } footer: {
+                    if model.pendingCount > 0 {
+                        Text("\(pluralPoints(model.pendingCount)) waiting to be uploaded")
+                    } else if let s = model.discoverSummary, !model.recommendations.isEmpty {
+                        Text(s)
                     }
                 }
             }
@@ -113,6 +127,20 @@ struct HomeView: View {
                 Button("Map", systemImage: "map") { showMap = true }
             }
             .sheet(isPresented: $showMap) { MapScreen() }
+            .sheet(isPresented: $showDiscover) { NavigationStack { DiscoverView() } }
+            .onAppear {
+                #if DEBUG
+                // xcrun simctl launch … -debugDiscover coffee — сразу открыть «Чем заняться» и запустить поиск
+                if UserDefaults.standard.string(forKey: "debugDiscover") != nil { showDiscover = true }
+                // -debugDiscoverHome coffee — подборка прямо на главной, без экрана поиска
+                if let c = UserDefaults.standard.string(forKey: "debugDiscoverHome"), let cat = DiscoverCategory(rawValue: c) {
+                    Task {
+                        for _ in 0..<20 where tracker.lastPoint == nil { try? await Task.sleep(for: .milliseconds(500)) }
+                        if let p = tracker.lastPoint { try? await model.discover(lat: p.lat, lon: p.lon, query: nil, category: cat, radiusKm: 3, openNow: false) }
+                    }
+                }
+                #endif
+            }
             .sheet(item: $basisSegment) { seg in
                 NavigationStack { EntryBasisSheet(segment: seg, existing: model.entry(for: seg), previous: model.current?.previousEntry, regimeRef: model.current?.regime) }
             }

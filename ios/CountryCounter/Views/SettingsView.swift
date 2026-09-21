@@ -11,7 +11,6 @@ struct SettingsView: View {
     @AppStorage(AppSettings.serverOverrideKey) private var serverOverride = ""
     @AppStorage(AppSettings.hourlyEnabledKey) private var hourlyEnabled = true
     @AppStorage(AppSettings.notificationsEnabledKey) private var notificationsEnabled = false
-    @AppStorage(AppSettings.showCountriesSectionKey) private var showCountries = true
 
     @State private var actionResult: String?
     @State private var busy = false
@@ -49,7 +48,6 @@ struct SettingsView: View {
                     }
                     .font(.footnote)
                 }
-                Toggle("Countries this year on the main screen", isOn: $showCountries)
             } header: {
                 Text("Counting")
             } footer: {

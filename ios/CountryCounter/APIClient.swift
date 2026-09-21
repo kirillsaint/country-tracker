@@ -235,6 +235,66 @@ struct APIClient {
         return (r.document, r.rules)
     }
 
+    // MARK: - Чем заняться
+
+    func discoverEnabled() async throws -> Bool {
+        struct R: Decodable { let enabled: Bool }
+        let r: R = try await send("GET", "/api/discover/status")
+        return r.enabled
+    }
+
+    func discover(lat: Double, lon: Double, query: String?, category: DiscoverCategory?, radiusKm: Double, openNow: Bool, localTime: String) async throws -> DiscoverResult {
+        struct Body: Encodable { let lat: Double; let lon: Double; let query: String?; let category: String?; let radiusKm: Double; let openNow: Bool; let lang: String; let localTime: String }
+        return try await send("POST", "/api/discover", body: Body(lat: lat, lon: lon, query: query, category: category?.rawValue, radiusKm: radiusKm, openNow: openNow, lang: DocumentInput.currentLang, localTime: localTime))
+    }
+
+    func place(id: String) async throws -> Recommendation {
+        struct R: Decodable { let place: Recommendation }
+        let r: R = try await send("GET", "/api/places/\(id)", query: ["lang": DocumentInput.currentLang])
+        return r.place
+    }
+
+    func savedPlaces() async throws -> [PlaceSave] {
+        struct R: Decodable { let places: [PlaceSave] }
+        let r: R = try await send("GET", "/api/places/saved")
+        return r.places
+    }
+
+    func ratedPlaces() async throws -> [PlaceRating] {
+        struct R: Decodable { let ratings: [PlaceRating] }
+        let r: R = try await send("GET", "/api/places/rated")
+        return r.ratings
+    }
+
+    func ratePlace(_ rating: PlaceRating) async throws -> PlaceRating {
+        struct Body: Encodable { let name: String; let countryCode: String?; let city: String?; let category: String?; let stars: Int; let facets: [String: Int]; let tags: [String]; let note: String?; let wouldReturn: Bool?; let visitedAt: String? }
+        struct R: Decodable { let rating: PlaceRating }
+        let r: R = try await send("PUT", "/api/places/\(rating.placeId)/rating", body: Body(name: rating.name, countryCode: rating.countryCode, city: rating.city, category: rating.category, stars: rating.stars, facets: rating.facets, tags: rating.tags, note: rating.note, wouldReturn: rating.wouldReturn, visitedAt: rating.visitedAt))
+        return r.rating
+    }
+
+    func deleteRating(placeId: String) async throws {
+        struct R: Decodable { let deleted: Bool }
+        let _: R = try await send("DELETE", "/api/places/\(placeId)/rating")
+    }
+
+    func savePlace(_ p: Recommendation, countryCode: String?, city: String?) async throws -> PlaceSave {
+        struct Body: Encodable { let name: String; let lat: Double; let lon: Double; let countryCode: String?; let city: String? }
+        struct R: Decodable { let saved: PlaceSave }
+        let r: R = try await send("PUT", "/api/places/\(p.id)/save", body: Body(name: p.name, lat: p.lat, lon: p.lon, countryCode: countryCode, city: city))
+        return r.saved
+    }
+
+    func unsavePlace(id: String) async throws {
+        struct R: Decodable { let deleted: Bool }
+        let _: R = try await send("DELETE", "/api/places/\(id)/save")
+    }
+
+    func dismissPlace(id: String) async throws {
+        struct R: Decodable { let dismissed: Bool }
+        let _: R = try await send("POST", "/api/places/\(id)/dismiss")
+    }
+
     /// Продление визы / ВНЖ: тот же документ, новые даты, старые уходят в history
     func renewDocument(id: String, validFrom: String?, validTo: String) async throws -> (TravelDocument, [Rule]) {
         struct Body: Encodable { let validFrom: String?; let validTo: String; let lang: String }

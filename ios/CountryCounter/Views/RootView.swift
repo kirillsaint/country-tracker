@@ -43,6 +43,9 @@ struct RootView: View {
                     case .regime(let country, let passportId):
                         RegimeView(countryCode: country, initialPassportId: passportId)
                             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { router.pending = nil } } }
+                    case .ratePlace(let id, let name):
+                        RatePlaceLoader(placeId: id, name: name)
+                            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { router.pending = nil } } }
                     case .entryBasis:
                         if let seg = model.currentSegment {
                             EntryBasisSheet(segment: seg, existing: model.entry(for: seg), previous: model.current?.previousEntry, regimeRef: model.current?.regime)

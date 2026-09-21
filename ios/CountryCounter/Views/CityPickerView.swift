@@ -8,6 +8,8 @@ struct CityPickerView: View {
     /// города этой страны из истории пользователя, по убыванию дней
     var known: [String] = []
     @Binding var selection: String
+    /// выбран город из справочника — с координатами (для «Чем заняться» в другом городе)
+    var onPickOption: ((CityOption) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
 
     @State private var query = ""
@@ -48,7 +50,7 @@ struct CityPickerView: View {
                         .foregroundStyle(.secondary).font(.footnote)
                 }
                 ForEach(results) { c in
-                    row(name: c.name, region: c.region, localized: c.localized)
+                    row(name: c.name, region: c.region, localized: c.localized, option: c)
                 }
                 if loading { HStack { Spacer(); ProgressView(); Spacer() } }
             } header: {
@@ -72,10 +74,11 @@ struct CityPickerView: View {
         }
     }
 
-    private func row(name: String, region: String?, localized: String? = nil) -> some View {
+    private func row(name: String, region: String?, localized: String? = nil, option: CityOption? = nil) -> some View {
         Button {
             CityNames.shared.remember(country: country, name: name, localized: localized)
             selection = name
+            if let option { onPickOption?(option) }
             dismiss()
         } label: {
             HStack {

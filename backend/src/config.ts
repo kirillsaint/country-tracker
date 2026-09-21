@@ -24,6 +24,10 @@ export const config = {
   openRouterApiKey: process.env.OPENROUTER_API_KEY ?? "",
   openRouterModel: process.env.OPENROUTER_MODEL ?? "openai/gpt-5.6-sol",
   openRouterBaseUrl: process.env.OPENROUTER_BASE_URL ?? "https://openrouter.ai/api/v1",
+  // Google Places API (New) — факты о местах для раздела «Чем заняться». Пусто = раздел выключен.
+  googlePlacesApiKey: process.env.GOOGLE_PLACES_API_KEY ?? "",
+  // публичный адрес сервера для подписанных ссылок на фото; пусто — берётся из запроса (dev: localhost)
+  publicBaseUrl: process.env.PUBLIC_BASE_URL ?? "",
   // сколько дней результат проверки режима считается свежим (кэш + порог «перепроверить при въезде»)
   regimeFreshDays: Number(process.env.REGIME_FRESH_DAYS ?? 30),
 };
