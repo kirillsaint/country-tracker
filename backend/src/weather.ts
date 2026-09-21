@@ -23,6 +23,36 @@ const CODES: Record<number, string> = {
   95: "thunderstorm", 96: "thunderstorm with hail", 99: "thunderstorm with hail",
 };
 
+/** Прогноз на конкретный день и час (до 16 суток вперёд); дальше — null */
+export async function weatherAt(lat: number, lon: number, date: string, hour: number): Promise<Weather | null> {
+  const key = `forecast|${lat.toFixed(2)}|${lon.toFixed(2)}|${date}|${hour}`;
+  const hit = await placeCache.findOne({ key });
+  if (hit && hit.expiresAt > new Date()) return hit.data as Weather;
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(3)}&longitude=${lon.toFixed(3)}&hourly=temperature_2m,precipitation,weather_code,wind_speed_10m&start_date=${date}&end_date=${date}&timezone=auto`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(8_000) });
+    if (!res.ok) return null;
+    const j = (await res.json()) as { hourly?: { time: string[]; temperature_2m: number[]; precipitation: number[]; weather_code: number[]; wind_speed_10m: number[] } };
+    const h = j.hourly;
+    if (!h || !h.time.length) return null;
+    const i = Math.min(Math.max(hour, 0), h.time.length - 1);
+    const w: Weather = {
+      tempC: Math.round(h.temperature_2m[i]),
+      precipitationMm: h.precipitation[i],
+      windKmh: Math.round(h.wind_speed_10m[i]),
+      code: h.weather_code[i],
+      summary: CODES[h.weather_code[i]] ?? "unknown",
+      isRainy: h.precipitation[i] >= 0.5 || h.weather_code[i] >= 51,
+      isHot: h.temperature_2m[i] >= 35,
+      isCold: h.temperature_2m[i] <= -5,
+    };
+    await placeCache.updateOne({ key }, { $set: { data: w, expiresAt: new Date(Date.now() + 3 * 3_600_000) } }, { upsert: true });
+    return w;
+  } catch {
+    return null;
+  }
+}
+
 export async function weatherNow(lat: number, lon: number): Promise<Weather | null> {
   const key = `weather|${lat.toFixed(2)}|${lon.toFixed(2)}`;
   const hit = await placeCache.findOne({ key });

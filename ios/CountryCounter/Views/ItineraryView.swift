@@ -53,7 +53,7 @@ struct ItineraryView: View {
                 if let error { Text(error).font(.footnote).foregroundStyle(.red) }
             } footer: {
                 Text(customStart
-                     ? "For another day the plan relies on the weekly opening hours; the weather is not taken into account."
+                     ? "For another day the plan uses the weekly opening hours and the hourly forecast for that time (up to 16 days ahead)."
                      : "Starts in about 15 minutes from where you are. Name a place you definitely want to visit and the route is built around it; saved places are considered too.")
             }
 
@@ -83,7 +83,11 @@ struct ItineraryView: View {
                 } header: {
                     Text(customStart ? "\(it.title) · \(prettyFullDate(isoDay(start)))" : it.title)
                 } footer: {
-                    Text(it.summary)
+                    if let w = it.weather {
+                        Text(verbatim: "\(customStart ? String(localized: "Forecast") : String(localized: "Weather")): \(w.tempC)°, \(w.localizedSummary). \(it.summary)")
+                    } else {
+                        Text(it.summary)
+                    }
                 }
                 Section {
                     if let url = it.googleRouteURL {

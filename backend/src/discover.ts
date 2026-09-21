@@ -4,7 +4,7 @@ import { z } from "zod";
 import { completeJson, isAiEnabled } from "./ai.js";
 import { discoverLog, placeDismissals, placeRatings, placeSaves, tastePreferences, tasteProfiles } from "./db.js";
 import { CATEGORY_TYPES, distanceM, photoUrl, placeDetails, searchNearby, searchText, type Place } from "./places.js";
-import { weatherNow, type Weather } from "./weather.js";
+import { weatherAt, weatherNow, type Weather } from "./weather.js";
 
 // «Чем заняться»: справочник Google даёт кандидатов с фактами, нейросеть выбирает из них под запрос,
 // контекст и профиль вкусов пользователя и объясняет каждый выбор. Придумать место модель не может —
@@ -318,8 +318,13 @@ const itineraryJsonSchema = {
 /** Связка из 3–4 мест с временем: кофе → прогулка → ужин. Кандидаты из нескольких категорий, модель строит порядок. */
 export async function itinerary(userId: ObjectId, req: DiscoverRequest & { hours: number; startTime: string; note: string | null; date: string | null }): Promise<{ title: string; summary: string; stops: ItineraryStop[]; weather: Weather | null }> {
   if (!isAiEnabled()) throw new Error("assistant is not configured");
-  // погода «сейчас» имеет смысл только для сегодняшнего плана
-  const [state, weather, prefs] = await Promise.all([userState(userId), req.date ? Promise.resolve(null) : weatherNow(req.lat, req.lon), tastePreferences.findOne({ userId })]);
+  // сегодня — погода сейчас; на другой день — почасовой прогноз на час старта (до 16 суток вперёд)
+  const startHour = Number(req.startTime.slice(0, 2)) || 12;
+  const [state, weather, prefs] = await Promise.all([
+    userState(userId),
+    req.date ? weatherAt(req.lat, req.lon, req.date, startHour) : weatherNow(req.lat, req.lon),
+    tastePreferences.findOne({ userId }),
+  ]);
   const badWeather = !!weather && (weather.isRainy || weather.isHot || weather.isCold);
   const cats: Category[] = badWeather ? ["coffee", "culture", "rainy", "eat"] : ["coffee", "walk", "culture", "eat"];
   const lists = await Promise.all(cats.map((c) => searchNearby(req.lat, req.lon, req.radiusM, CATEGORY_TYPES[c], req.lang)));
@@ -354,7 +359,7 @@ export async function itinerary(userId: ObjectId, req: DiscoverRequest & { hours
     `Plan a ${req.hours}-hour outing ${req.date ? `on ${req.date}` : "today"} starting at ${req.startTime} local time from the user's location (${req.lat.toFixed(4)}, ${req.lon.toFixed(4)}).${req.date ? " Opening status in the data is for now, not that day — rely on the weekly hours." : ""}`,
     req.note ? `The user's wishes for this outing (highest priority; if they name a place that is among the candidates, it MUST be a stop, and the rest of the plan is built around it): "${req.note}"` : null,
     req.localTime ? `Today: ${req.localTime}` : null,
-    weatherLine(weather),
+    weather ? (req.date ? `Forecast for ${req.date} around ${req.startTime}: ` + weatherLine(weather)!.replace("Weather now: ", "") : weatherLine(weather)) : null,
     preferencesForPrompt(prefs) ? `Stated preferences:\n${preferencesForPrompt(prefs)}` : null,
     profile ? `Taste profile:\n${profile}` : null,
     ratedForPrompt(state.ratingList) ? `Rated places:\n${ratedForPrompt(state.ratingList)}` : null,
