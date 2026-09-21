@@ -5,13 +5,6 @@ struct DocumentsView: View {
     @Environment(AppModel.self) private var model
     @State private var newKind: DocumentKind?
     @State private var showLookup = false
-    @State private var showScanner = false
-    @State private var scanned: ScannedDocument?
-
-    struct ScannedDocument: Identifiable {
-        let id = UUID()
-        let input: DocumentInput
-    }
 
     var body: some View {
         NavigationStack {
@@ -71,8 +64,6 @@ struct DocumentsView: View {
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
-                        Button("Scan with camera", systemImage: "camera.viewfinder") { showScanner = true }
-                        Divider()
                         ForEach(DocumentKind.allCases) { kind in
                             Button(kind.title, systemImage: kind.systemImage) { newKind = kind }
                         }
@@ -84,14 +75,7 @@ struct DocumentsView: View {
             .sheet(item: $newKind) { kind in
                 NavigationStack { DocumentEditView(document: nil, kind: kind) }
             }
-            .sheet(isPresented: $showScanner) {
-                NavigationStack {
-                    ScanDocumentView { input in scanned = ScannedDocument(input: input) }
-                }
-            }
-            .sheet(item: $scanned) { s in
-                NavigationStack { DocumentEditView(document: nil, kind: s.input.kind, prefill: s.input) }
-            }
+
         }
     }
 }

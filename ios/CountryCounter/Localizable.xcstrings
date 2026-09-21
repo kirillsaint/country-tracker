@@ -1,6 +1,28 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "· yours falls short": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· у вас не хватает"
+          }
+        }
+      }
+    },
+    "· yours is fine": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· у вас хватает"
+          }
+        }
+      }
+    },
     "“%@”": {},
     "“Always” location access needed": {
       "extractionState": "stale",
@@ -517,6 +539,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "≥ %@ в году"
+          }
+        }
+      }
+    },
+    "≥ %lld months": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "≥ %lld мес."
           }
         }
       }
@@ -3532,6 +3565,50 @@
         }
       }
     },
+    "Passport must be valid %lld months on entry, until %@ · yours until %@": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Паспорт должен действовать %1$lld мес. на въезде, до %2$@ · ваш до %3$@"
+          }
+        }
+      }
+    },
+    "Passport valid until %@": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Паспорт действует до %@"
+          }
+        }
+      }
+    },
+    "Passport valid until %@ — meets the %lld-month requirement": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Паспорт действует до %1$@ — требование в %2$lld мес. выполнено"
+          }
+        }
+      }
+    },
+    "Passport valid until %@ — under 6 months. Many countries refuse entry; check this one’s rule.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Паспорт действует до %@ — меньше 6 месяцев. Многие страны не впускают, проверьте правило этой."
+          }
+        }
+      }
+    },
     "Passport validity": {
       "extractionState": "stale",
       "localizations": {
@@ -3539,6 +3616,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Срок паспорта"
+          }
+        }
+      }
+    },
+    "Passport validity on entry: %lld months": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Срок паспорта на въезде: %lld мес."
           }
         }
       }
@@ -4361,6 +4449,17 @@
         }
       }
     },
+    "Six months of validity left — %@. Many countries require at least six months on entry; time to renew.": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Осталось полгода срока — %@. Многие страны требуют минимум шесть месяцев на въезде, пора менять."
+          }
+        }
+      }
+    },
     "Sources": {
       "extractionState": "stale",
       "localizations": {
@@ -4885,6 +4984,17 @@
         }
       }
     },
+    "Valid until %@ — under 6 months, many countries won’t admit you": {
+      "extractionState": "stale",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Действует до %@ — меньше 6 месяцев, многие страны не впустят"
+          }
+        }
+      }
+    },
     "Validity": {
       "extractionState": "stale",
       "localizations": {
@@ -5226,186 +5336,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ваши документы для этой страны"
-          }
-        }
-      }
-    },
-    "Scanning isn’t available on this device": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Сканирование недоступно на этом устройстве"
-          }
-        }
-      }
-    },
-    "A real iPhone with a camera is needed — the simulator can’t scan.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Нужен настоящий iPhone с камерой, симулятор сканировать не умеет."
-          }
-        }
-      }
-    },
-    "No machine-readable zone? Use the recognized text": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Нет машиночитаемой зоны? Использовать распознанный текст"
-          }
-        }
-      }
-    },
-    "Scan a document": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Сканировать документ"
-          }
-        }
-      }
-    },
-    "Point the camera at the document: for a passport, the two lines with «<<<» at the bottom.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Наведите камеру на документ: у паспорта это две строки с «<<<» внизу."
-          }
-        }
-      }
-    },
-    "Reading… %lld lines recognized. Hold the machine-readable zone in frame.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Читаю… распознано строк: %lld. Держите машиночитаемую зону в кадре."
-          }
-        }
-      }
-    },
-    "Couldn’t tell what this document is. Try a clearer shot of the page with dates.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Не удалось понять, что это за документ. Попробуйте чётче навести на страницу с датами."
-          }
-        }
-      }
-    },
-    "Scan with camera": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Сканировать камерой"
-          }
-        }
-      }
-    },
-    "Valid until %@ — under 6 months, many countries won’t admit you": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Действует до %@ — меньше 6 месяцев, многие страны не впустят"
-          }
-        }
-      }
-    },
-    "Six months of validity left — %@. Many countries require at least six months on entry; time to renew.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Осталось полгода срока — %@. Многие страны требуют минимум шесть месяцев на въезде, пора менять."
-          }
-        }
-      }
-    },
-    "Passport valid until %@ — meets the %lld-month requirement": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Паспорт действует до %1$@ — требование в %2$lld мес. выполнено"
-          }
-        }
-      }
-    },
-    "Passport valid until %@ — under 6 months. Many countries refuse entry; check this one’s rule.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Паспорт действует до %@ — меньше 6 месяцев. Многие страны не впускают, проверьте правило этой."
-          }
-        }
-      }
-    },
-    "Passport valid until %@": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Паспорт действует до %@"
-          }
-        }
-      }
-    },
-    "≥ %lld months": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "≥ %lld мес."
-          }
-        }
-      }
-    },
-    "· yours is fine": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "· у вас хватает"
-          }
-        }
-      }
-    },
-    "· yours falls short": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "· у вас не хватает"
-          }
-        }
-      }
-    },
-    "Passport validity on entry: %lld months": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Срок паспорта на въезде: %lld мес."
-          }
-        }
-      }
-    },
-    "Passport must be valid %lld months on entry, until %@ · yours until %@": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Паспорт должен действовать %1$lld мес. на въезде, до %2$@ · ваш до %3$@"
           }
         }
       }
