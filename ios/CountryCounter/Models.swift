@@ -536,6 +536,8 @@ struct CityOption: Codable, Identifiable, Hashable {
     let lat: Double
     let lon: Double
     let population: Int
+    // перевод на язык приложения из справочника; nil — нет
+    let localized: String?
 }
 
 // Ручная запись "был в стране с ... по ...": сервер сам склеивает дни в периоды (GET /overrides/ranges)

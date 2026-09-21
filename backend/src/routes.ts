@@ -10,7 +10,7 @@ import { config } from "./config.js";
 import { isAiEnabled } from "./ai.js";
 import { cachedCheck, confirmVersion, deleteRegime, diffVersions, isStale, startCheck } from "./regimes.js";
 import { countryAt, countryName, localDateOf } from "./geo.js";
-import { cityCoords, searchCities } from "./cities.js";
+import { cityCoords, localizedCityName, searchCities } from "./cities.js";
 import { SCHENGEN } from "./presets.js";
 import {
   addDays,
@@ -141,11 +141,34 @@ api.get("/stats/countries", zValidator("query", rangeQuery), async (c) => {
   return c.json({ from, to, today, countries: countryStats(days, from, to) });
 });
 
+const langParam = z.string().regex(/^[a-z]{2,3}$/);
+
 // Справочник городов (GeoNames) для выбора в ручной записи: ?country=AE&q=дуб — по префиксу любого имени,
 // без q — самые крупные города страны
-api.get("/cities", zValidator("query", z.object({ country: countryCode, q: z.string().trim().max(100).default(""), limit: z.coerce.number().int().min(1).max(100).default(40) })), async (c) => {
-  const { country, q, limit } = c.req.valid("query");
-  return c.json({ cities: await searchCities(country, q, limit) });
+api.get("/cities", zValidator("query", z.object({ country: countryCode, q: z.string().trim().max(100).default(""), limit: z.coerce.number().int().min(1).max(100).default(40), lang: langParam.optional() })), async (c) => {
+  const { country, q, limit, lang } = c.req.valid("query");
+  return c.json({ cities: await searchCities(country, q, limit, lang && lang !== "en" ? lang : null) });
+});
+
+// Переводы городов из истории пользователя на язык приложения. Источник только справочник
+// GeoNames на сервере (никакого пользовательского ввода), ключ «страна|английское имя в нижнем регистре».
+api.get("/city-names", zValidator("query", z.object({ lang: langParam })), async (c) => {
+  const userId = c.get("userId");
+  const { lang } = c.req.valid("query");
+  const [fromPoints, fromOverrides] = await Promise.all([
+    points.aggregate<{ _id: { countryCode: string; city: string } }>([{ $match: { userId, city: { $ne: null }, countryCode: { $ne: null } } }, { $group: { _id: { countryCode: "$countryCode", city: "$city" } } }]).toArray(),
+    dayOverrides.aggregate<{ _id: { countryCode: string; city: string } }>([{ $match: { userId, city: { $ne: null } } }, { $group: { _id: { countryCode: "$countryCode", city: "$city" } } }]).toArray(),
+  ]);
+  const pairs = new Map<string, { countryCode: string; city: string }>();
+  for (const x of [...fromPoints, ...fromOverrides]) pairs.set(`${x._id.countryCode}|${x._id.city.toLowerCase()}`, x._id);
+  const names: Record<string, string> = {};
+  await Promise.all(
+    [...pairs].map(async ([key, p]) => {
+      const localized = await localizedCityName(p.countryCode, p.city, lang);
+      if (localized) names[key] = localized;
+    }),
+  );
+  return c.json({ names });
 });
 
 // Переименовать город во всей истории: точки с устройства и ручные правки. Нужно приложению,

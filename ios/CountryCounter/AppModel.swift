@@ -95,6 +95,8 @@ final class AppModel {
             await RuleNotifier.evaluateDocuments(self.documents, used: usedVisaIds)
             if let now = self.current { await EntryPrompter.promptIfNeeded(current: now, documents: self.documents) }
             await RegimeChecks.processPending()
+            // переводы городов: забираем общий словарь с сервера, отдаём свои
+            await CityNames.shared.sync()
             // старые записи с городами не латиницей приводим к английскому и перечитываем данные
             // (performRefresh, а не refresh: тот ждёт текущую задачу и заблокировал бы сам себя)
             if await CityNames.repairNonLatin(self.cities + self.allTimeCities) { await performRefresh() }

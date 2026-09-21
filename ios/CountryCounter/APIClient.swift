@@ -144,10 +144,17 @@ struct APIClient {
 
     // MARK: - Ручные записи
 
+    /// Переводы городов из истории пользователя (справочник GeoNames на сервере): «CC|english lower» → перевод
+    func cityNames(lang: String) async throws -> [String: String] {
+        struct R: Decodable { let names: [String: String] }
+        let r: R = try await send("GET", "/api/city-names", query: ["lang": lang])
+        return r.names
+    }
+
     /// Справочник городов страны: без запроса — крупнейшие, с запросом — по префиксу любого написания
     func cities(country: String, query: String) async throws -> [CityOption] {
         struct R: Decodable { let cities: [CityOption] }
-        let r: R = try await send("GET", "/api/cities", query: ["country": country, "q": query.isEmpty ? nil : query, "limit": "40"])
+        let r: R = try await send("GET", "/api/cities", query: ["country": country, "q": query.isEmpty ? nil : query, "limit": "40", "lang": CityNames.lang])
         return r.cities
     }
 

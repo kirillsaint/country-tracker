@@ -48,7 +48,7 @@ struct CityPickerView: View {
                         .foregroundStyle(.secondary).font(.footnote)
                 }
                 ForEach(results) { c in
-                    row(name: c.name, region: c.region)
+                    row(name: c.name, region: c.region, localized: c.localized)
                 }
                 if loading { HStack { Spacer(); ProgressView(); Spacer() } }
             } header: {
@@ -72,13 +72,15 @@ struct CityPickerView: View {
         }
     }
 
-    private func row(name: String, region: String?) -> some View {
+    private func row(name: String, region: String?, localized: String? = nil) -> some View {
         Button {
+            CityNames.shared.remember(country: country, name: name, localized: localized)
             selection = name
             dismiss()
         } label: {
             HStack {
-                let shown = name.cityDisplayName(country: country)
+                // из справочника перевод приходит с ответом; для городов из истории он уже в кэше
+                let shown = localized ?? (localized == nil && region == nil ? name.cityDisplayName(country: country) : name)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(shown).foregroundStyle(.primary)
                     let caption = [shown != name ? name : nil, region].compactMap { $0 }.joined(separator: " · ")

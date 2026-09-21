@@ -82,6 +82,33 @@ final class CityNames {
     }
 }
 
+// MARK: - Словарь на сервере
+
+extension CityNames {
+    /// Забрать переводы городов из истории с сервера (справочник GeoNames). Сервер — источник истины:
+    /// его имена перекрывают то, что раньше угадал геокодер. Вызывается при каждом обновлении данных.
+    func sync() async {
+        let lang = Self.lang
+        guard lang != "en", let client = try? APIClient.fromSettings() else { return }
+        guard let remote = try? await client.cityNames(lang: lang) else { return }
+        var changed = false
+        for (key, localized) in remote where names["\(lang)|\(key)"] != localized {
+            names["\(lang)|\(key)"] = localized
+            changed = true
+        }
+        if changed { UserDefaults.standard.set(names, forKey: Self.storeKey) }
+    }
+
+    /// Запомнить перевод, пришедший вместе с результатом поиска, чтобы выбранный город сразу показывался по-русски
+    func remember(country: String, name: String, localized: String?) {
+        guard let localized, Self.lang != "en" else { return }
+        let key = "\(Self.lang)|\(country)|\(name.lowercased())"
+        guard names[key] != localized else { return }
+        names[key] = localized
+        UserDefaults.standard.set(names, forKey: Self.storeKey)
+    }
+}
+
 // MARK: - Починка старых записей
 
 extension CityNames {

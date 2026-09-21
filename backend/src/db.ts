@@ -16,7 +16,7 @@ export let regimes: Collection<Regime>;
 export let regimeChecks: Collection<RegimeCheck>;
 // справочник городов GeoNames (общий для всех пользователей)
 export let cities: Collection<City>;
-export let citiesMeta: Collection<{ _id: string; source: string; importedAt: string; count: number }>;
+export let citiesMeta: Collection<{ _id: string; source: string; importedAt: string; count: number; i18n?: string[]; i18nAt?: string }>;
 
 export async function connectDb() {
   await client.connect();
