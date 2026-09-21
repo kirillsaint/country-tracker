@@ -1,3 +1,4 @@
+import CoreLocation
 import Foundation
 import Observation
 import WidgetKit
@@ -18,6 +19,11 @@ final class AppModel {
     var discoverEnabled = false
     var recommendations: [Recommendation] = []
     var discoverSummary: String?
+    var weather: Weather?
+    var itinerary: Itinerary?
+    /// nil — тест ещё не проходили
+    var taste: TastePreferences?
+    var tasteLoaded = false
     var savedPlaces: [PlaceSave] = []
     var ratedPlaces: [PlaceRating] = []
     var documents: [TravelDocument] = []
@@ -60,6 +66,7 @@ final class AppModel {
     }
 
     private func performRefresh() async {
+        loadDiscoverCache()
         pendingCount = await PendingQueue.shared.count()
         guard let client = try? APIClient.fromSettings() else {
             errorMessage = nil
@@ -82,6 +89,7 @@ final class AppModel {
             async let discoverEnabled = client.discoverEnabled()
             async let savedPlaces = client.savedPlaces()
             async let ratedPlaces = client.ratedPlaces()
+            async let taste = client.taste()
             self.current = try await current
             self.countries = try await countries
             self.cities = try await cities
@@ -94,7 +102,10 @@ final class AppModel {
             self.discoverEnabled = (try? await discoverEnabled) ?? false
             self.savedPlaces = (try? await savedPlaces) ?? []
             self.ratedPlaces = (try? await ratedPlaces) ?? []
+            // try? схлопывает двойной optional: «тест не пройден» (nil) тоже успешный ответ
+            do { self.taste = try await taste; self.tasteLoaded = true } catch {}
             PlaceVisits.remember(self.savedPlaces.map { PlaceVisits.Known(id: $0.placeId, name: $0.name, lat: $0.lat, lon: $0.lon) })
+            PlaceVisits.rememberSaved(self.savedPlaces.map { PlaceVisits.Known(id: $0.placeId, name: $0.name, lat: $0.lat, lon: $0.lon) })
             let reg = try await regimes
             self.regimes = reg.regimes
             self.aiEnabled = reg.aiEnabled
@@ -370,7 +381,62 @@ final class AppModel {
         let result = try await APIClient.fromSettings().discover(lat: lat, lon: lon, query: query, category: category, radiusKm: radiusKm, openNow: openNow, localTime: f.string(from: Date()))
         recommendations = result.recommendations
         discoverSummary = result.summary
+        weather = result.weather
         PlaceVisits.remember(result.recommendations.map { PlaceVisits.Known(id: $0.id, name: $0.name, lat: $0.lat, lon: $0.lon) })
+    }
+
+    /// Подборка на главной без запроса: «удиви меня» рядом с текущей точкой, раз в 6 часов или при
+    /// переезде дальше 2 км. Результат хранится локально, чтобы показаться сразу при следующем открытии.
+    private struct DiscoverCache: Codable { let lat: Double; let lon: Double; let at: Date; let recommendations: [Recommendation]; let summary: String?; var weather: Weather? }
+    private static let discoverCacheKey = "discoverCache"
+    private var autoDiscovering = false
+
+    func loadDiscoverCache() {
+        guard recommendations.isEmpty, let data = UserDefaults.standard.data(forKey: Self.discoverCacheKey),
+              let c = try? JSONDecoder().decode(DiscoverCache.self, from: data) else { return }
+        recommendations = c.recommendations
+        discoverSummary = c.summary
+        if weather == nil { weather = c.weather }
+    }
+
+    func autoDiscoverIfNeeded(lat: Double, lon: Double) async {
+        guard discoverEnabled, !autoDiscovering else { return }
+        if let data = UserDefaults.standard.data(forKey: Self.discoverCacheKey), let c = try? JSONDecoder().decode(DiscoverCache.self, from: data) {
+            let moved = CLLocation(latitude: lat, longitude: lon).distance(from: CLLocation(latitude: c.lat, longitude: c.lon))
+            if Date().timeIntervalSince(c.at) < 6 * 3600, moved < 2000 { return }
+        }
+        autoDiscovering = true
+        defer { autoDiscovering = false }
+        do {
+            try await discover(lat: lat, lon: lon, query: nil, category: .any, radiusKm: 3, openNow: false)
+            let cache = DiscoverCache(lat: lat, lon: lon, at: Date(), recommendations: recommendations, summary: discoverSummary, weather: weather)
+            UserDefaults.standard.set(try? JSONEncoder().encode(cache), forKey: Self.discoverCacheKey)
+        } catch {
+            // тихо: подборка не критична, покажем прошлую или кнопку
+        }
+    }
+
+    func buildItinerary(lat: Double, lon: Double, hours: Int, radiusKm: Double, note: String? = nil) async throws {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "EEE HH:mm"
+        let start = DateFormatter()
+        start.locale = Locale(identifier: "en_US_POSIX")
+        start.dateFormat = "HH:mm"
+        // старт через 15 минут, округлённый до четверти часа
+        let startDate = Date().addingTimeInterval(15 * 60)
+        let comps = Calendar.current.dateComponents([.hour, .minute], from: startDate)
+        let rounded = Calendar.current.date(bySettingHour: comps.hour ?? 12, minute: ((comps.minute ?? 0) / 15) * 15, second: 0, of: startDate) ?? startDate
+        let result = try await APIClient.fromSettings().itinerary(lat: lat, lon: lon, hours: hours, startTime: start.string(from: rounded), radiusKm: radiusKm, localTime: f.string(from: Date()), note: note)
+        itinerary = result
+        if let w = result.weather { weather = w }
+        PlaceVisits.remember(result.stops.map { PlaceVisits.Known(id: $0.place.id, name: $0.place.name, lat: $0.place.lat, lon: $0.place.lon) })
+    }
+
+    func saveTaste(_ p: TastePreferences) async throws {
+        taste = try await APIClient.fromSettings().saveTaste(p)
+        // подборка на главной пересобирается с учётом ответов
+        UserDefaults.standard.removeObject(forKey: Self.discoverCacheKey)
     }
 
     func rating(for placeId: String) -> PlaceRating? { ratedPlaces.first { $0.placeId == placeId } }

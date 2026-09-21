@@ -100,6 +100,9 @@ struct HomeView: View {
                     if !model.discoverEnabled, !model.showSkeleton {
                         Text("Recommendations are off: the server has no Google Places key.").font(.footnote).foregroundStyle(.secondary)
                     }
+                    if model.recommendations.isEmpty, model.discoverEnabled, tracker.lastPoint != nil {
+                        ForEach(0..<2, id: \.self) { _ in SkeletonRow(flag: 72, lines: 3) }
+                    }
                     ForEach(model.recommendations.prefix(3)) { r in
                         NavigationLink {
                             PlaceDetailView(place: r)
@@ -128,6 +131,15 @@ struct HomeView: View {
             }
             .sheet(isPresented: $showMap) { MapScreen() }
             .sheet(isPresented: $showDiscover) { NavigationStack { DiscoverView() } }
+            // подборка «рядом» появляется сама, как только есть координата. Отдельная задача, не привязанная
+            // к вью: иначе каждая новая точка перезапускала бы её и обрывала запрос на полпути
+            .task(id: model.discoverEnabled) {
+                guard model.discoverEnabled else { return }
+                Task { @MainActor in
+                    for _ in 0..<60 where tracker.lastPoint == nil { try? await Task.sleep(for: .milliseconds(500)) }
+                    if let p = tracker.lastPoint { await model.autoDiscoverIfNeeded(lat: p.lat, lon: p.lon) }
+                }
+            }
             .onAppear {
                 #if DEBUG
                 // xcrun simctl launch … -debugDiscover coffee — сразу открыть «Чем заняться» и запустить поиск

@@ -8,6 +8,7 @@ struct DiscoverView: View {
 
     @State private var query = ""
     @State private var category: DiscoverCategory? = .any
+    @State private var subtags: Set<String> = []
     @State private var radiusKm = 3.0
     @State private var openNow = false
     @State private var useCity = false
@@ -15,11 +16,32 @@ struct DiscoverView: View {
     @State private var cityCountry: [String] = []
     @State private var loading = false
     @State private var error: String?
+    @FocusState private var queryFocused: Bool
+    @State private var showItinerary = false
+    @State private var showTaste = false
 
     private let columns = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]
 
     var body: some View {
         List {
+            if model.tasteLoaded, model.taste == nil {
+                Section {
+                    Button {
+                        showTaste = true
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "slider.horizontal.3").foregroundStyle(.tint)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Tell the assistant your taste").foregroundStyle(.primary)
+                                Text("A one-minute quiz — better picks from the first search.").font(.caption).foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right").foregroundStyle(.tertiary)
+                        }
+                    }
+                }
+            }
+
             Section {
                 Picker("Where", selection: $useCity) {
                     Text("Near me").tag(false)
@@ -42,14 +64,46 @@ struct DiscoverView: View {
                 } else if let p = tracker.lastPoint {
                     LabeledContent("Location", value: p.city ?? String(format: "%.3f, %.3f", p.lat, p.lon))
                 }
+                if let w = model.weather {
+                    Label {
+                        Text(verbatim: "\(w.tempC)°, \(w.localizedSummary)")
+                        if w.isRainy || w.isHot || w.isCold {
+                            Text("— picks lean indoors").foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: w.systemImage).foregroundStyle(.orange)
+                    }
+                    .font(.footnote)
+                }
             }
 
             Section {
-                TextField("What do you feel like? e.g. quiet café with outlets", text: $query, axis: .vertical)
+                Button {
+                    showItinerary = true
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "point.topleft.down.to.point.bottomright.curvepath.fill").foregroundStyle(.tint)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Plan a half-day route").foregroundStyle(.primary)
+                            Text("3–4 places in a sensible order with times, e.g. coffee → walk → dinner.").font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right").foregroundStyle(.tertiary)
+                    }
+                }
+                .disabled(useCity && city == nil)
+            }
+
+            Section {
+                TextField("What do you feel like? e.g. quiet café with outlets", text: $query)
+                    .focused($queryFocused)
+                    .submitLabel(.search)
+                    .onSubmit { Task { await search() } }
                     .onChange(of: query) { _, q in if !q.isEmpty { category = nil } }
                 LazyVGrid(columns: columns, spacing: 8) {
-                    ForEach(DiscoverCategory.allCases) { c in
+                    ForEach(DiscoverCategory.allCases.filter { $0 != .any }) { c in
                         Button {
+                            if category != c { subtags = [] }
                             category = c
                             query = ""
                         } label: {
@@ -65,6 +119,43 @@ struct DiscoverView: View {
                     }
                 }
                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                // «удиви меня» — во всю ширину, отдельно от сетки
+                Button {
+                    category = .any
+                    subtags = []
+                    query = ""
+                } label: {
+                    Label(DiscoverCategory.any.title, systemImage: DiscoverCategory.any.systemImage)
+                        .font(.caption.weight(.medium))
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity)
+                        .background(RoundedRectangle(cornerRadius: 10).fill(category == .any && query.isEmpty ? Color.accentColor : Color.secondary.opacity(0.12)))
+                        .foregroundStyle(category == .any && query.isEmpty ? .white : .primary)
+                }
+                .buttonStyle(.plain)
+                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 8, trailing: 16))
+                .listRowSeparator(.hidden)
+                // уточнения выбранной категории: кухни, виды прогулок и т.д.
+                if query.isEmpty, let c = category, !c.subtags.isEmpty {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 96), spacing: 6)], spacing: 6) {
+                        ForEach(c.subtags) { s in
+                            Button {
+                                if subtags.contains(s.id) { subtags.remove(s.id) } else { subtags.insert(s.id) }
+                            } label: {
+                                Text(s.title)
+                                    .font(.caption)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
+                                    .padding(.horizontal, 10).padding(.vertical, 6)
+                                    .frame(maxWidth: .infinity)
+                                    .background(Capsule().fill(subtags.contains(s.id) ? Color.accentColor.opacity(0.9) : Color.secondary.opacity(0.08)))
+                                    .foregroundStyle(subtags.contains(s.id) ? .white : .primary)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 8, trailing: 16))
+                }
                 Toggle("Open now", isOn: $openNow)
                 Picker("Radius", selection: $radiusKm) {
                     Text(String(localized: "\(1) km")).tag(1.0)
@@ -75,16 +166,23 @@ struct DiscoverView: View {
                 Button {
                     Task { await search() }
                 } label: {
-                    HStack {
-                        Spacer()
-                        if loading { ProgressView().tint(.white) } else { Label("Find something to do", systemImage: "sparkles") }
-                        Spacer()
+                    // Label внутри кнопки в списке резервирует место под иконку, но не рисует её — текст уезжает; собираем сами
+                    HStack(spacing: 8) {
+                        if loading {
+                            ProgressView().tint(.white)
+                        } else {
+                            Image(systemName: "sparkles")
+                            Text("Find something to do")
+                        }
                     }
                     .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 4)
                 }
                 .buttonStyle(.borderedProminent)
+                .controlSize(.regular)
                 .disabled(loading || (useCity && city == nil))
-                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))
                 if let error { Text(error).font(.footnote).foregroundStyle(.red) }
             } footer: {
                 Text("The assistant picks from Google’s directory for your taste and the moment: it can’t invent places. Rate what you visit and the picks get sharper.")
@@ -125,8 +223,14 @@ struct DiscoverView: View {
         }
         .navigationTitle("What to do?")
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showItinerary) {
+            NavigationStack { ItineraryView(lat: useCity ? city?.lat : tracker.lastPoint?.lat, lon: useCity ? city?.lon : tracker.lastPoint?.lon, radiusKm: min(radiusKm, 10)) }
+        }
         .task {
             #if DEBUG
+            // -debugItinerary — сразу открыть маршрут и построить его
+            if UserDefaults.standard.bool(forKey: "debugItinerary") { showItinerary = true }
+            if UserDefaults.standard.bool(forKey: "debugTaste") { showTaste = true }
             if let c = UserDefaults.standard.string(forKey: "debugDiscover"), let cat = DiscoverCategory(rawValue: c), model.recommendations.isEmpty {
                 category = cat
                 try? await Task.sleep(for: .seconds(2))
@@ -137,12 +241,20 @@ struct DiscoverView: View {
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
             ToolbarItem(placement: .primaryAction) {
-                NavigationLink { PlacesListView() } label: { Label("Saved and rated", systemImage: "bookmark") }
+                Menu {
+                    NavigationLink { PlacesListView() } label: { Label("Saved and rated", systemImage: "bookmark") }
+                    Button { showTaste = true } label: { Label("Your taste", systemImage: "slider.horizontal.3") }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
             }
         }
+        .sheet(isPresented: $showTaste) { NavigationStack { TasteQuizView(existing: model.taste) } }
     }
 
     private func search() async {
+        // клавиатура мешает смотреть результаты — прячем сразу
+        queryFocused = false
         loading = true
         error = nil
         defer { loading = false }
@@ -162,9 +274,13 @@ struct DiscoverView: View {
             lat = p.lat
             lon = p.lon
         }
-        let q = query.trimmingCharacters(in: .whitespaces)
+        var q = query.trimmingCharacters(in: .whitespaces)
+        // подтеги превращаются в текстовый запрос: «Italian seafood restaurant»
+        if q.isEmpty, let c = category, !subtags.isEmpty {
+            q = (c.subtags.filter { subtags.contains($0.id) }.map(\.query) + [c.noun]).joined(separator: " ")
+        }
         do {
-            try await model.discover(lat: lat, lon: lon, query: q.isEmpty ? nil : q, category: q.isEmpty ? (category ?? .any) : nil, radiusKm: radiusKm, openNow: openNow)
+            try await model.discover(lat: lat, lon: lon, query: q.isEmpty ? nil : q, category: category ?? .any, radiusKm: radiusKm, openNow: openNow)
         } catch {
             if !error.isCancellation { self.error = error.localizedDescription }
         }
@@ -187,7 +303,11 @@ struct PlaceRow: View {
                 }
                 HStack(spacing: 6) {
                     if let r = place.rating {
-                        Label(String(format: "%.1f", r), systemImage: "star.fill").foregroundStyle(.orange)
+                        HStack(spacing: 2) {
+                            Image(systemName: "star.fill")
+                            Text(String(format: "%.1f", r))
+                        }
+                        .foregroundStyle(.orange)
                         if let n = place.ratingCount { Text(verbatim: "(\(n))").foregroundStyle(.secondary) }
                     }
                     if let p = place.priceText { Text(p).foregroundStyle(.secondary) }
@@ -195,6 +315,8 @@ struct PlaceRow: View {
                     if place.openNow == true { Text("open").foregroundStyle(.green) } else if place.openNow == false { Text("closed").foregroundStyle(.red) }
                 }
                 .font(.caption)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
                 if let reason = place.reason {
                     Text(reason).font(.footnote).foregroundStyle(.secondary).lineLimit(3)
                 }

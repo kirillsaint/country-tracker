@@ -12,8 +12,8 @@ import { cachedCheck, confirmVersion, deleteRegime, diffVersions, isStale, start
 import { countryAt, countryName, localDateOf } from "./geo.js";
 import { cityCoords, localizedCityName, searchCities } from "./cities.js";
 import { CATEGORY_TYPES, isPlacesEnabled, photoUrl, placeDetails, resolvePhoto, verifyPhoto } from "./places.js";
-import { discover, userState, type PlaceRating, type PlaceSave } from "./discover.js";
-import { placeDismissals, placeRatings, placeSaves } from "./db.js";
+import { discover, itinerary, userState, type PlaceRating, type PlaceSave } from "./discover.js";
+import { placeDismissals, placeRatings, placeSaves, tastePreferences } from "./db.js";
 import { SCHENGEN } from "./presets.js";
 import {
   addDays,
@@ -559,6 +559,54 @@ api.post("/discover", zValidator("json", discoverBody), async (c) => {
 });
 
 api.get("/discover/status", (c) => c.json({ enabled: isPlacesEnabled() }));
+
+// Мини-тест о вкусах: ответы хранятся структурно и уходят в промпт рекомендаций
+const tasteBody = z.object({
+  cuisines: z.array(z.string().trim().min(1).max(30)).max(20).default([]),
+  vibe: z.enum(["quiet", "lively", "any"]).default("any"),
+  budget: z.enum(["cheap", "mid", "high", "any"]).default("any"),
+  company: z.enum(["solo", "couple", "friends", "family"]).default("solo"),
+  priorities: z.array(z.string().trim().min(1).max(30)).max(10).default([]),
+  dietary: z.array(z.string().trim().min(1).max(30)).max(10).default([]),
+  avoid: z.array(z.string().trim().min(1).max(30)).max(10).default([]),
+  discovery: z.enum(["famous", "hidden", "mix"]).default("mix"),
+  note: z.string().trim().max(300).nullable().default(null),
+});
+api.get("/taste", async (c) => {
+  const p = await tastePreferences.findOne({ userId: c.get("userId") });
+  if (!p) return c.json({ preferences: null });
+  const { userId: _u, _id: _i, ...pub } = p;
+  return c.json({ preferences: pub });
+});
+api.put("/taste", zValidator("json", tasteBody), async (c) => {
+  const userId = c.get("userId");
+  const doc = { userId, ...c.req.valid("json"), updatedAt: new Date().toISOString() };
+  await tastePreferences.replaceOne({ userId }, doc, { upsert: true });
+  const { userId: _u, ...pub } = doc;
+  return c.json({ preferences: pub });
+});
+
+// Маршрут на полдня: 3–4 места по порядку со временем
+const itineraryBody = z.object({
+  lat: z.number().min(-90).max(90),
+  lon: z.number().min(-180).max(180),
+  hours: z.number().int().min(2).max(8).default(4),
+  startTime: z.string().regex(/^\d{2}:\d{2}$/),
+  radiusKm: z.number().min(0.5).max(20).default(3),
+  lang: z.enum(["ru", "en"]).default("en"),
+  localTime: z.string().max(40).nullable().default(null),
+  // пожелания: «обязательно зайти в X», «ужин у воды»
+  note: z.string().trim().max(300).nullable().default(null),
+});
+api.post("/itinerary", zValidator("json", itineraryBody), async (c) => {
+  if (!isPlacesEnabled()) throw new HTTPException(503, { message: "places are not configured" });
+  const b = c.req.valid("json");
+  try {
+    return c.json(await itinerary(c.get("userId"), { baseUrl: baseUrl(c), lat: b.lat, lon: b.lon, query: null, category: null, radiusM: Math.round(b.radiusKm * 1000), openNow: false, lang: b.lang, localTime: b.localTime, hours: b.hours, startTime: b.startTime, note: b.note || null }));
+  } catch (e) {
+    throw new HTTPException(502, { message: e instanceof Error ? e.message : "itinerary failed" });
+  }
+});
 
 /** Адрес для ссылок наружу: PUBLIC_BASE_URL на проде, иначе origin запроса (dev: http://localhost:3000) */
 function baseUrl(c: { req: { url: string; header: (n: string) => string | undefined } }): string {

@@ -2,7 +2,7 @@ import { MongoClient, type Collection } from "mongodb";
 import { config } from "./config.js";
 import type { DayOverride, Entry, Point, Regime, RegimeCheck, Rule, Session, TravelDocument, User } from "./types.js";
 import type { City } from "./cities.js";
-import type { DiscoverLog, PlaceDismissal, PlaceRating, PlaceSave, TasteProfile } from "./discover.js";
+import type { DiscoverLog, PlaceDismissal, PlaceRating, PlaceSave, TastePreferences, TasteProfile } from "./discover.js";
 
 const client = new MongoClient(config.mongoUrl);
 
@@ -23,6 +23,7 @@ export let placeRatings: Collection<PlaceRating>;
 export let placeSaves: Collection<PlaceSave>;
 export let placeDismissals: Collection<PlaceDismissal>;
 export let tasteProfiles: Collection<TasteProfile>;
+export let tastePreferences: Collection<TastePreferences>;
 export let discoverLog: Collection<DiscoverLog>;
 export let citiesMeta: Collection<{ _id: string; source: string; importedAt: string; count: number; i18n?: string[]; i18nAt?: string }>;
 
@@ -45,6 +46,7 @@ export async function connectDb() {
   placeSaves = db.collection<PlaceSave>("place_saves");
   placeDismissals = db.collection<PlaceDismissal>("place_dismissals");
   tasteProfiles = db.collection<TasteProfile>("taste_profiles");
+  tastePreferences = db.collection<TastePreferences>("taste_preferences");
   discoverLog = db.collection<DiscoverLog>("discover_log");
 
   await Promise.all([
@@ -77,6 +79,7 @@ export async function connectDb() {
     placeSaves.createIndex({ userId: 1, placeId: 1 }, { unique: true }),
     placeDismissals.createIndex({ userId: 1, placeId: 1 }, { unique: true }),
     tasteProfiles.createIndex({ userId: 1 }, { unique: true }),
+    tastePreferences.createIndex({ userId: 1 }, { unique: true }),
     discoverLog.createIndex({ userId: 1, at: -1 }),
   ]);
 

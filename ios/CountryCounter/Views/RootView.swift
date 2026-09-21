@@ -32,6 +32,12 @@ struct RootView: View {
                     .tag(3)
             }
             .task(id: auth.token) {
+                #if DEBUG
+                // xcrun simctl launch … -debugPlace <id> | -debugRatePlace <id> | -debugPlaces — открыть экран сразу
+                if let id = UserDefaults.standard.string(forKey: "debugPlace") { router.pending = .place(id: id) }
+                if let id = UserDefaults.standard.string(forKey: "debugRatePlace") { router.pending = .ratePlace(id: id, name: "") }
+                if UserDefaults.standard.bool(forKey: "debugPlaces") { router.pending = .places }
+                #endif
                 await auth.restore()
                 await model.refresh()
                 // Точки, накопленные до входа, уезжают сразу после входа
@@ -45,6 +51,11 @@ struct RootView: View {
                             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { router.pending = nil } } }
                     case .ratePlace(let id, let name):
                         RatePlaceLoader(placeId: id, name: name)
+                    case .place(let id):
+                        PlaceLoaderView(placeId: id)
+                            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { router.pending = nil } } }
+                    case .places:
+                        PlacesListView()
                             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { router.pending = nil } } }
                     case .entryBasis:
                         if let seg = model.currentSegment {

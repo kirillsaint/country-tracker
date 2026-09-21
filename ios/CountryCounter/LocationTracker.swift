@@ -199,6 +199,8 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
 
             await PendingQueue.shared.enqueue(point)
             lastPoint = point
+            // рядом сохранённое место? (любая точка: визит, значимое перемещение, открытие приложения)
+            PlaceVisits.checkNearby(coordinate: location.coordinate, saved: PlaceVisits.savedList)
             log.info("queued \(source.rawValue) point \(point.city ?? "?")")
             await Uploader.flush()
         }

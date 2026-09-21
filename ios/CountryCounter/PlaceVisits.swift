@@ -28,6 +28,40 @@ enum PlaceVisits {
         UserDefaults.standard.set(try? JSONEncoder().encode(list), forKey: knownKey)
     }
 
+    private static let nearbyKey = "placeVisits.nearbyAsked"
+
+    /// Проходим в 300 м от сохранённого места — короткое напоминание, не чаще раза в 3 дня на место.
+    /// Только сохранённые (не подборки): о них человек явно сказал «хочу сюда».
+    static func checkNearby(coordinate: CLLocationCoordinate2D, saved: [Known]) {
+        guard !saved.isEmpty else { return }
+        let here = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        var asked = (UserDefaults.standard.dictionary(forKey: nearbyKey) as? [String: Double]) ?? [:]
+        let now = Date().timeIntervalSince1970
+        for p in saved where here.distance(from: CLLocation(latitude: p.lat, longitude: p.lon)) <= 300 {
+            if let last = asked[p.id], now - last < 3 * 86_400 { continue }
+            asked[p.id] = now
+            let content = UNMutableNotificationContent()
+            content.title = String(localized: "\(p.name) is nearby")
+            content.body = String(localized: "You saved it for later — it’s about 300 m away.")
+            content.sound = .default
+            content.userInfo = ["openPlace": p.id]
+            UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: "place-near-\(p.id)", content: content, trigger: nil)) { error in
+                if let error { log.error("nearby prompt failed: \(error.localizedDescription)") }
+            }
+            log.info("nearby saved place: \(p.name)")
+        }
+        UserDefaults.standard.set(asked, forKey: nearbyKey)
+    }
+
+    /// Сохранённые места хранятся отдельно от «известных», чтобы напоминать только о них
+    private static let savedKey = "placeVisits.saved"
+    static func rememberSaved(_ places: [Known]) {
+        UserDefaults.standard.set(try? JSONEncoder().encode(places), forKey: savedKey)
+    }
+    static var savedList: [Known] {
+        (try? JSONDecoder().decode([Known].self, from: UserDefaults.standard.data(forKey: savedKey) ?? Data())) ?? []
+    }
+
     /// Вызывается из LocationTracker при завершённом визите
     static func check(coordinate: CLLocationCoordinate2D, arrival: Date?, departure: Date?) {
         guard let arrival, let departure, departure.timeIntervalSince(arrival) >= 25 * 60 else { return }

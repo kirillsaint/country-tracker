@@ -40,7 +40,11 @@ struct PlaceDetailView: View {
                     Text(live.name).font(.title2.bold())
                     HStack(spacing: 8) {
                         if let r = live.rating {
-                            Label(String(format: "%.1f", r), systemImage: "star.fill").foregroundStyle(.orange)
+                            HStack(spacing: 3) {
+                                Image(systemName: "star.fill")
+                                Text(String(format: "%.1f", r))
+                            }
+                            .foregroundStyle(.orange)
                             if let n = live.ratingCount { Text(String(localized: "\(n) reviews")).foregroundStyle(.secondary) }
                         }
                         if let p = live.priceText { Text(p).foregroundStyle(.secondary) }
@@ -163,6 +167,8 @@ struct RatePlaceLoader: View {
             }
         }
         .task {
+            // сначала оценки (форма открывается из уведомления раньше общего обновления), потом место
+            if model.ratedPlaces.isEmpty, let list = try? await APIClient.fromSettings().ratedPlaces() { model.ratedPlaces = list }
             place = (try? await APIClient.fromSettings().place(id: placeId))
                 ?? Recommendation(id: placeId, name: name, address: nil, lat: 0, lon: 0, rating: nil, ratingCount: nil, priceLevel: nil, primaryType: nil, types: [], openNow: nil, hours: [], website: nil, mapsUrl: nil, phone: nil, summary: nil, distanceM: nil, reason: nil, tags: nil, photoUrls: [], user: PlaceUserState(stars: nil, saved: false))
         }

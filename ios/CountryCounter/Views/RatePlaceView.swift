@@ -53,11 +53,17 @@ struct RatePlaceView: View {
 
             Section {
                 ForEach(place.facets) { f in
-                    Picker(f.title, selection: Binding(get: { facets[f.rawValue] ?? 0 }, set: { v in if v == 0 { facets[f.rawValue] = nil } else { facets[f.rawValue] = v } })) {
-                        Text("—").tag(0)
-                        ForEach(1...5, id: \.self) { Text(String($0)).tag($0) }
+                    VStack(alignment: .leading, spacing: 6) {
+                        // сегментный пикер в форме прячет свою подпись — рисуем её сами
+                        Text(f.title).font(.subheadline)
+                        Picker(f.title, selection: Binding(get: { facets[f.rawValue] ?? 0 }, set: { v in if v == 0 { facets[f.rawValue] = nil } else { facets[f.rawValue] = v } })) {
+                            Text("—").tag(0)
+                            ForEach(1...5, id: \.self) { Text(String($0)).tag($0) }
+                        }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
                     }
-                    .pickerStyle(.segmented)
+                    .padding(.vertical, 2)
                 }
             } header: {
                 Text("Details (optional)")

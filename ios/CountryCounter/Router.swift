@@ -10,12 +10,18 @@ enum DeepLink: Identifiable, Equatable {
     case entryBasis(country: String)
     /// оценить место после визита
     case ratePlace(id: String, name: String)
+    /// карточка места
+    case place(id: String)
+    /// сохранённые и оценённые места
+    case places
 
     var id: String {
         switch self {
         case .regime(let c, let p): return "regime|\(c)|\(p ?? "")"
         case .entryBasis(let c): return "entry|\(c)"
         case .ratePlace(let id, _): return "rate|\(id)"
+        case .place(let id): return "place|\(id)"
+        case .places: return "places"
         }
     }
 }
