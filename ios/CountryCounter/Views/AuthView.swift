@@ -5,8 +5,10 @@ import SwiftUI
 struct AuthView: View {
     @Environment(AuthManager.self) private var auth
     @Environment(\.colorScheme) private var colorScheme
+    #if DEBUG
     @State private var serverStatus: String?
     @State private var checking = false
+    #endif
 
     var body: some View {
         VStack(spacing: 24) {
@@ -51,6 +53,8 @@ struct AuthView: View {
 
             Spacer()
 
+            #if DEBUG
+            // адрес сервера и проверка связи — только для отладки
             Button {
                 Task { await checkServer() }
             } label: {
@@ -62,10 +66,12 @@ struct AuthView: View {
                 .foregroundStyle(.secondary)
             }
             .disabled(checking)
+            #endif
         }
         .padding(24)
     }
 
+    #if DEBUG
     private func checkServer() async {
         checking = true
         defer { checking = false }
@@ -76,6 +82,7 @@ struct AuthView: View {
             serverStatus = error.localizedDescription
         }
     }
+    #endif
 }
 
 /// Кнопка Google той же формы, что и «Вход с Apple»: во всю ширину, 50 pt, те же скругления и шрифт.

@@ -8,7 +8,9 @@ struct SettingsView: View {
     @Environment(\.colorScheme) private var colorScheme
     @ObservedObject private var tracker = LocationTracker.shared
 
+    #if DEBUG
     @AppStorage(AppSettings.serverOverrideKey) private var serverOverride = ""
+    #endif
     @AppStorage(AppSettings.hourlyEnabledKey) private var hourlyEnabled = true
     @AppStorage(AppSettings.notificationsEnabledKey) private var notificationsEnabled = false
 
@@ -106,22 +108,18 @@ struct SettingsView: View {
                 Text("The app follows the iPhone language (English or Russian). You can pick a different one for this app in iOS Settings → Stamps → Language.")
             }
 
+            // Отладочные секции — только в Debug-сборке: адрес сервера, снимок для виджетов, журнал событий
+            #if DEBUG
             Section {
                 LabeledContent("Server", value: AppSettings.serverURL?.absoluteString ?? "—")
                     .lineLimit(1)
                     .truncationMode(.middle)
-                #if DEBUG
                 TextField("Override address (debug)", text: $serverOverride)
                     .keyboardType(.URL)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
-                #endif
             } footer: {
-                #if DEBUG
                 Text("The simulator talks to localhost:3000, a real phone — to production. The field above overrides the address in Debug builds only; sign out and back in after changing it.")
-                #else
-                Text("The server address is set in the build.")
-                #endif
             }
 
             Section {
@@ -156,6 +154,7 @@ struct SettingsView: View {
                     .font(.footnote)
                 }
             }
+            #endif
         }
         .navigationTitle("Settings")
         .confirmationDialog("Sign out?", isPresented: $confirmSignOut, titleVisibility: .visible) {
