@@ -269,15 +269,21 @@ struct APIClient {
         throw URLError(.timedOut)
     }
 
-    func startDiscover(lat: Double, lon: Double, query: String?, category: DiscoverCategory?, radiusKm: Double, openNow: Bool, localTime: String) async throws -> String {
+    /// Сервер отвечает сразу быстрой подборкой; если в ответе jobId — модель ещё уточняет её в фоне
+    func discover(lat: Double, lon: Double, query: String?, category: DiscoverCategory?, radiusKm: Double, openNow: Bool, localTime: String) async throws -> DiscoverResult {
         struct Body: Encodable { let lat: Double; let lon: Double; let query: String?; let category: String?; let radiusKm: Double; let openNow: Bool; let lang: String; let localTime: String }
-        let r: JobStarted = try await send("POST", "/api/discover", body: Body(lat: lat, lon: lon, query: query, category: category?.rawValue, radiusKm: radiusKm, openNow: openNow, lang: DocumentInput.currentLang, localTime: localTime))
-        return r.jobId
+        return try await send("POST", "/api/discover", body: Body(lat: lat, lon: lon, query: query, category: category?.rawValue, radiusKm: radiusKm, openNow: openNow, lang: DocumentInput.currentLang, localTime: localTime))
     }
 
-    func discover(lat: Double, lon: Double, query: String?, category: DiscoverCategory?, radiusKm: Double, openNow: Bool, localTime: String) async throws -> DiscoverResult {
-        let id = try await startDiscover(lat: lat, lon: lon, query: query, category: category, radiusKm: radiusKm, openNow: openNow, localTime: localTime)
-        return try await awaitJob(id: id)
+    /// Есть ли в Self Store сборка новее нашей
+    struct AppUpdate: Decodable, Equatable { let version: String; let buildNumber: String; let notes: String?; let url: URL }
+    func checkUpdate() async throws -> AppUpdate? {
+        struct R: Decodable { let available: Bool; let latest: AppUpdate? }
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "0"
+        let build = info?["CFBundleVersion"] as? String ?? "0"
+        let r: R = try await send("GET", "/api/app/update", query: ["version": version, "build": build])
+        return r.available ? r.latest : nil
     }
 
     func taste() async throws -> TastePreferences? {

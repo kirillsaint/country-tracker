@@ -15,10 +15,25 @@ final class AppModel {
     var ruleResults: [RuleResult] = []
     var manualRanges: [ManualRange] = []
 
+    /// Сборка в Self Store новее установленной — показать предложение обновиться
+    var availableUpdate: APIClient.AppUpdate?
+    @ObservationIgnored private var lastUpdateCheck: Date?
+
+    /// Спросить сервер о новой версии. При запуске — всегда; при возврате из фона — не чаще раза в час,
+    /// чтобы не дёргать при каждом переключении приложений. Ошибки молча: обновление не критично.
+    func checkForUpdate(force: Bool = false) async {
+        if !force, let last = lastUpdateCheck, Date().timeIntervalSince(last) < 3600 { return }
+        lastUpdateCheck = Date()
+        guard let client = try? APIClient.fromSettings(), let update = try? await client.checkUpdate() else { return }
+        availableUpdate = update
+    }
+
     // «Чем заняться»
     var discoverEnabled = false
     var recommendations: [Recommendation] = []
     var discoverSummary: String?
+    /// Быстрая подборка уже показана, нейросеть ещё выбирает и объясняет места
+    var discoverRefining = false
     var weather: Weather?
     var itinerary: Itinerary?
     /// nil — тест ещё не проходили
@@ -193,8 +208,8 @@ final class AppModel {
         // правила документа пересобраны на сервере — заменяем их в локальном списке
         rules.removeAll { $0.documentId == doc.id }
         rules.append(contentsOf: generated)
-        return doc
         await refreshRuleResults()
+        return doc
     }
 
     func deleteDocument(_ doc: TravelDocument) async {
@@ -374,11 +389,37 @@ final class AppModel {
 
     // MARK: - Чем заняться
 
-    func discover(lat: Double, lon: Double, query: String?, category: DiscoverCategory?, radiusKm: Double, openNow: Bool) async throws {
+    /// Показывает быструю подборку сразу, а уточнение нейросетью (если сервер его запустил) ждёт в фоне
+    /// и подменяет список, когда оно готово. Новый поиск отменяет ожидание предыдущего.
+    func discover(lat: Double, lon: Double, query: String?, category: DiscoverCategory?, radiusKm: Double, openNow: Bool, onRefined: (@MainActor () -> Void)? = nil) async throws {
         let f = DateFormatter()
         f.locale = Locale(identifier: "en_US_POSIX")
         f.dateFormat = "EEE HH:mm"
-        let result = try await APIClient.fromSettings().discover(lat: lat, lon: lon, query: query, category: category, radiusKm: radiusKm, openNow: openNow, localTime: f.string(from: Date()))
+        let client = try APIClient.fromSettings()
+        refineTask?.cancel()
+        refineTask = nil
+        discoverRefining = false
+        let result = try await client.discover(lat: lat, lon: lon, query: query, category: category, radiusKm: radiusKm, openNow: openNow, localTime: f.string(from: Date()))
+        apply(result)
+        guard let jobId = result.jobId else { return }
+        discoverRefining = true
+        let task = Task { @MainActor [weak self] in
+            defer { self?.discoverRefining = false }
+            do {
+                let refined: DiscoverResult = try await client.awaitJob(id: jobId, timeout: 120)
+                guard !Task.isCancelled, let self else { return }
+                self.apply(refined)
+                onRefined?()
+            } catch {
+                // быстрая подборка уже на экране — тихо остаёмся с ней
+            }
+        }
+        refineTask = task
+    }
+
+    private var refineTask: Task<Void, Never>?
+
+    private func apply(_ result: DiscoverResult) {
         recommendations = result.recommendations
         discoverSummary = result.summary
         weather = result.weather
@@ -408,9 +449,14 @@ final class AppModel {
         autoDiscovering = true
         defer { autoDiscovering = false }
         do {
-            try await discover(lat: lat, lon: lon, query: nil, category: .any, radiusKm: 3, openNow: false)
-            let cache = DiscoverCache(lat: lat, lon: lon, at: Date(), recommendations: recommendations, summary: discoverSummary, weather: weather)
-            UserDefaults.standard.set(try? JSONEncoder().encode(cache), forKey: Self.discoverCacheKey)
+            let save: @MainActor () -> Void = { [weak self] in
+                guard let self else { return }
+                let cache = DiscoverCache(lat: lat, lon: lon, at: Date(), recommendations: recommendations, summary: discoverSummary, weather: weather)
+                UserDefaults.standard.set(try? JSONEncoder().encode(cache), forKey: Self.discoverCacheKey)
+            }
+            // быстрая подборка сохраняется сразу, уточнённая — когда придёт
+            try await discover(lat: lat, lon: lon, query: nil, category: .any, radiusKm: 3, openNow: false, onRefined: save)
+            save()
         } catch {
             // тихо: подборка не критична, покажем прошлую или кнопку
         }

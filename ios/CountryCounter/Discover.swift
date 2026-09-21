@@ -310,6 +310,8 @@ struct DiscoverResult: Codable {
     let summary: String?
     let source: String
     let weather: Weather?
+    /// Задача уточнения нейросетью; nil — подборка уже окончательная (модель выключена или ответ из кэша)
+    var jobId: String?
 }
 
 struct ItineraryStop: Codable, Identifiable, Hashable {

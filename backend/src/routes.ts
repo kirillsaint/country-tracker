@@ -551,16 +551,20 @@ const discoverBody = z.object({
   lang: z.enum(["ru", "en"]).default("en"),
   // локальное время пользователя «Sat 19:30» — для «сейчас вечер, лучше бар, чем музей»
   localTime: z.string().max(40).nullable().default(null),
-  // sync — дождаться результата в этом же запросе (для отладки); по умолчанию — задача + опрос
+  // sync — дождаться и подборки модели в этом же запросе (для отладки)
   sync: z.boolean().default(false),
 });
+// Ответ приходит сразу: быстрая подборка по справочнику. Если нейросеть включена и ответа для этого места
+// ещё нет в кэше, вместе с ней отдаётся jobId — приложение показывает быстрый список и опрашивает задачу,
+// а когда модель выберет и объяснит места, подменяет список
 api.post("/discover", zValidator("json", discoverBody), async (c) => {
   if (!isPlacesEnabled()) throw new HTTPException(503, { message: "places are not configured" });
   const b = c.req.valid("json");
   const userId = c.get("userId");
-  const run = () => discover(userId, { baseUrl: baseUrl(c), lat: b.lat, lon: b.lon, query: b.query || null, category: (b.category as keyof typeof CATEGORY_TYPES) ?? null, radiusM: Math.round(b.radiusKm * 1000), openNow: b.openNow, lang: b.lang, localTime: b.localTime });
-  if (b.sync) return c.json({ ...(await run()), enabled: true });
-  return c.json({ jobId: await startJob(userId, "discover", run) }, 202);
+  const { quick, refine } = await discover(userId, { baseUrl: baseUrl(c), lat: b.lat, lon: b.lon, query: b.query || null, category: (b.category as keyof typeof CATEGORY_TYPES) ?? null, radiusM: Math.round(b.radiusKm * 1000), openNow: b.openNow, lang: b.lang, localTime: b.localTime });
+  if (b.sync && refine) return c.json({ ...(await refine()), jobId: null });
+  const jobId = refine ? await startJob(userId, "discover", refine) : null;
+  return c.json({ ...quick, jobId });
 });
 
 // Статус задачи: queued / running / done (+ result) / failed (+ error)
@@ -571,6 +575,48 @@ api.get("/jobs/:id", zValidator("param", z.object({ id: z.string().uuid() })), a
 });
 
 api.get("/discover/status", (c) => c.json({ enabled: isPlacesEnabled() }));
+
+// MARK: обновления приложения через Self Store
+
+type LatestBuild = { version: string; buildNumber: string; notes: string | null; url: string };
+let latestBuildCache: { at: number; value: LatestBuild | null } | null = null;
+/** Последняя сборка в Self Store; ответ магазина кэшируется на 5 минут, чтобы не ходить туда при каждом запуске */
+async function latestBuild(): Promise<LatestBuild | null> {
+  if (!config.selfStoreUrl || !config.selfStoreAppId) return null;
+  if (latestBuildCache && Date.now() - latestBuildCache.at < 5 * 60_000) return latestBuildCache.value;
+  const res = await fetch(`${config.selfStoreUrl}/api/apps/${encodeURIComponent(config.selfStoreAppId)}/latest`, { signal: AbortSignal.timeout(8_000) });
+  if (!res.ok) throw new Error(`self store ${res.status}`);
+  const j = (await res.json()) as { latest: { version: string; buildNumber: string; notes: string | null } | null; url: string };
+  const value = j.latest ? { version: j.latest.version, buildNumber: j.latest.buildNumber, notes: j.latest.notes, url: j.url } : null;
+  latestBuildCache = { at: Date.now(), value };
+  return value;
+}
+
+// Приложение присылает свою версию и сборку, сервер отвечает, есть ли новее и где взять
+api.get("/app/update", zValidator("query", z.object({ version: z.string().max(40), build: z.string().max(40) })), async (c) => {
+  const q = c.req.valid("query");
+  let latest: LatestBuild | null;
+  try {
+    latest = await latestBuild();
+  } catch (e) {
+    console.error("update check:", e instanceof Error ? e.message : e);
+    return c.json({ available: false });
+  }
+  if (!latest) return c.json({ available: false });
+  return c.json({ available: isNewer(latest, q), latest });
+});
+
+/** Новее ли сборка магазина: сначала версия по частям (0.1.10 > 0.1.9), при равенстве — номер сборки */
+function isNewer(latest: { version: string; buildNumber: string }, mine: { version: string; build: string }): boolean {
+  const parts = (v: string) => v.split(".").map((x) => Number.parseInt(x, 10) || 0);
+  const a = parts(latest.version);
+  const b = parts(mine.version);
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const d = (a[i] ?? 0) - (b[i] ?? 0);
+    if (d !== 0) return d > 0;
+  }
+  return (Number.parseInt(latest.buildNumber, 10) || 0) > (Number.parseInt(mine.build, 10) || 0);
+}
 
 // Мини-тест о вкусах: ответы хранятся структурно и уходят в промпт рекомендаций
 const tasteBody = z.object({

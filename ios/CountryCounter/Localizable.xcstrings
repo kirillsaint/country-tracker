@@ -7474,6 +7474,7 @@
       }
     },
     "For another day the plan uses the weekly opening hours and the hourly forecast for that time (up to 16 days ahead).": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -7484,6 +7485,7 @@
       }
     },
     "Forecast": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
@@ -7494,11 +7496,82 @@
       }
     },
     "Weather": {
+      "extractionState": "stale",
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Погода"
+          }
+        }
+      }
+    },
+    "Refining for your taste…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Уточняем под ваш вкус…"
+          }
+        }
+      }
+    },
+    "Update available": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступно обновление"
+          }
+        }
+      }
+    },
+    "Update": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обновить"
+          }
+        }
+      }
+    },
+    "Later": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Позже"
+          }
+        }
+      }
+    },
+    "Version %@ (%@) is in the store.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В магазине версия %1$@ (%2$@)."
+          }
+        }
+      }
+    },
+    "Version %@ (%@) is in the store.\n%@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В магазине версия %1$@ (%2$@).\n%3$@"
+          }
+        }
+      }
+    },
+    "Sign in with Google": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вход с Google"
           }
         }
       }

@@ -118,6 +118,8 @@ struct HomeView: View {
                 } footer: {
                     if model.pendingCount > 0 {
                         Text("\(pluralPoints(model.pendingCount)) waiting to be uploaded")
+                    } else if model.discoverRefining {
+                        Text("Refining for your taste…")
                     } else if let s = model.discoverSummary, !model.recommendations.isEmpty {
                         Text(s)
                     }

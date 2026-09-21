@@ -26,6 +26,8 @@ export let placeDismissals: Collection<PlaceDismissal>;
 export let tasteProfiles: Collection<TasteProfile>;
 export let tastePreferences: Collection<TastePreferences>;
 export let discoverLog: Collection<DiscoverLog>;
+// готовые подборки нейросети: то же место, запрос и пользователь в ближайшие часы — без повторного вызова модели
+export let discoverAiCache: Collection<{ key: string; result: unknown; expiresAt: Date }>;
 export let jobs: Collection<Job>;
 export let citiesMeta: Collection<{ _id: string; source: string; importedAt: string; count: number; i18n?: string[]; i18nAt?: string }>;
 
@@ -50,6 +52,7 @@ export async function connectDb() {
   tasteProfiles = db.collection<TasteProfile>("taste_profiles");
   tastePreferences = db.collection<TastePreferences>("taste_preferences");
   discoverLog = db.collection<DiscoverLog>("discover_log");
+  discoverAiCache = db.collection("discover_ai_cache");
   jobs = db.collection<Job>("jobs");
 
   await Promise.all([
@@ -84,6 +87,8 @@ export async function connectDb() {
     tasteProfiles.createIndex({ userId: 1 }, { unique: true }),
     tastePreferences.createIndex({ userId: 1 }, { unique: true }),
     discoverLog.createIndex({ userId: 1, at: -1 }),
+    discoverAiCache.createIndex({ key: 1 }, { unique: true }),
+    discoverAiCache.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
     jobs.createIndex({ id: 1 }, { unique: true }),
     jobs.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
   ]);

@@ -23,6 +23,7 @@ struct DiscoverView: View {
     private let columns = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]
 
     var body: some View {
+        ScrollViewReader { proxy in
         List {
             if model.tasteLoaded, model.taste == nil {
                 Section {
@@ -215,10 +216,18 @@ struct DiscoverView: View {
                         }
                     }
                 } header: {
-                    Text("Picks for you")
+                    HStack {
+                        Text("Picks for you")
+                        if model.discoverRefining {
+                            Spacer()
+                            ProgressView().controlSize(.mini)
+                            Text("Refining for your taste…").textCase(nil)
+                        }
+                    }
                 } footer: {
                     if let s = model.discoverSummary { Text(s) }
                 }
+                .id("picks")
             }
         }
         .navigationTitle("What to do?")
@@ -231,10 +240,15 @@ struct DiscoverView: View {
             // -debugItinerary — сразу открыть маршрут и построить его
             if UserDefaults.standard.bool(forKey: "debugItinerary") { showItinerary = true }
             if UserDefaults.standard.bool(forKey: "debugTaste") { showTaste = true }
-            if let c = UserDefaults.standard.string(forKey: "debugDiscover"), let cat = DiscoverCategory(rawValue: c), model.recommendations.isEmpty {
+            if let c = UserDefaults.standard.string(forKey: "debugDiscover"), let cat = DiscoverCategory(rawValue: c) {
                 category = cat
                 try? await Task.sleep(for: .seconds(2))
                 await search()
+                // -debugScroll — прокрутить к результатам для скриншота
+                if UserDefaults.standard.bool(forKey: "debugScroll") {
+                    try? await Task.sleep(for: .milliseconds(300))
+                    withAnimation { proxy.scrollTo("picks", anchor: .top) }
+                }
             }
             #endif
         }
@@ -250,6 +264,7 @@ struct DiscoverView: View {
             }
         }
         .sheet(isPresented: $showTaste) { NavigationStack { TasteQuizView(existing: model.taste) } }
+        }
     }
 
     private func search() async {

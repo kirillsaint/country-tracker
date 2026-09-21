@@ -170,10 +170,12 @@ export async function researchRegime(passportCode: string, countryCode: string, 
 }
 
 /** Общий вызов модели со строгой JSON-схемой (без веб-поиска, если не просят). Возвращает распарсенный объект. */
-export async function completeJson(opts: { system: string; user: string; name: string; schema: unknown; web?: boolean; timeoutMs?: number; temperature?: number }): Promise<unknown> {
+export async function completeJson(opts: { system: string; user: string; name: string; schema: unknown; web?: boolean; timeoutMs?: number; temperature?: number; fast?: boolean }): Promise<unknown> {
   if (!isAiEnabled()) throw new Error("OPENROUTER_API_KEY is not set");
   const body = {
-    model: config.openRouterModel,
+    // fast — быстрая модель и минимум «размышлений»: ответ за секунды вместо десятков секунд
+    model: opts.fast ? config.openRouterFastModel : config.openRouterModel,
+    ...(opts.fast ? { reasoning: { effort: "low" } } : {}),
     ...(opts.web ? { plugins: [{ id: "web" }] } : {}),
     temperature: opts.temperature ?? 0.2,
     messages: [

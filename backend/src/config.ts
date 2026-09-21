@@ -23,6 +23,8 @@ export const config = {
   // OpenRouter — нейросеть с веб-поиском для «Заполнить автоматически». Пусто = только ручной ввод.
   openRouterApiKey: process.env.OPENROUTER_API_KEY ?? "",
   openRouterModel: process.env.OPENROUTER_MODEL ?? "openai/gpt-5.6-sol",
+  // быстрая модель для рекомендаций и маршрутов: там нужен подбор из готового списка, а не исследование
+  openRouterFastModel: process.env.OPENROUTER_FAST_MODEL ?? "openai/gpt-5.6-luna",
   openRouterBaseUrl: process.env.OPENROUTER_BASE_URL ?? "https://openrouter.ai/api/v1",
   // Google Places API (New) — факты о местах для раздела «Чем заняться». Пусто = раздел выключен.
   googlePlacesApiKey: process.env.GOOGLE_PLACES_API_KEY ?? "",
@@ -30,6 +32,10 @@ export const config = {
   publicBaseUrl: process.env.PUBLIC_BASE_URL ?? "",
   // сколько дней результат проверки режима считается свежим (кэш + порог «перепроверить при въезде»)
   regimeFreshDays: Number(process.env.REGIME_FRESH_DAYS ?? 30),
+  // Self Store — откуда приложение узнаёт о новой версии: адрес магазина и id приложения Stamps в нём.
+  // Пусто — проверка обновлений выключена.
+  selfStoreUrl: (process.env.SELF_STORE_URL ?? "").replace(/\/$/, ""),
+  selfStoreAppId: process.env.SELF_STORE_APP_ID ?? "",
 };
 
 if (config.googleClientIds.length === 0) {
