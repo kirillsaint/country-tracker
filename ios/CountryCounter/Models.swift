@@ -80,11 +80,20 @@ struct Segment: Codable, Identifiable, Hashable {
     let city: String?
     /// все города отрезка с днями, по убыванию; nil у отрезков, собранных на устройстве
     var cities: [CityDays]?
+    /// остановки по порядку внутри пребывания (Тбилиси → Батуми → Тбилиси); nil — собрано на устройстве
+    var stops: [Stop]?
     let from: String
     let to: String
     let days: Int
 
     struct CityDays: Codable, Hashable { let city: String; let days: Int }
+    struct Stop: Codable, Hashable { let city: String?; let from: String; let to: String; let days: Int }
+
+    /// Пребывание как отдельные поездки по городам — для хронологии. Один город — сам отрезок
+    var byStop: [Segment] {
+        guard let stops, stops.count > 1 else { return [self] }
+        return stops.map { Segment(countryCode: countryCode, countryName: countryName, city: $0.city, cities: nil, stops: nil, from: $0.from, to: $0.to, days: $0.days) }
+    }
 }
 
 struct CityStat: Codable, Identifiable, Hashable {
@@ -126,7 +135,7 @@ extension Segment {
             let end = y == toYear ? to : "\(y)-12-31"
             let d = (daysBetween(start, end) ?? 0) + 1
             // города по годам не делим — показываем общий список отрезка
-            out.append(Segment(countryCode: countryCode, countryName: countryName, city: city, cities: cities, from: start, to: end, days: d))
+            out.append(Segment(countryCode: countryCode, countryName: countryName, city: city, cities: cities, stops: nil, from: start, to: end, days: d))
         }
         return out.reversed()
     }

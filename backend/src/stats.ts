@@ -150,10 +150,15 @@ export type Segment = {
   city: string | null;
   // все города отрезка с числом дней, по убыванию — «Тбилиси 100 · Батуми 6 · Зугдиди 4»
   cities: { city: string; days: number }[];
+  // остановки внутри пребывания по порядку: Тбилиси 24 янв – 1 апр, Батуми 1–5 апр, Тбилиси 5 апр – 21 мая.
+  // День без города продолжает текущую остановку
+  stops: Stop[];
   from: string;
   to: string;
   days: number;
 };
+
+export type Stop = { city: string | null; from: string; to: string; days: number };
 
 // Непрерывные отрезки по основной стране дня — для ленты "март: Тбилиси, апрель: Алматы".
 // Внутри страны по городам не режем: город у автоматических точек плавает (пригороды, соседние
@@ -166,14 +171,22 @@ export function timeline(days: DailyPresence, from: string, to: string): Segment
     const p = primaryOf(days.get(d))!;
     const last = out[out.length - 1];
     const contiguous = prevDate !== null && daysBetween(prevDate, d) === 1;
+    const city = p.city?.trim() || null;
     if (last && contiguous && last.countryCode === p.countryCode) {
       last.to = d;
       last.days++;
+      const stop = last.stops[last.stops.length - 1];
+      if (city && stop.city && city !== stop.city) {
+        last.stops.push({ city, from: d, to: d, days: 1 });
+      } else {
+        stop.to = d;
+        stop.days++;
+        stop.city ??= city;
+      }
     } else {
-      out.push({ countryCode: p.countryCode, countryName: p.countryName, city: null, cities: [], from: d, to: d, days: 1 });
+      out.push({ countryCode: p.countryCode, countryName: p.countryName, city: null, cities: [], stops: [{ city, from: d, to: d, days: 1 }], from: d, to: d, days: 1 });
       cityDays.push(new Map());
     }
-    const city = p.city?.trim();
     if (city) {
       const m = cityDays[cityDays.length - 1];
       m.set(city, (m.get(city) ?? 0) + 1);
@@ -192,6 +205,9 @@ export function timeline(days: DailyPresence, from: string, to: string): Segment
       if (!list || primaryOf(list)!.countryCode === seg.countryCode || !list.some((p) => p.countryCode === seg.countryCode)) break;
       seg.to = next;
       seg.days++;
+      const stop = seg.stops[seg.stops.length - 1];
+      stop.to = next;
+      stop.days++;
     }
   }
   return out.reverse();

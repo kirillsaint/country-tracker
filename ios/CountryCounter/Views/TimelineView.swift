@@ -8,9 +8,9 @@ struct TimelineView: View {
     @State private var basisFor: Segment?
     @State private var showMap = false
 
-    // Хронология по годам: отрезки, пересекающие Новый год, режем на части
+    // Хронология по годам: пребывание — отдельными поездками по городам, отрезки через Новый год режем на части
     private var sectionsByYear: [(year: Int, segments: [Segment], days: Int)] {
-        let pieces = model.timeline.flatMap { $0.splitByYear() }
+        let pieces = model.timeline.flatMap(\.byStop).flatMap { $0.splitByYear() }
         let grouped = Dictionary(grouping: pieces, by: \.year)
         return grouped.keys.sorted(by: >)
             .filter { year == nil || $0 == year }
@@ -121,7 +121,9 @@ struct TimelineView: View {
 
     private func segmentRow(_ s: Segment) -> some View {
         let original = originalSegment(for: s)
-        let entry = model.entry(for: original)
+        // основание въезда и смены статуса — на строке с датой въезда; остальные остановки того же пребывания без них
+        let isArrival = s.from == original.from
+        let entry = isArrival ? model.entry(for: original) : nil
         return Button {
             basisFor = original
         } label: {
@@ -130,11 +132,7 @@ struct TimelineView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(s.countryCode.countryDisplayName(fallback: s.countryName))
                         .font(.headline)
-                    if let cities = s.cities, cities.count > 1 {
-                        // несколько городов за одно пребывание: «Тбилиси 100 · Батуми 6 · Зугдиди 4»
-                        Text(cities.map { "\($0.city.cityDisplayName(country: s.countryCode)) \($0.days)" }.joined(separator: " · "))
-                            .foregroundStyle(.secondary)
-                    } else if let city = s.city {
+                    if let city = s.city {
                         Text(city.cityDisplayName(country: s.countryCode)).foregroundStyle(.secondary)
                     }
                     Text(verbatim: s.from == s.to ? prettyDate(s.from) : "\(prettyDate(s.from)) – \(prettyDate(s.to))")
@@ -149,7 +147,7 @@ struct TimelineView: View {
                         }
                     }
                     // смены статуса внутри пребывания (получил ВНЖ, не выезжая)
-                    ForEach(model.switches(for: original)) { sw in
+                    ForEach(isArrival ? model.switches(for: original) : []) { sw in
                         HStack(spacing: 4) {
                             Image(systemName: "arrow.turn.down.right").font(.caption2).foregroundStyle(.tertiary)
                             EntryBadge(entry: sw, document: model.document(id: sw.documentId))
