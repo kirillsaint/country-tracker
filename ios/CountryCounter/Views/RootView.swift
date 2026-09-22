@@ -38,6 +38,8 @@ struct RootView: View {
                 if let id = UserDefaults.standard.string(forKey: "debugPlace") { router.pending = .place(id: id) }
                 if let id = UserDefaults.standard.string(forKey: "debugRatePlace") { router.pending = .ratePlace(id: id, name: "") }
                 if UserDefaults.standard.bool(forKey: "debugPlaces") { router.pending = .places }
+                // -debugEntryBasis YES — открыть лист «как въехали?» для текущего пребывания
+                if UserDefaults.standard.bool(forKey: "debugEntryBasis") { router.pending = .entryBasis(country: "") }
                 #endif
                 await auth.restore()
                 await model.refresh()

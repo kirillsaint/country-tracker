@@ -34,7 +34,7 @@ enum RegimeChecks {
         guard !list.isEmpty, let client = try? APIClient.fromSettings() else { return }
         var remaining: [Pending] = []
         for p in list {
-            guard let (check, diff) = try? await client.regimeCheck(id: p.checkId, passportId: p.passportId) else {
+            guard let (check, diff, applied) = try? await client.regimeCheck(id: p.checkId, passportId: p.passportId) else {
                 remaining.append(p)
                 continue
             }
@@ -43,7 +43,9 @@ enum RegimeChecks {
                 // зависшие дольше получаса забываем
                 if Date().timeIntervalSince(p.startedAt) < 30 * 60 { remaining.append(p) }
             case .done:
-                notify(check: check, diff: diff, passportId: p.passportId)
+                notify(check: check, diff: diff, applied: applied, passportId: p.passportId)
+                // правила применились на сервере — перечитать режимы и правила подсчёта
+                if applied { await MainActor.run { NotificationCenter.default.post(name: .entryBasisChanged, object: nil) } }
             case .failed:
                 notifyFailure(check: check)
             }
@@ -51,11 +53,16 @@ enum RegimeChecks {
         pending = remaining
     }
 
-    private static func notify(check: RegimeCheck, diff: RegimeDiff?, passportId: String) {
+    private static func notify(check: RegimeCheck, diff: RegimeDiff?, applied: Bool, passportId: String) {
         let country = check.countryCode.countryDisplayName(fallback: nil)
         let content = UNMutableNotificationContent()
         content.title = String(localized: "Entry rules: \(country)")
-        if let diff, !diff.changed {
+        if applied, let d = check.draft {
+            let parts = d.constraints.map(\.summary)
+            content.body = parts.isEmpty
+                ? String(localized: "Rules added: \(d.requirement.title). Tap to see them.")
+                : String(localized: "Rules added: \(parts.joined(separator: ", ")). Tap to see or edit them.")
+        } else if let diff, !diff.changed {
             content.body = String(localized: "Checked — no changes. Tap to see the sources.")
         } else if let d = check.draft {
             let parts = d.constraints.map(\.summary)

@@ -476,6 +476,8 @@ struct RegimeVersion: Codable, Identifiable, Equatable {
     let effectiveFrom: String
     let effectiveTo: String?
     let confirmedAt: String
+    /// проверка нейросетью, из которой версия применена автоматически
+    var checkId: String?
 }
 
 struct Regime: Codable, Identifiable, Equatable {

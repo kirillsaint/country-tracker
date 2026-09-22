@@ -134,9 +134,9 @@ enum EntryPrompter {
         guard let client = try? APIClient.fromSettings() else { return }
         do {
             _ = try await client.setEntry(countryCode: country, date: since, basis: basis, documentId: documentId, note: nil)
-            // Безвиз: запустить проверку условий нейросетью (в фоне); результат придёт уведомлением
+            // Безвиз: проверка условий нейросетью в фоне; если правил ещё нет — сервер применит результат сам
             if basis == .visa_free, let documentId, recheck {
-                let check = try await client.startRegimeCheck(passportId: documentId, country: country, force: false)
+                let (check, _) = try await client.startRegimeCheck(passportId: documentId, country: country, force: false, autoApply: true)
                 RegimeChecks.remember(check, passportId: documentId)
             }
             NotificationCenter.default.post(name: .entryBasisChanged, object: nil)

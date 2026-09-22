@@ -18,6 +18,7 @@ struct RegimeView: View {
     @State private var checking = false
     @State private var confirmDelete = false
     @State private var showHistory = false
+    @State private var applyingPreset = false
 
     private var passport: TravelDocument? { model.document(id: passportId) }
     private var regime: Regime? { passportId.flatMap { model.regime(passportId: $0, country: countryCode) } }
@@ -155,10 +156,20 @@ struct RegimeView: View {
                     }
                     .disabled(checking || check?.status == .queued || check?.status == .running)
                 }
-                Button("Fill in by hand", systemImage: "square.and.pencil") {
-                    editorOrigin = "user"
-                    editor = RegimeVersionInput(requirement: .visa_free, constraints: [RegimeConstraint(type: .perEntry, limitDays: 30)], conditions: [], sources: [], origin: "user", model: nil, notes: nil)
+                // типовые лимиты — в одно нажатие; «свой вариант» открывает редактор
+                Menu {
+                    ForEach(RegimePreset.all) { preset in
+                        Button(preset.title) { Task { await applyPreset(preset) } }
+                    }
+                    Divider()
+                    Button("Custom…", systemImage: "square.and.pencil") {
+                        editorOrigin = "user"
+                        editor = RegimeVersionInput(requirement: .visa_free, constraints: [RegimeConstraint(type: .perEntry, limitDays: 30)], conditions: [], sources: [], origin: "user", model: nil, notes: nil)
+                    }
+                } label: {
+                    Label("Fill in by hand", systemImage: "square.and.pencil")
                 }
+                .disabled(applyingPreset)
             }
         } header: {
             Text("Entry rules")
@@ -309,7 +320,13 @@ struct RegimeView: View {
         if active != nil, diff?.changed == false {
             Button("Mark as checked", systemImage: "checkmark") { Task { await markChecked(d, check) } }
         } else {
-            Button(active == nil ? "Review and add" : "Review and apply changes", systemImage: "checkmark.circle") {
+            // применить как есть — одно нажатие; поправить перед этим можно в редакторе
+            Button(active == nil ? "Add these rules" : "Apply changes", systemImage: "checkmark.circle") {
+                editorOrigin = "ai"
+                Task { await save(RegimeVersionInput(requirement: d.requirement, constraints: d.constraints, conditions: d.conditions, sources: d.sources, origin: "ai", model: check.model, notes: d.summary)) }
+            }
+            .disabled(applyingPreset)
+            Button("Edit first…", systemImage: "pencil") {
                 editorOrigin = "ai"
                 editor = RegimeVersionInput(requirement: d.requirement, constraints: d.constraints, conditions: d.conditions, sources: d.sources, origin: "ai", model: check.model, notes: d.summary)
             }
@@ -371,7 +388,7 @@ struct RegimeView: View {
         checking = true
         defer { checking = false }
         do {
-            let c = try await APIClient.fromSettings().startRegimeCheck(passportId: passportId, country: countryCode, force: force)
+            let (c, _) = try await APIClient.fromSettings().startRegimeCheck(passportId: passportId, country: countryCode, force: force)
             check = c
             diff = nil
             RegimeChecks.remember(c, passportId: passportId)
@@ -389,7 +406,7 @@ struct RegimeView: View {
         for _ in 0..<60 {
             try? await Task.sleep(for: .seconds(4))
             guard !Task.isCancelled, let passportId else { return }
-            if let (c, d) = try? await APIClient.fromSettings().regimeCheck(id: id, passportId: passportId) {
+            if let (c, d, _) = try? await APIClient.fromSettings().regimeCheck(id: id, passportId: passportId) {
                 check = c
                 diff = d
                 if c.status == .done || c.status == .failed {
@@ -402,7 +419,7 @@ struct RegimeView: View {
 
     private func refreshDiff() async {
         guard let id = check?.id, let passportId else { return }
-        if let (c, d) = try? await APIClient.fromSettings().regimeCheck(id: id, passportId: passportId) {
+        if let (c, d, _) = try? await APIClient.fromSettings().regimeCheck(id: id, passportId: passportId) {
             check = c
             diff = d
         }
@@ -420,6 +437,13 @@ struct RegimeView: View {
         } catch {
             self.error = error.localizedDescription
         }
+    }
+
+    private func applyPreset(_ preset: RegimePreset) async {
+        applyingPreset = true
+        defer { applyingPreset = false }
+        editorOrigin = "user"
+        await save(RegimeVersionInput(requirement: .visa_free, constraints: [preset.constraint], conditions: [], sources: [], origin: "user", model: nil, notes: nil))
     }
 
     private func markChecked(_ d: RegimeDraft, _ check: RegimeCheck) async {
@@ -586,3 +610,20 @@ struct CountryLookupView: View {
         }
     }
 }
+
+/// Типовые безвизовые лимиты, чтобы завести правило в одно нажатие
+struct RegimePreset: Identifiable {
+    let id: String
+    let title: String
+    let constraint: RegimeConstraint
+
+    static let all: [RegimePreset] = [
+        RegimePreset(id: "30e", title: String(localized: "30 days per entry"), constraint: RegimeConstraint(type: .perEntry, limitDays: 30)),
+        RegimePreset(id: "60e", title: String(localized: "60 days per entry"), constraint: RegimeConstraint(type: .perEntry, limitDays: 60)),
+        RegimePreset(id: "90e", title: String(localized: "90 days per entry"), constraint: RegimeConstraint(type: .perEntry, limitDays: 90)),
+        RegimePreset(id: "90/180", title: String(localized: "90 days in any 180"), constraint: RegimeConstraint(type: .rolling, limitDays: 90, windowDays: 180)),
+        RegimePreset(id: "180y", title: String(localized: "180 days per calendar year"), constraint: RegimeConstraint(type: .calendarYear, limitDays: 180)),
+        RegimePreset(id: "365y", title: String(localized: "A year per entry"), constraint: RegimeConstraint(type: .perEntry, limitDays: 365)),
+    ]
+}
+

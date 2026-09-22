@@ -125,6 +125,8 @@ export type RegimeVersion = {
   effectiveFrom: string;
   effectiveTo: string | null;
   confirmedAt: string;
+  // проверка нейросетью, из которой версия применена автоматически (без ручного подтверждения)
+  checkId?: string | null;
 };
 
 export type Regime = {
@@ -166,6 +168,8 @@ export type RegimeCheck = {
   draft: RegimeDraft | null;
   error: string | null;
   raw: string | null;
+  // кто просил применить результат сразу, как он будет готов (проверка общая для всех пользователей)
+  autoApply?: { userId: ObjectId; passportId: string; lang: string }[];
 };
 
 // MARK: документы

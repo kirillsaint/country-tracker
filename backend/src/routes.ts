@@ -8,7 +8,7 @@ import { dayOverrides, documents, entries, points, regimeChecks, regimes, rules,
 import { deleteRulesForDocument, resetRuleFromDocument, syncRulesForDocument } from "./documents.js";
 import { config } from "./config.js";
 import { isAiEnabled } from "./ai.js";
-import { cachedCheck, confirmVersion, deleteRegime, diffVersions, isStale, startCheck } from "./regimes.js";
+import { applyCheckForUser, cachedCheck, confirmVersion, deleteRegime, diffVersions, isStale, startCheck, subscribeAutoApply } from "./regimes.js";
 import { countryAt, countryName, localDateOf } from "./geo.js";
 import { cityCoords, localizedCityName, searchCities } from "./cities.js";
 import { CATEGORY_TYPES, isPlacesEnabled, photoUrl, placeDetails, resolvePhoto, verifyPhoto } from "./places.js";
@@ -958,7 +958,7 @@ api.delete("/entries/:countryCode/:date", zValidator("param", z.object({ country
 function publicRegime({ userId: _u, _id: _i, ...r }: Regime & { _id?: unknown }) {
   return r;
 }
-function publicCheck({ _id: _i, raw: _r, ...c }: RegimeCheck & { _id?: unknown }) {
+function publicCheck({ _id: _i, raw: _r, autoApply: _a, ...c }: RegimeCheck & { _id?: unknown }) {
   return c;
 }
 
@@ -1068,14 +1068,20 @@ api.post(
 api.post(
   "/regimes/:passportId/:country/check",
   zValidator("param", z.object({ passportId: z.string().uuid(), country: countryCode })),
-  zValidator("json", z.object({ lang: z.enum(["ru", "en"]).default("en"), force: z.boolean().default(false) })),
+  // autoApply — применить результат как правила сразу, без просмотра (только если правил ещё нет)
+  zValidator("json", z.object({ lang: z.enum(["ru", "en"]).default("en"), force: z.boolean().default(false), autoApply: z.boolean().default(false) })),
   async (c) => {
     const userId = c.get("userId");
     const { passportId, country } = c.req.valid("param");
     const passport = await passportOr404(userId, passportId);
-    const { lang, force } = c.req.valid("json");
+    const { lang, force, autoApply } = c.req.valid("json");
     const check = await startCheck(passport.countryCode, country, lang, force);
-    return c.json({ check: publicCheck(check) }, check.status === "done" ? 200 : 202);
+    let applied = false;
+    if (autoApply) {
+      if (check.status === "done") applied = await applyCheckForUser(userId, passportId, check);
+      else if (check.status === "queued" || check.status === "running") await subscribeAutoApply(check.id, { userId, passportId, lang });
+    }
+    return c.json({ check: publicCheck(check), applied }, check.status === "done" ? 200 : 202);
   },
 );
 
@@ -1086,8 +1092,10 @@ api.get("/regime-checks/:id", zValidator("param", z.object({ id: z.string().uuid
   if (!check) throw new HTTPException(404, { message: "check not found" });
   const { passportId } = c.req.valid("query");
   const regime = passportId ? await regimes.findOne({ userId, passportId, countryCode: check.countryCode }) : null;
-  const diff = check.draft ? diffVersions(check.lang, regime?.active ?? null, check.draft) : null;
-  return c.json({ check: publicCheck(check), diff });
+  const applied = !!regime?.active?.checkId && regime.active.checkId === check.id;
+  // правила уже применены из этой проверки — дифа нет по определению
+  const diff = check.draft && !applied ? diffVersions(check.lang, regime?.active ?? null, check.draft) : null;
+  return c.json({ check: publicCheck(check), diff, applied });
 });
 
 // MARK: экспорт

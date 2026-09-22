@@ -38,9 +38,19 @@ struct DocumentEditView: View {
         var id: String { document.id }
     }
 
-    init(document: TravelDocument?, kind: DocumentKind = .passport) {
+    /// Создание из листа «Как въехали?»: страна и паспорт уже подставлены, а после сохранения
+    /// документ уходит вызывающему (он сам отметит основание), предложение «перейти на ВНЖ» не нужно
+    private let onSaved: ((TravelDocument) -> Void)?
+
+    init(document: TravelDocument?, kind: DocumentKind = .passport, presetCountry: String? = nil, presetPassportId: String? = nil, onSaved: ((TravelDocument) -> Void)? = nil) {
         self.document = document
-        let input = document?.input ?? DocumentInput(kind: kind, name: "", countryCode: "")
+        self.onSaved = onSaved
+        var input = document?.input ?? DocumentInput(kind: kind, name: "", countryCode: "")
+        if document == nil, let presetCountry {
+            input.countryCode = presetCountry
+            input.name = Self.defaultName(kind: kind, code: presetCountry)
+            if kind != .passport { input.passportId = presetPassportId }
+        }
         _draft = State(initialValue: input)
         _countrySelection = State(initialValue: input.countryCode.isEmpty ? [] : [input.countryCode])
         _zone = State(initialValue: input.countries.count > 1 ? input.countries : [])
@@ -283,7 +293,9 @@ struct DocumentEditView: View {
         }
     }
 
-    private func defaultName(for code: String) -> String {
+    private func defaultName(for code: String) -> String { Self.defaultName(kind: kind, code: code) }
+
+    static func defaultName(kind: DocumentKind, code: String) -> String {
         let country = code.countryDisplayName(fallback: code)
         switch kind {
         case .passport: return String(localized: "Passport \(country)")
@@ -339,7 +351,10 @@ struct DocumentEditView: View {
         Task {
             do {
                 let saved = try await model.saveDocument(input, id: document?.id)
-                if let offer = switchOffer(for: saved) {
+                if let onSaved {
+                    onSaved(saved)
+                    dismiss()
+                } else if let offer = switchOffer(for: saved) {
                     switchOffer = offer
                 } else {
                     dismiss()

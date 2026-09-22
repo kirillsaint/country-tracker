@@ -7575,6 +7575,206 @@
           }
         }
       }
+    },
+    "Tap an option — it’s saved right away. For visa-free entry the assistant looks up the stay limits and adds the counting rule itself; you’ll get a notification.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нажмите на вариант — он сохранится сразу. Для безвиза помощник сам найдёт лимиты пребывания и добавит правило подсчёта; придёт уведомление."
+          }
+        }
+      }
+    },
+    "Add a passport below so the rules can be looked up for it.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавьте паспорт ниже, чтобы правила искались по нему."
+          }
+        }
+      }
+    },
+    "Add a passport…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавить паспорт…"
+          }
+        }
+      }
+    },
+    "Entered with a visa — add it…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Въехал по визе — добавить её…"
+          }
+        }
+      }
+    },
+    "Have a residence permit — add it…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Есть ВНЖ — добавить его…"
+          }
+        }
+      }
+    },
+    "No matching document?": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нет подходящего документа?"
+          }
+        }
+      }
+    },
+    "The country and passport are filled in; after saving, the stay is marked with that document.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Страна и паспорт уже подставлены; после сохранения пребывание отметится этим документом."
+          }
+        }
+      }
+    },
+    "Save note": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранить заметку"
+          }
+        }
+      }
+    },
+    "Rules added: %@. Tap to see them.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Правила добавлены: %@. Нажмите, чтобы посмотреть."
+          }
+        }
+      }
+    },
+    "Rules added: %@. Tap to see or edit them.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Правила добавлены: %@. Нажмите, чтобы посмотреть или поправить."
+          }
+        }
+      }
+    },
+    "Custom…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Свой вариант…"
+          }
+        }
+      }
+    },
+    "Add these rules": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавить эти правила"
+          }
+        }
+      }
+    },
+    "Apply changes": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Применить изменения"
+          }
+        }
+      }
+    },
+    "Edit first…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сначала поправить…"
+          }
+        }
+      }
+    },
+    "30 days per entry": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 дней за въезд"
+          }
+        }
+      }
+    },
+    "60 days per entry": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "60 дней за въезд"
+          }
+        }
+      }
+    },
+    "90 days per entry": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 дней за въезд"
+          }
+        }
+      }
+    },
+    "90 days in any 180": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 дней из любых 180"
+          }
+        }
+      }
+    },
+    "180 days per calendar year": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "180 дней в календарном году"
+          }
+        }
+      }
+    },
+    "A year per entry": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Год за въезд"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

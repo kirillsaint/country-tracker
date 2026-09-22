@@ -418,17 +418,19 @@ struct APIClient {
         return r.regime
     }
 
-    func startRegimeCheck(passportId: String, country: String, force: Bool) async throws -> RegimeCheck {
-        struct Body: Encodable { let lang: String; let force: Bool }
-        struct R: Decodable { let check: RegimeCheck }
-        let r: R = try await send("POST", "/api/regimes/\(passportId)/\(country)/check", body: Body(lang: DocumentInput.currentLang, force: force))
-        return r.check
+    /// autoApply — сервер применит результат как правила сам, как только он готов (если правил ещё нет).
+    /// applied — уже применилось (результат был в кэше)
+    func startRegimeCheck(passportId: String, country: String, force: Bool, autoApply: Bool = false) async throws -> (check: RegimeCheck, applied: Bool) {
+        struct Body: Encodable { let lang: String; let force: Bool; let autoApply: Bool }
+        struct R: Decodable { let check: RegimeCheck; let applied: Bool? }
+        let r: R = try await send("POST", "/api/regimes/\(passportId)/\(country)/check", body: Body(lang: DocumentInput.currentLang, force: force, autoApply: autoApply))
+        return (r.check, r.applied ?? false)
     }
 
-    func regimeCheck(id: String, passportId: String?) async throws -> (RegimeCheck, RegimeDiff?) {
-        struct R: Decodable { let check: RegimeCheck; let diff: RegimeDiff? }
+    func regimeCheck(id: String, passportId: String?) async throws -> (check: RegimeCheck, diff: RegimeDiff?, applied: Bool) {
+        struct R: Decodable { let check: RegimeCheck; let diff: RegimeDiff?; let applied: Bool? }
         let r: R = try await send("GET", "/api/regime-checks/\(id)", query: ["passportId": passportId])
-        return (r.check, r.diff)
+        return (r.check, r.diff, r.applied ?? false)
     }
 
     func ruleResults() async throws -> [RuleResult] {

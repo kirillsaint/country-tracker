@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { ObjectId } from "mongodb";
 import { config } from "./config.js";
-import { regimeChecks, regimes, rules } from "./db.js";
+import { documents, regimeChecks, regimes, rules } from "./db.js";
 import { isAiEnabled, researchRegime } from "./ai.js";
 import type { Regime, RegimeCheck, RegimeConstraint, RegimeDraft, RegimeVersion, Rule } from "./types.js";
 
@@ -241,6 +241,38 @@ export async function startCheck(passportCode: string, countryCode: string, lang
   return check;
 }
 
+/** Попросить применить результат проверки автоматически, когда он будет готов */
+export async function subscribeAutoApply(checkId: string, sub: { userId: ObjectId; passportId: string; lang: string }): Promise<void> {
+  await regimeChecks.updateOne({ id: checkId }, { $push: { autoApply: sub } });
+}
+
+/**
+ * Применить готовый результат проверки как активную версию режима пользователя — без ручного подтверждения.
+ * Только если у пользователя ещё нет правил для этой пары и модель не сомневается (confidence не low):
+ * так «безвиз» в одно нажатие получает правила подсчёта, а спорные случаи остаются на просмотр.
+ * Возвращает, применилось ли.
+ */
+export async function applyCheckForUser(userId: ObjectId, passportId: string, check: RegimeCheck): Promise<boolean> {
+  if (check.status !== "done" || !check.draft || check.draft.confidence === "low") return false;
+  const passport = await documents.findOne({ userId, id: passportId, kind: "passport" });
+  if (!passport || passport.countryCode !== check.passportCode) return false;
+  const existing = await regimes.findOne({ userId, passportId, countryCode: check.countryCode });
+  if (existing?.active) return false;
+  const d = check.draft;
+  await confirmVersion(userId, { id: passport.id, countryCode: passport.countryCode }, check.countryCode, {
+    requirement: d.requirement,
+    constraints: d.constraints,
+    conditions: d.conditions,
+    sources: d.sources,
+    origin: "ai",
+    model: check.model,
+    notes: d.summary,
+    checkId: check.id,
+  }, check.lang);
+  console.log(`regime auto-applied ${check.passportCode}->${check.countryCode} for user ${userId.toHexString()}`);
+  return true;
+}
+
 async function runCheck(check: RegimeCheck) {
   if (runningChecks.has(check.id)) return;
   runningChecks.add(check.id);
@@ -249,6 +281,11 @@ async function runCheck(check: RegimeCheck) {
     const { draft, raw, model } = await researchRegime(check.passportCode, check.countryCode, check.lang);
     await regimeChecks.updateOne({ id: check.id }, { $set: { status: "done", draft, raw, model, finishedAt: new Date().toISOString() } });
     console.log(`regime check ${check.passportCode}->${check.countryCode}: ${draft.requirement}, ${draft.constraints.length} constraints`);
+    // подписчики на автоприменение (перечитываем: могли добавиться, пока шла проверка)
+    const done = await regimeChecks.findOne({ id: check.id });
+    for (const sub of done?.autoApply ?? []) {
+      await applyCheckForUser(sub.userId, sub.passportId, done!).catch((e) => console.warn("regime auto-apply failed:", (e as Error).message));
+    }
   } catch (e) {
     const message = (e as Error).message.slice(0, 500);
     console.warn(`regime check ${check.passportCode}->${check.countryCode} failed: ${message}`);

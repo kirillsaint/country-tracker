@@ -1,28 +1,33 @@
 import SwiftUI
 
-// "Как въехали": основание для отрезка пребывания. Варианты собираются из документов,
-// применимых к стране: свой паспорт, ВНЖ, визы, безвиз по одному из паспортов, транзит.
+// "Как въехали": одно нажатие на вариант — основание сохранено, лист закрывается. Варианты собираются
+// из документов, применимых к стране; визу, ВНЖ или паспорт можно завести прямо отсюда со страной
+// и паспортом уже подставленными. Для безвиза правила подсчёта нейросеть исследует сама в фоне
+// и применяет, если их ещё нет; результат приходит уведомлением.
 struct EntryBasisSheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
 
     let segment: Segment
     let previous: CurrentStatus.EntryRef?
-    @State private var basis: EntryBasis?
-    @State private var documentId: String?
-    @State private var note: String
-    @State private var saving = false
-    @State private var error: String?
-    @State private var info: String?
-    @State private var recheck = true
     let regimeRef: CurrentStatus.RegimeRef?
+    private let existing: Entry?
+    @State private var note: String
+    /// id варианта, который сейчас сохраняется
+    @State private var saving: String?
+    @State private var error: String?
+    @State private var newDocument: NewDocument?
+
+    private struct NewDocument: Identifiable {
+        let kind: DocumentKind
+        var id: String { kind.rawValue }
+    }
 
     init(segment: Segment, existing: Entry?, previous: CurrentStatus.EntryRef? = nil, regimeRef: CurrentStatus.RegimeRef? = nil) {
         self.segment = segment
         self.previous = previous
         self.regimeRef = regimeRef
-        _basis = State(initialValue: existing?.basis)
-        _documentId = State(initialValue: existing?.documentId)
+        self.existing = existing
         _note = State(initialValue: existing?.note ?? "")
     }
 
@@ -30,14 +35,8 @@ struct EntryBasisSheet: View {
         EntryOption.options(for: segment.countryCode, documents: model.documents, previous: previous)
     }
 
-    /// Показывать переключатель перепроверки по умолчанию включённым только если режим устарел/отсутствует
-    private func seedRecheck() {
-        if let documentId, let r = model.regime(passportId: documentId, country: segment.countryCode), let last = r.lastCheckedAt,
-           (daysBetween(String(last.prefix(10)), DocumentInput.todayString()) ?? 0) < model.regimeFreshDays {
-            recheck = false
-        } else {
-            recheck = true
-        }
+    private func isCurrent(_ o: EntryOption) -> Bool {
+        existing?.basis == o.basis && existing?.documentId == o.document?.id
     }
 
     var body: some View {
@@ -56,8 +55,7 @@ struct EntryBasisSheet: View {
             Section {
                 ForEach(options) { o in
                     Button {
-                        basis = o.basis
-                        documentId = o.document?.id
+                        Task { await choose(basis: o.basis, document: o.document, optionId: o.id) }
                     } label: {
                         HStack(spacing: 12) {
                             Image(systemName: o.isRepeat ? "arrow.counterclockwise" : o.basis.systemImage).frame(width: 24)
@@ -65,84 +63,84 @@ struct EntryBasisSheet: View {
                                 Text(o.isRepeat ? String(localized: "Same as last time: \(o.basis.title)") : o.basis.title).foregroundStyle(.primary)
                                 if let d = o.document {
                                     Text(verbatim: "\(d.countryCode.flagEmoji) \(d.name)").font(.caption).foregroundStyle(.secondary)
+                                } else if o.basis == .visa_free, model.passports.isEmpty {
+                                    Text("Add a passport below so the rules can be looked up for it.").font(.caption).foregroundStyle(.secondary)
                                 }
                             }
                             Spacer()
-                            if basis == o.basis && documentId == o.document?.id {
+                            if saving == o.id {
+                                ProgressView()
+                            } else if isCurrent(o) {
                                 Image(systemName: "checkmark").foregroundStyle(.tint)
                             }
                         }
                     }
+                    .disabled(saving != nil)
                 }
             } header: {
                 Text("Entered as")
+            } footer: {
+                Text("Tap an option — it’s saved right away. For visa-free entry the assistant looks up the stay limits and adds the counting rule itself; you’ll get a notification.")
             }
 
-            if basis == .visa_free, let documentId, model.aiEnabled {
-                Section {
-                    Toggle("Re-check entry rules with the assistant", isOn: $recheck)
-                } footer: {
-                    if let r = model.regime(passportId: documentId, country: segment.countryCode) {
-                        let days = r.lastCheckedAt.map { daysBetween(String($0.prefix(10)), DocumentInput.todayString()) ?? 0 }
-                        Text(days.map { String(localized: "Rules were last checked \(pluralDays($0)) ago. The assistant searches again and shows what changed.") }
-                             ?? String(localized: "Rules for this passport haven’t been checked yet."))
-                    } else {
-                        Text("No entry rules recorded for this passport and country yet — the assistant will research them; you confirm before anything is applied.")
-                    }
-                }
-            }
-
-            NavigationLink {
-                RegimeView(countryCode: segment.countryCode, initialPassportId: documentId)
-            } label: {
-                Label("Entry rules for this country", systemImage: "list.bullet.rectangle")
-            }
-
-            // Смена статуса без пересечения границы: получил ВНЖ / визу, будучи в стране
             Section {
-                ForEach(model.switches(for: segment)) { e in
-                    HStack(spacing: 12) {
-                        Image(systemName: e.basis.homeSystemImage).foregroundStyle(e.basis.tint).frame(width: 24)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(e.basis.title)
-                            Text(String(localized: "from \(prettyFullDate(e.date))")).font(.caption).foregroundStyle(.secondary)
-                            if let d = model.document(id: e.documentId) {
-                                Text(verbatim: "\(d.countryCode.flagEmoji) \(d.name)").font(.caption).foregroundStyle(.secondary)
+                if model.passports.isEmpty {
+                    Button { newDocument = NewDocument(kind: .passport) } label: { Label("Add a passport…", systemImage: "plus.circle") }
+                }
+                Button { newDocument = NewDocument(kind: .visa) } label: { Label("Entered with a visa — add it…", systemImage: "plus.circle") }
+                Button { newDocument = NewDocument(kind: .residence) } label: { Label("Have a residence permit — add it…", systemImage: "plus.circle") }
+            } header: {
+                Text("No matching document?")
+            } footer: {
+                Text("The country and passport are filled in; after saving, the stay is marked with that document.")
+            }
+            .disabled(saving != nil)
+
+            if existing != nil {
+                Section {
+                    TextField("Note (optional)", text: $note, axis: .vertical)
+                }
+
+                // Смена статуса без пересечения границы: получил ВНЖ / визу, будучи в стране
+                Section {
+                    ForEach(model.switches(for: segment)) { e in
+                        HStack(spacing: 12) {
+                            Image(systemName: e.basis.homeSystemImage).foregroundStyle(e.basis.tint).frame(width: 24)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(e.basis.title)
+                                Text(String(localized: "from \(prettyFullDate(e.date))")).font(.caption).foregroundStyle(.secondary)
+                                if let d = model.document(id: e.documentId) {
+                                    Text(verbatim: "\(d.countryCode.flagEmoji) \(d.name)").font(.caption).foregroundStyle(.secondary)
+                                }
+                            }
+                            Spacer()
+                        }
+                        .swipeActions {
+                            Button("Delete", role: .destructive) {
+                                Task { try? await model.deleteEntry(countryCode: segment.countryCode, date: e.date) }
                             }
                         }
-                        Spacer()
                     }
-                    .swipeActions {
-                        Button("Delete", role: .destructive) {
-                            Task { try? await model.deleteEntry(countryCode: segment.countryCode, date: e.date) }
-                        }
+                    NavigationLink {
+                        BasisSwitchView(segment: segment)
+                    } label: {
+                        Label("Status changed during this stay…", systemImage: "arrow.triangle.2.circlepath")
                     }
+                    .disabled(segment.from == segment.to)
+                } header: {
+                    Text("Changes during the stay")
+                } footer: {
+                    Text("For a residence permit or visa obtained without leaving the country. From that date, days no longer count toward the visa-free or previous visa limits.")
                 }
-                NavigationLink {
-                    BasisSwitchView(segment: segment)
-                } label: {
-                    Label("Status changed during this stay…", systemImage: "arrow.triangle.2.circlepath")
-                }
-                .disabled(segment.from == segment.to)
-            } header: {
-                Text("Changes during the stay")
-            } footer: {
-                Text("For a residence permit or visa obtained without leaving the country. From that date, days no longer count toward the visa-free or previous visa limits.")
             }
 
             Section {
-                TextField("Note (optional)", text: $note, axis: .vertical)
-            }
-
-            if let info {
-                Section { Text(info).foregroundStyle(.secondary).font(.footnote) }
-            }
-            if let error {
-                Section { Text(error).foregroundStyle(.red).font(.footnote) }
-            }
-
-            if model.entry(for: segment) != nil {
-                Section {
+                NavigationLink {
+                    RegimeView(countryCode: segment.countryCode, initialPassportId: existing?.documentId)
+                } label: {
+                    Label("Entry rules for this country", systemImage: "list.bullet.rectangle")
+                }
+                if existing != nil {
                     Button("Clear basis", role: .destructive) {
                         Task {
                             do {
@@ -153,41 +151,64 @@ struct EntryBasisSheet: View {
                     }
                 }
             }
+
+            if let error {
+                Section { Text(error).foregroundStyle(.red).font(.footnote) }
+            }
         }
         .navigationTitle("Entry basis")
         .navigationBarTitleDisplayMode(.inline)
-        .onChange(of: documentId) { _, _ in seedRecheck() }
-        .onAppear(perform: seedRecheck)
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-            ToolbarItem(placement: .confirmationAction) {
-                Button(action: save) {
-                    if saving { ProgressView() } else { Text("Save") }
+            ToolbarItem(placement: .cancellationAction) { Button(existing == nil ? "Cancel" : "Done") { dismiss() } }
+            if let existing {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save note") { Task { await choose(basis: existing.basis, document: model.document(id: existing.documentId), optionId: "note") } }
+                        .disabled(saving != nil || note.trimmingCharacters(in: .whitespaces) == (existing.note ?? ""))
                 }
-                .disabled(saving || basis == nil)
+            }
+        }
+        .sheet(item: $newDocument) { item in
+            NavigationStack {
+                DocumentEditView(
+                    document: nil,
+                    kind: item.kind,
+                    presetCountry: item.kind == .passport ? nil : segment.countryCode,
+                    presetPassportId: model.passports.first?.id
+                ) { doc in
+                    // паспорт этой страны — гражданин, чужой — безвиз; виза и ВНЖ — по документу
+                    let basis: EntryBasis = switch item.kind {
+                    case .passport: doc.countryCode == segment.countryCode ? .citizen : .visa_free
+                    case .visa: .visa
+                    case .residence: .residence
+                    }
+                    Task { await choose(basis: basis, document: doc, optionId: "new") }
+                }
             }
         }
     }
 
-    private func save() {
-        guard let basis else { return }
-        saving = true
+    /// Сохранить основание и закрыть лист. Безвиз: проверка условий нейросетью в фоне; если правил для
+    /// этого паспорта и страны ещё нет, сервер применит результат сам, если они устарели — перепроверит.
+    private func choose(basis: EntryBasis, document: TravelDocument?, optionId: String) async {
+        saving = optionId
         error = nil
+        defer { saving = nil }
         let trimmed = note.trimmingCharacters(in: .whitespaces)
-        Task {
-            do {
-                try await model.setEntry(countryCode: segment.countryCode, date: segment.from, basis: basis, documentId: documentId, note: trimmed.isEmpty ? nil : trimmed)
-                if basis == .visa_free, let documentId, recheck, model.aiEnabled {
-                    // Проверка условий — в фоне; результат придёт уведомлением
-                    if let check = try? await APIClient.fromSettings().startRegimeCheck(passportId: documentId, country: segment.countryCode, force: false) {
-                        RegimeChecks.remember(check, passportId: documentId)
+        do {
+            try await model.setEntry(countryCode: segment.countryCode, date: segment.from, basis: basis, documentId: document?.id, note: trimmed.isEmpty ? nil : trimmed)
+            if basis == .visa_free, let passportId = document?.id, model.aiEnabled {
+                let regime = model.regime(passportId: passportId, country: segment.countryCode)
+                let fresh = regime?.lastCheckedAt.map { (daysBetween(String($0.prefix(10)), DocumentInput.todayString()) ?? 0) < model.regimeFreshDays } ?? false
+                if regime?.active == nil || !fresh {
+                    if let (check, applied) = try? await APIClient.fromSettings().startRegimeCheck(passportId: passportId, country: segment.countryCode, force: false, autoApply: true) {
+                        RegimeChecks.remember(check, passportId: passportId)
+                        if applied { await model.refresh() }
                     }
                 }
-                dismiss()
-            } catch {
-                self.error = error.localizedDescription
             }
-            saving = false
+            dismiss()
+        } catch {
+            self.error = error.localizedDescription
         }
     }
 }
