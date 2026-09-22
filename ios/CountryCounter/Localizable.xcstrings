@@ -7775,6 +7775,16 @@
           }
         }
       }
+    },
+    "Changes the entry basis": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Меняет основание въезда"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

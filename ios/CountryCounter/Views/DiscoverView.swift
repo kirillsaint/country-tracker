@@ -36,8 +36,8 @@ struct DiscoverView: View {
                         HStack(spacing: 10) {
                             Image(systemName: "slider.horizontal.3").foregroundStyle(.tint)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Tell the assistant your taste").foregroundStyle(.primary)
-                                Text("A one-minute quiz — better picks from the first search.").font(.caption).foregroundStyle(.secondary)
+                                Text("Tell the assistant your taste").foregroundStyle(Color.primary)
+                                Text("A one-minute quiz — better picks from the first search.").font(.caption).foregroundStyle(Color.secondary)
                             }
                             Spacer()
                             Image(systemName: "chevron.right").foregroundStyle(.tertiary)
@@ -88,8 +88,8 @@ struct DiscoverView: View {
                     HStack(spacing: 10) {
                         Image(systemName: "point.topleft.down.to.point.bottomright.curvepath.fill").foregroundStyle(.tint)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Plan a half-day route").foregroundStyle(.primary)
-                            Text("3–4 places in a sensible order with times, e.g. coffee → walk → dinner.").font(.caption).foregroundStyle(.secondary)
+                            Text("Plan a half-day route").foregroundStyle(Color.primary)
+                            Text("3–4 places in a sensible order with times, e.g. coffee → walk → dinner.").font(.caption).foregroundStyle(Color.secondary)
                         }
                         Spacer()
                         Image(systemName: "chevron.right").foregroundStyle(.tertiary)
@@ -116,8 +116,9 @@ struct DiscoverView: View {
                                 .lineLimit(1)
                                 .padding(.horizontal, 10).padding(.vertical, 8)
                                 .frame(maxWidth: .infinity)
-                                .background(RoundedRectangle(cornerRadius: 10).fill(category == c && query.isEmpty ? Color.accentColor : Color.secondary.opacity(0.12)))
-                                .foregroundStyle(category == c && query.isEmpty ? .white : .primary)
+                                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(category == c && query.isEmpty ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.12)))
+                                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Color.accentColor, lineWidth: category == c && query.isEmpty ? 1.5 : 0))
+                                .foregroundStyle(category == c && query.isEmpty ? Color.accentColor : .primary)
                         }
                         .buttonStyle(.plain)
                     }
@@ -133,8 +134,9 @@ struct DiscoverView: View {
                         .font(.caption.weight(.medium))
                         .padding(.vertical, 8)
                         .frame(maxWidth: .infinity)
-                        .background(RoundedRectangle(cornerRadius: 10).fill(category == .any && query.isEmpty ? Color.accentColor : Color.secondary.opacity(0.12)))
-                        .foregroundStyle(category == .any && query.isEmpty ? .white : .primary)
+                        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(category == .any && query.isEmpty ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.12)))
+                        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Color.accentColor, lineWidth: category == .any && query.isEmpty ? 1.5 : 0))
+                        .foregroundStyle(category == .any && query.isEmpty ? Color.accentColor : .primary)
                 }
                 .buttonStyle(.plain)
                 .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 8, trailing: 16))
@@ -152,8 +154,9 @@ struct DiscoverView: View {
                                     .minimumScaleFactor(0.8)
                                     .padding(.horizontal, 10).padding(.vertical, 6)
                                     .frame(maxWidth: .infinity)
-                                    .background(Capsule().fill(subtags.contains(s.id) ? Color.accentColor.opacity(0.9) : Color.secondary.opacity(0.08)))
-                                    .foregroundStyle(subtags.contains(s.id) ? .white : .primary)
+                                    .background(Capsule().fill(subtags.contains(s.id) ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.08)))
+                                    .overlay(Capsule().strokeBorder(Color.accentColor, lineWidth: subtags.contains(s.id) ? 1 : 0))
+                                    .foregroundStyle(subtags.contains(s.id) ? Color.accentColor : .primary)
                             }
                             .buttonStyle(.plain)
                         }

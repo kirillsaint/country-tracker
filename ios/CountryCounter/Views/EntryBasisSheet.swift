@@ -60,11 +60,11 @@ struct EntryBasisSheet: View {
                         HStack(spacing: 12) {
                             Image(systemName: o.isRepeat ? "arrow.counterclockwise" : o.basis.systemImage).frame(width: 24)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(o.isRepeat ? String(localized: "Same as last time: \(o.basis.title)") : o.basis.title).foregroundStyle(.primary)
+                                Text(o.isRepeat ? String(localized: "Same as last time: \(o.basis.title)") : o.basis.title).foregroundStyle(Color.primary)
                                 if let d = o.document {
-                                    Text(verbatim: "\(d.countryCode.flagEmoji) \(d.name)").font(.caption).foregroundStyle(.secondary)
+                                    Text(verbatim: "\(d.countryCode.flagEmoji) \(d.name)").font(.caption).foregroundStyle(Color.secondary)
                                 } else if o.basis == .visa_free, model.passports.isEmpty {
-                                    Text("Add a passport below so the rules can be looked up for it.").font(.caption).foregroundStyle(.secondary)
+                                    Text("Add a passport below so the rules can be looked up for it.").font(.caption).foregroundStyle(Color.secondary)
                                 }
                             }
                             Spacer()
@@ -219,14 +219,7 @@ struct EntryBadge: View {
     let document: TravelDocument?
 
     var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: entry.basis.systemImage)
-            Text(entry.basis.title)
-            if let document, entry.basis != .citizen { Text(document.countryCode.flagEmoji) }
-        }
-        .font(.caption2)
-        .padding(.horizontal, 6).padding(.vertical, 2)
-        .background(Capsule().fill(Color.accentColor.opacity(0.12)))
-        .foregroundStyle(.tint)
+        StampBadge(text: entry.basis.title, systemImage: entry.basis.homeSystemImage, tint: entry.basis.tint,
+                   trailing: document.flatMap { entry.basis == .citizen ? nil : $0.countryCode.flagEmoji })
     }
 }

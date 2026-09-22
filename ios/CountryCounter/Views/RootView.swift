@@ -26,10 +26,10 @@ struct RootView: View {
                     .tabItem { Label("History", systemImage: "calendar") }
                     .tag(1)
                 DocumentsView()
-                    .tabItem { Label("Documents", systemImage: "person.text.rectangle") }
+                    .tabItem { Label("Documents", systemImage: "person.text.rectangle.fill") }
                     .tag(2)
                 NavigationStack { SettingsView() }
-                    .tabItem { Label("Settings", systemImage: "gearshape") }
+                    .tabItem { Label("Settings", systemImage: "gearshape.fill") }
                     .tag(3)
             }
             .task(id: auth.token) {

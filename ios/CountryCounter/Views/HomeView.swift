@@ -22,8 +22,8 @@ struct HomeView: View {
                                 Image(systemName: "airplane.arrival").font(.title2).foregroundStyle(.tint)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("How did you enter \(current.countryCode.countryDisplayName(fallback: current.countryName))?")
-                                        .font(.headline).foregroundStyle(.primary)
-                                    Text("Pick the basis — it sets the stay-limit rule.").font(.footnote).foregroundStyle(.secondary)
+                                        .font(.headline).foregroundStyle(Color.primary)
+                                    Text("Pick the basis — it sets the stay-limit rule.").font(.footnote).foregroundStyle(Color.secondary)
                                 }
                                 Spacer()
                                 Image(systemName: "chevron.right").foregroundStyle(.tertiary)
@@ -93,8 +93,11 @@ struct HomeView: View {
                     Button {
                         showDiscover = true
                     } label: {
-                        Label("Find something to do", systemImage: "sparkles")
-                            .font(.headline)
+                        HStack {
+                            Label("Find something to do", systemImage: "sparkles").foregroundStyle(Color.primary)
+                            Spacer()
+                            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                        }
                     }
                     .disabled(!model.discoverEnabled && !model.showSkeleton)
                     if !model.discoverEnabled, !model.showSkeleton {
@@ -111,7 +114,9 @@ struct HomeView: View {
                         }
                     }
                     if model.recommendations.count > 3 {
-                        Button("All \(model.recommendations.count) picks") { showDiscover = true }.font(.footnote)
+                        Button { showDiscover = true } label: {
+                            Text("All \(model.recommendations.count) picks").font(.footnote)
+                        }
                     }
                 } header: {
                     Text("What to do?")
@@ -125,7 +130,7 @@ struct HomeView: View {
                     }
                 }
             }
-            .navigationTitle("Stamps")
+            .navigationTitle("Now")
             .refreshable { await model.refresh() }
             .toolbar {
                 if model.isLoading { ProgressView() }
@@ -205,51 +210,52 @@ struct HomeView: View {
     }
 
     private func currentCard(_ c: CurrentStatus) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .center, spacing: 14) {
-                FlagView(code: c.countryCode, width: 84)
+                FlagView(code: c.countryCode, width: 72)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(c.countryCode.countryDisplayName(fallback: c.countryName))
-                        .font(.title.bold())
+                        .font(.title2.bold())
                     if let city = c.city {
-                        Text(city.cityDisplayName(country: c.countryCode)).font(.title3).foregroundStyle(.secondary)
+                        Text(city.cityDisplayName(country: c.countryCode)).font(.subheadline).foregroundStyle(.secondary)
                     }
                 }
-            }
-            HStack(spacing: 16) {
-                stat(value: pluralDays(c.daysInRow), caption: String(localized: "in a row, since \(prettyDate(c.since))"))
-                stat(value: pluralDays(c.daysThisYear), caption: String(localized: "this year"))
-            }
-            HStack(spacing: 12) {
+                Spacer(minLength: 0)
                 if let e = c.basisNow {
-                    // нажатие открывает основание пребывания: поменять или отметить смену статуса
+                    // штамп основания: нажатие открывает лист — поменять или отметить смену статуса
                     Button {
                         basisSegment = model.currentSegment
                     } label: {
-                        // текст в цвет значка: безвиз зелёный, ВНЖ индиго и т.д.
-                        Label {
-                            Text(e.isSwitch ? String(localized: "\(e.basis.title) · since \(prettyDate(e.date))") : e.basis.title)
-                                .foregroundStyle(e.basis.tint)
-                        } icon: {
-                            Image(systemName: e.basis.homeSystemImage).foregroundStyle(e.basis.tint)
-                        }
-                        .font(.caption)
+                        StampBadge(text: e.basis.title, systemImage: e.basis.homeSystemImage, tint: e.basis.tint, rotated: true, prominent: true)
                     }
-                    .buttonStyle(.borderless)
-                    .tint(e.basis.tint)
-                    // основание не выбрано — ссылка на условия въезда прижимается к левому краю
-                    Spacer()
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(e.isSwitch ? String(localized: "\(e.basis.title) · since \(prettyDate(e.date))") : e.basis.title)
+                    .accessibilityHint(Text("Changes the entry basis"))
                 }
-                NavigationLink {
-                    RegimeView(countryCode: c.countryCode, initialPassportId: c.regime?.passportId)
-                } label: {
-                    Label(c.regime?.stale == true ? "Entry rules · re-check" : "Entry rules", systemImage: "list.bullet.rectangle")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+            }
+            HStack(alignment: .top, spacing: 24) {
+                StatTile(value: c.daysInRow, unit: daysUnit(c.daysInRow), caption: String(localized: "in a row, since \(prettyDate(c.since))"))
+                StatTile(value: c.daysThisYear, unit: daysUnit(c.daysThisYear), caption: String(localized: "this year"))
+            }
+            if let e = c.basisNow, e.isSwitch {
+                Text(String(localized: "\(e.basis.title) · since \(prettyDate(e.date))")).font(.caption).foregroundStyle(.secondary)
+            }
+            // единственная навигация в карточке — акцентом, как ссылка; без Spacer, чтобы не было отступа слева
+            NavigationLink {
+                RegimeView(countryCode: c.countryCode, initialPassportId: c.regime?.passportId)
+            } label: {
+                Label(c.regime?.stale == true ? "Entry rules · re-check" : "Entry rules", systemImage: "list.bullet.rectangle")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.tint)
             }
         }
         .padding(.vertical, 6)
+    }
+
+    /// «дней» без числа — число рисуется отдельно крупно
+    private func daysUnit(_ n: Int) -> String {
+        let full = pluralDays(n)
+        return full.replacingOccurrences(of: String(n), with: "").trimmingCharacters(in: .whitespaces)
     }
 
     private func countryRow(_ c: CountryStat) -> some View {
@@ -265,12 +271,6 @@ struct HomeView: View {
         }
     }
 
-    private func stat(value: String, caption: String) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(value).font(.headline.monospacedDigit())
-            Text(caption).font(.caption).foregroundStyle(.secondary)
-        }
-    }
 }
 
 // Карточка результата правила: имя, флаги, прогресс, пояснение
@@ -364,32 +364,6 @@ struct RuleCard: View {
             case (false, true): return String(localized: "Since \(prettyDate(result.periodStart)).")
             case (false, false): return String(localized: "From \(prettyDate(result.periodStart)) until \(prettyDate(result.periodEnd)).")
             }
-        }
-    }
-}
-
-extension EntryBasis {
-    /// Цвет значка основания на главной: безвиз — зелёный, виза — синий и т.д.
-    var tint: Color {
-        switch self {
-        case .citizen: return .teal
-        case .visa_free: return .green
-        case .visa: return .blue
-        case .residence: return .indigo
-        case .transit: return .orange
-        case .other: return .secondary
-        }
-    }
-
-    /// Залитый вариант значка для цветного отображения
-    var homeSystemImage: String {
-        switch self {
-        case .citizen: return "person.crop.circle.fill"
-        case .visa_free: return "checkmark.seal.fill"
-        case .visa: return "doc.text.fill"
-        case .residence: return "house.fill"
-        case .transit: return "airplane"
-        case .other: return "questionmark.circle.fill"
         }
     }
 }

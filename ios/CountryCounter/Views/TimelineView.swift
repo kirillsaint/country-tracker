@@ -143,15 +143,15 @@ struct TimelineView: View {
                            let version = model.regime(passportId: pid, country: s.countryCode)?.version(on: original.from),
                            !version.constraints.isEmpty {
                             Text(String(localized: "Rules then: \(version.constraints.map(\.summary).joined(separator: ", "))"))
-                                .font(.caption2).foregroundStyle(.tertiary)
+                                .font(.caption2).foregroundStyle(.secondary)
                         }
                     }
                     // смены статуса внутри пребывания (получил ВНЖ, не выезжая)
                     ForEach(isArrival ? model.switches(for: original) : []) { sw in
                         HStack(spacing: 4) {
-                            Image(systemName: "arrow.turn.down.right").font(.caption2).foregroundStyle(.tertiary)
+                            Image(systemName: "arrow.turn.down.right").font(.caption2).foregroundStyle(.secondary)
                             EntryBadge(entry: sw, document: model.document(id: sw.documentId))
-                            Text(String(localized: "from \(prettyDate(sw.date))")).font(.caption2).foregroundStyle(.tertiary)
+                            Text(String(localized: "from \(prettyDate(sw.date))")).font(.caption2).foregroundStyle(.secondary)
                         }
                     }
                 }

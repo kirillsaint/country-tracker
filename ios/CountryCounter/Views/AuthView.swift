@@ -14,9 +14,16 @@ struct AuthView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            VStack(spacing: 8) {
-                Text(verbatim: "🌍").font(.system(size: 72))
-                Text(verbatim: "Stamps").font(.largeTitle.bold())
+            VStack(spacing: 12) {
+                // знак приложения — штамп с глобусом, тот же язык, что у оснований въезда
+                Image(systemName: "globe.europe.africa.fill")
+                    .font(.system(size: 44))
+                    .foregroundStyle(.tint)
+                    .frame(width: 92, height: 92)
+                    .overlay(Circle().strokeBorder(.tint, style: StrokeStyle(lineWidth: 2, dash: [5, 3])))
+                    .rotationEffect(.degrees(-6))
+                    .accessibilityHidden(true)
+                Text(verbatim: "Stamps").font(.system(.largeTitle, design: .rounded, weight: .bold))
                 Text("Counts which countries and cities you spend your time in.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
