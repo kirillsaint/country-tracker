@@ -54,8 +54,8 @@ targets:
         # Языки приложения — по ним iOS показывает выбор языка в Настройках -> Stamps
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, ru]
-        CFBundleShortVersionString: "0.2.0"
-        CFBundleVersion: "5"
+        CFBundleShortVersionString: "0.2.1"
+        CFBundleVersion: "6"
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false
@@ -98,7 +98,7 @@ targets:
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, ru]
         # версия расширения обязана совпадать с версией приложения
-        CFBundleShortVersionString: "0.2.0"
-        CFBundleVersion: "5"
+        CFBundleShortVersionString: "0.2.1"
+        CFBundleVersion: "6"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
