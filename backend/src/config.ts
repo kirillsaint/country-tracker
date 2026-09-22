@@ -31,7 +31,7 @@ export const config = {
   // публичный адрес сервера для подписанных ссылок на фото; пусто — берётся из запроса (dev: localhost)
   publicBaseUrl: process.env.PUBLIC_BASE_URL ?? "",
   // сколько дней результат проверки режима считается свежим (кэш + порог «перепроверить при въезде»)
-  regimeFreshDays: Number(process.env.REGIME_FRESH_DAYS ?? 30),
+  regimeFreshDays: Number(process.env.REGIME_FRESH_DAYS ?? 3),
   // Self Store — откуда приложение узнаёт о новой версии: адрес магазина и id приложения Stamps в нём.
   // Пусто — проверка обновлений выключена.
   selfStoreUrl: (process.env.SELF_STORE_URL ?? "").replace(/\/$/, ""),
