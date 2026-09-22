@@ -16,7 +16,6 @@ import { discover, itinerary, userState, type PlaceRating, type PlaceSave } from
 import { getJob, startJob } from "./jobs.js";
 import { weatherNow } from "./weather.js";
 import { placeDismissals, placeRatings, placeSaves, tastePreferences } from "./db.js";
-import { SCHENGEN } from "./presets.js";
 import {
   addDays,
   buildDailyPresence,
@@ -438,50 +437,14 @@ function publicRule({ userId: _u, _id: _i, ...r }: Rule & { _id?: unknown }) {
   };
 }
 
-// Правила по умолчанию для нового пользователя — один раз, потом он волен всё удалить
-async function ensureDefaultRules(userId: Point["userId"]) {
-  const user = await users.findOne({ _id: userId }, { projection: { rulesSeeded: 1 } });
-  if (!user || user.rulesSeeded) return;
-  const now = new Date().toISOString();
-  await rules.insertOne({
-    userId,
-    id: randomUUID(),
-    name: "Шенген 90/180",
-    enabled: true,
-    type: "rolling",
-    countries: SCHENGEN,
-    limitDays: 90,
-    windowDays: 180,
-    startDate: null,
-    autoStart: false,
-    mode: "limit",
-    countMode: "any",
-    warnRemainingDays: 10,
-    notify: true,
-    sortOrder: 0,
-    documentId: null,
-    documentRole: null,
-    regimeId: null,
-    constraintId: null,
-    validFrom: null,
-    customized: false,
-    validUntil: null,
-    createdAt: now,
-    updatedAt: now,
-  });
-  await users.updateOne({ _id: userId }, { $set: { rulesSeeded: true } });
-}
-
 api.get("/rules", async (c) => {
   const userId = c.get("userId");
-  await ensureDefaultRules(userId);
   const list = await rules.find({ userId }).sort({ sortOrder: 1, createdAt: 1 }).toArray();
   return c.json({ rules: list.map(publicRule) });
 });
 
 api.post("/rules", zValidator("json", ruleBody), async (c) => {
   const userId = c.get("userId");
-  await ensureDefaultRules(userId);
   const now = new Date().toISOString();
   const rule: Rule = { userId, id: randomUUID(), documentId: null, documentRole: null, regimeId: null, constraintId: null, validFrom: null, customized: false, ...c.req.valid("json"), createdAt: now, updatedAt: now };
   await rules.insertOne(rule);
@@ -529,7 +492,6 @@ api.delete("/rules/:id", zValidator("param", z.object({ id: z.string().uuid() })
 // Результаты по всем включённым правилам
 api.get("/stats/rules", zValidator("query", z.object(tzQuery)), async (c) => {
   const userId = c.get("userId");
-  await ensureDefaultRules(userId);
   const [{ days, today }, list, entryList] = await Promise.all([
     loadPresence(userId, c.req.valid("query").tz),
     rules.find({ userId, enabled: true }).sort({ sortOrder: 1, createdAt: 1 }).toArray(),
