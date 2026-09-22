@@ -270,7 +270,7 @@ final class AppModel {
     var currentSegment: Segment? {
         guard let c = current else { return nil }
         return timeline.first { $0.countryCode == c.countryCode && $0.from == c.since }
-            ?? Segment(countryCode: c.countryCode, countryName: c.countryName, city: c.city, from: c.since, to: c.lastSeen, days: c.daysInRow)
+            ?? Segment(countryCode: c.countryCode, countryName: c.countryName, city: c.city, cities: nil, from: c.since, to: c.lastSeen, days: c.daysInRow)
     }
 
     func entry(for segment: Segment) -> Entry? {

@@ -76,10 +76,15 @@ struct Segment: Codable, Identifiable, Hashable {
     var id: String { "\(from)-\(countryCode)" }
     let countryCode: String
     let countryName: String?
+    /// город с наибольшим числом дней
     let city: String?
+    /// все города отрезка с днями, по убыванию; nil у отрезков, собранных на устройстве
+    var cities: [CityDays]?
     let from: String
     let to: String
     let days: Int
+
+    struct CityDays: Codable, Hashable { let city: String; let days: Int }
 }
 
 struct CityStat: Codable, Identifiable, Hashable {
@@ -120,7 +125,8 @@ extension Segment {
             let start = y == fromYear ? from : "\(y)-01-01"
             let end = y == toYear ? to : "\(y)-12-31"
             let d = (daysBetween(start, end) ?? 0) + 1
-            out.append(Segment(countryCode: countryCode, countryName: countryName, city: city, from: start, to: end, days: d))
+            // города по годам не делим — показываем общий список отрезка
+            out.append(Segment(countryCode: countryCode, countryName: countryName, city: city, cities: cities, from: start, to: end, days: d))
         }
         return out.reversed()
     }

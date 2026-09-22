@@ -146,15 +146,21 @@ export function countryStats(days: DailyPresence, from: string, to: string): Cou
 export type Segment = {
   countryCode: string;
   countryName: string | null;
+  // город, где провели больше всего дней отрезка
   city: string | null;
+  // все города отрезка с числом дней, по убыванию — «Тбилиси 100 · Батуми 6 · Зугдиди 4»
+  cities: { city: string; days: number }[];
   from: string;
   to: string;
   days: number;
 };
 
 // Непрерывные отрезки по основной стране дня — для ленты "март: Тбилиси, апрель: Алматы".
+// Внутри страны по городам не режем: город у автоматических точек плавает (пригороды, соседние
+// районы), и лента рассыпалась бы на осколки. Вместо этого у отрезка список городов с днями.
 export function timeline(days: DailyPresence, from: string, to: string): Segment[] {
   const out: Segment[] = [];
+  const cityDays: Map<string, number>[] = [];
   let prevDate: string | null = null;
   for (const d of datesInRange(days, from, to)) {
     const p = primaryOf(days.get(d))!;
@@ -163,18 +169,20 @@ export function timeline(days: DailyPresence, from: string, to: string): Segment
     if (last && contiguous && last.countryCode === p.countryCode) {
       last.to = d;
       last.days++;
-      last.city ??= p.city;
     } else {
-      out.push({
-        countryCode: p.countryCode,
-        countryName: p.countryName,
-        city: p.city,
-        from: d,
-        to: d,
-        days: 1,
-      });
+      out.push({ countryCode: p.countryCode, countryName: p.countryName, city: null, cities: [], from: d, to: d, days: 1 });
+      cityDays.push(new Map());
+    }
+    const city = p.city?.trim();
+    if (city) {
+      const m = cityDays[cityDays.length - 1];
+      m.set(city, (m.get(city) ?? 0) + 1);
     }
     prevDate = d;
+  }
+  for (const [i, seg] of out.entries()) {
+    seg.cities = [...cityDays[i].entries()].map(([city, n]) => ({ city, days: n })).sort((a, b) => b.days - a.days);
+    seg.city = seg.cities[0]?.city ?? null;
   }
   // День перелёта принадлежит обеим странам: у той, откуда уехали, он не основной и в отрезок не попал.
   // Дотягиваем конец отрезка на такие дни, чтобы «Турция 21–31 мая» и «Грузия с 31 мая» показывались честно.

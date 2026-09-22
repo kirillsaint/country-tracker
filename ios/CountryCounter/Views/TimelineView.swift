@@ -130,7 +130,11 @@ struct TimelineView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(s.countryCode.countryDisplayName(fallback: s.countryName))
                         .font(.headline)
-                    if let city = s.city {
+                    if let cities = s.cities, cities.count > 1 {
+                        // несколько городов за одно пребывание: «Тбилиси 100 · Батуми 6 · Зугдиди 4»
+                        Text(cities.map { "\($0.city.cityDisplayName(country: s.countryCode)) \($0.days)" }.joined(separator: " · "))
+                            .foregroundStyle(.secondary)
+                    } else if let city = s.city {
                         Text(city.cityDisplayName(country: s.countryCode)).foregroundStyle(.secondary)
                     }
                     Text(verbatim: s.from == s.to ? prettyDate(s.from) : "\(prettyDate(s.from)) – \(prettyDate(s.to))")
