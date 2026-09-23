@@ -49,6 +49,10 @@ export function buildDailyPresence(
       if (existing.inferred && !p.inferred) {
         existing.inferred = false;
         existing.city = p.city ?? existing.city;
+      } else if (!existing.inferred && !p.inferred && p.city) {
+        // несколько реальных точек за день: город — из последней, у которой он определился
+        // (первая точка дня могла прийти без геокодера, и день оставался без города)
+        existing.city = p.city;
       }
       return;
     }
@@ -60,12 +64,18 @@ export function buildDailyPresence(
     .filter((p) => p.countryCode)
     .sort((a, b) => a.recordedAt.localeCompare(b.recordedAt));
 
+  // Город у точки может не определиться (геокодер в фоне без сети). Тогда берём последний известный
+  // город той же страны: человек скорее всего там же, где его видели, — иначе главная и хвост
+  // хронологии остаются без города, хотя раньше он был
+  const lastCity = new Map<string, string>();
   for (let i = 0; i < located.length; i++) {
     const p = located[i];
+    if (p.city) lastCity.set(p.countryCode!, p.city);
+    const city = p.city ?? lastCity.get(p.countryCode!) ?? null;
     add(p.localDate, {
       countryCode: p.countryCode!,
       countryName: p.countryName,
-      city: p.city,
+      city,
       inferred: false,
       overridden: false,
     });
@@ -75,7 +85,7 @@ export function buildDailyPresence(
       add(d, {
         countryCode: p.countryCode!,
         countryName: p.countryName,
-        city: p.city,
+        city,
         inferred: true,
         overridden: false,
       });
