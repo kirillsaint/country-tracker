@@ -187,7 +187,9 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
                 departureAt: departure,
                 city: nil,
                 region: nil,
-                deviceId: UIDevice.current.identifierForVendor?.uuidString
+                deviceId: UIDevice.current.identifierForVendor?.uuidString,
+                altitude: location.verticalAccuracy >= 0 ? location.altitude : nil,
+                speed: location.speed >= 0 ? location.speed : nil
             )
 
             log.info("record \(source.rawValue): geocoding")

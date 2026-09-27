@@ -20,6 +20,9 @@ struct PendingPoint: Codable, Identifiable, Equatable {
     var city: String?
     var region: String?
     let deviceId: String?
+    /// высота над уровнем моря и скорость (м, м/с), если система их знает: по ним сервер отличает точку из самолёта
+    var altitude: Double? = nil
+    var speed: Double? = nil
 }
 
 // MARK: - Ответы API

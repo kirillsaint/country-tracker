@@ -49,7 +49,16 @@ const pointSchema = z.object({
   city: z.string().max(200).nullable().optional(),
   region: z.string().max(200).nullable().optional(),
   deviceId: z.string().max(100).nullable().optional(),
+  altitude: z.number().nullable().optional(),
+  speed: z.number().nullable().optional(),
 });
+
+// Точка из самолёта: выше 5 км (самые высокие города ниже) или быстрее 150 м/с (540 км/ч, поезда медленнее).
+// Такие точки сохраняем, но помечаем — иначе пролёт над страной засчитывается как день в ней
+export function flightExclusion(p: { altitude?: number | null; speed?: number | null }): Point["excluded"] {
+  if ((p.altitude ?? 0) > 5000 || (p.speed ?? 0) > 150) return { reason: "flight" };
+  return null;
+}
 
 // Устройство копит точки оффлайн и шлёт пачкой; дубли по clientId молча пропускаем.
 api.post("/points", zValidator("json", z.object({ points: z.array(pointSchema).min(1).max(500) })), async (c) => {
@@ -75,6 +84,9 @@ api.post("/points", zValidator("json", z.object({ points: z.array(pointSchema).m
       city: p.city ?? null,
       region: p.region ?? null,
       deviceId: p.deviceId ?? null,
+      altitude: p.altitude ?? null,
+      speed: p.speed ?? null,
+      excluded: flightExclusion(p),
       createdAt: now,
     };
   });

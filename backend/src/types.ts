@@ -267,6 +267,11 @@ export type Point = {
   city: string | null;
   region: string | null;
   deviceId: string | null;
+  // высота (м) и скорость (м/с) с устройства, если известны
+  altitude?: number | null;
+  speed?: number | null;
+  // точка снята в самолёте (высота или скорость) — хранится, но в подсчёте дней не участвует
+  excluded?: { reason: "flight" } | null;
   createdAt: string;
 };
 

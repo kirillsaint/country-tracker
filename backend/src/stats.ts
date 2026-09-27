@@ -60,9 +60,11 @@ export function buildDailyPresence(
     days.set(date, list);
   };
 
-  const located = points
-    .filter((p) => p.countryCode)
-    .sort((a, b) => a.recordedAt.localeCompare(b.recordedAt));
+  const located = dropFlyovers(
+    points
+      .filter((p) => p.countryCode && !p.excluded)
+      .sort((a, b) => a.recordedAt.localeCompare(b.recordedAt)),
+  );
 
   // Город у точки может не определиться (геокодер в фоне без сети). Тогда берём последний известный
   // город той же страны: человек скорее всего там же, где его видели, — иначе главная и хвост
@@ -105,6 +107,27 @@ export function buildDailyPresence(
   }
 
   return days;
+}
+
+/**
+ * Пролёт над страной: одна-единственная точка страны C, до и после которой в пределах шести часов —
+ * точки других стран, и больше ничего из C за сутки вокруг. Телефон на снижении или у окна ловит
+ * координату над чужой территорией, а это не въезд. Пересадка с двумя и более точками остаётся.
+ * points — отсортированы по времени.
+ */
+export function dropFlyovers(points: Point[]): Point[] {
+  const H = 3_600_000;
+  const at = (p: Point) => Date.parse(p.recordedAt);
+  return points.filter((p, i) => {
+    const prev = points[i - 1];
+    const next = points[i + 1];
+    if (!prev || !next) return true;
+    if (prev.countryCode === p.countryCode || next.countryCode === p.countryCode) return true;
+    if (at(next) - at(prev) > 6 * H) return true;
+    const t = at(p);
+    const others = points.some((q, j) => j !== i && q.countryCode === p.countryCode && Math.abs(at(q) - t) < 24 * H);
+    return others;
+  });
 }
 
 export function primaryOf(list: Presence[] | undefined): Presence | null {
